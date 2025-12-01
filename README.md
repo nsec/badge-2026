@@ -1,2 +1,8 @@
-# badge-2026
-Hardware (schematics, PCB layout, ...) and firmware of the 2026 NorthSec badge
+# Northsec 2026 badge
+
+## Hardware
+
+## Firmware
+
+## Credits
+NorthSec CTF badge 2026 is brought to you by the teamwork of:
