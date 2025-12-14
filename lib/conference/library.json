@@ -1,0 +1,13 @@
+{
+  "name": "conference",
+  "version": "1.0.0",
+  "description": "NorthSec Badge 2026 - Conference-specific modules",
+  "keywords": ["northsec", "badge", "conference"],
+  "platforms": ["espressif32"],
+  "frameworks": ["arduino"],
+  "dependencies": [
+    {
+      "name": "core"
+    }
+  ]
+}

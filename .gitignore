@@ -1,0 +1,11 @@
+.pio/
+.vscode/
+.DS_Store
+
+# Local tooling
+.venv/
+
+# Artifacts
+*.bin
+*.elf
+*.map

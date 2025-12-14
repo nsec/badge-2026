@@ -1,0 +1,8 @@
+{
+  "name": "core",
+  "version": "1.0.0",
+  "description": "NorthSec Badge 2026 core library (CLI, hardware, OTA)",
+  "keywords": "badge, esp32s3, ota, cli",
+  "frameworks": "arduino",
+  "platforms": "espressif32"
+}

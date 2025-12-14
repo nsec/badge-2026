@@ -1,0 +1,141 @@
+name: build
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install platformio
+
+      - name: Build factory firmware
+        run: |
+          pio run -e esp32-s3-devkitc-1
+
+      - name: Build OTA firmware
+        run: |
+          pio run -e esp32-s3-devkitc-1-ota
+
+      - name: Prepare release artifacts
+        run: |
+          mkdir -p release
+          # Factory firmware (conference mode)
+          cp .pio/build/esp32-s3-devkitc-1/firmware.bin release/badge-factory.bin
+          cp .pio/build/esp32-s3-devkitc-1/bootloader.bin release/bootloader.bin
+          cp .pio/build/esp32-s3-devkitc-1/partitions.bin release/partitions.bin
+          # OTA firmware (CTF challenges mode)
+          cp .pio/build/esp32-s3-devkitc-1-ota/firmware.bin release/badge-ota.bin
+          # Create flash script for convenience
+          cat > release/FLASH_INSTRUCTIONS.txt << 'EOF'
+          NorthSec Badge 2026 - Flash Instructions
+          ==========================================
+
+          Prerequisites:
+          - esptool.py installed: pip install esptool
+          - USB driver for ESP32-S3 (usually automatic)
+
+          Windows:
+          --------
+          python -m esptool --chip esp32s3 --port COM4 --baud 460800 ^
+            --before default_reset --after hard_reset write_flash -z ^
+            --flash_mode dio --flash_freq 80m --flash_size 8MB ^
+            0x0 bootloader.bin ^
+            0x8000 partitions.bin ^
+            0x10000 badge-factory.bin ^
+            0x150000 badge-ota.bin
+
+          Linux/Mac:
+          ----------
+          python3 -m esptool --chip esp32s3 --port /dev/ttyACM0 --baud 460800 \
+            --before default_reset --after hard_reset write_flash -z \
+            --flash_mode dio --flash_freq 80m --flash_size 8MB \
+            0x0 bootloader.bin \
+            0x8000 partitions.bin \
+            0x10000 badge-factory.bin \
+            0x150000 badge-ota.bin
+
+          Files:
+          ------
+          - bootloader.bin: ESP32-S3 bootloader
+          - partitions.bin: Partition table (factory + OTA layout)
+          - badge-factory.bin: Conference firmware (factory partition @ 0x10000)
+          - badge-ota.bin: CTF challenges firmware (ota_0 partition @ 0x150000)
+
+          Notes:
+          ------
+          - Replace COM4 (Windows) or /dev/ttyACM0 (Linux/Mac) with your port
+          - Find port: Windows Device Manager, Linux "ls /dev/tty*", Mac "ls /dev/cu.*"
+          - Factory firmware boots by default
+          - Use CLI commands to switch: "boot factory" or "boot ota"
+          EOF
+
+      - name: Upload firmware artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-binaries
+          path: release/
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: firmware-binaries
+          path: release
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          body: |
+            ## NorthSec Badge 2026 Firmware Release
+            
+            This release contains dual-firmware images for the NorthSec 2026 badge (ESP32-S3).
+            
+            ### Files Included
+            - `badge-factory.bin` - Conference firmware (factory partition)
+            - `badge-ota.bin` - CTF challenges firmware (OTA partition)
+            - `bootloader.bin` - ESP32-S3 bootloader
+            - `partitions.bin` - Partition table
+            - `FLASH_INSTRUCTIONS.txt` - Complete flashing guide
+            
+            ### Quick Flash (All-in-one)
+            ```bash
+            # Flash both firmwares + bootloader + partitions
+            python -m esptool --chip esp32s3 --port <PORT> --baud 460800 \
+              write_flash -z 0x0 bootloader.bin \
+              0x8000 partitions.bin 0x10000 badge-factory.bin 0x150000 badge-ota.bin
+            ```
+            
+            ### Switching Between Firmwares
+            Connect to serial console (115200 baud) and use CLI commands:
+            - `boot factory` - Switch to conference firmware
+            - `boot ota` - Switch to CTF challenges firmware
+            - `info` - Show current firmware partition
+            
+            See `FLASH_INSTRUCTIONS.txt` for detailed platform-specific instructions.
