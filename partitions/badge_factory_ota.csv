@@ -1,0 +1,20 @@
+# Name,   Type, SubType, Offset,  Size, Flags
+# NorthSec badge 2026 - Factory + OTA layout (ESP32-S3)
+#
+# Two app partitions:
+# - factory : golden image
+# - ota_0   : update/alternate image
+# Boot selection is controlled by `otadata`.
+#
+# Adjust sizes for your flash size (commonly 8MB or 16MB).
+#
+# SPDX-License-Identifier: Apache-2.0
+# Standard ESP32-S3 partition layout with factory + OTA
+
+nvs,      data, nvs,     ,        0x6000,
+phy_init, data, phy,     ,        0x1000,
+factory,  app,  factory, ,        0x140000,
+ota_0,    app,  ota_0,   ,        0x140000,
+otadata,  data, ota,     ,        0x2000,
+coredump, data, coredump,,        0x10000,
+spiffs,   data, spiffs,  ,        0x160000,

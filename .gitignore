@@ -1,3 +1,15 @@
+# PlatformIO
+.pio/
+.vscode/
+
+# Local tooling
+.venv/
+
+# Artifacts
+*.bin
+*.elf
+*.map
+
 .pytest_cache/
 __pycache__/
 
