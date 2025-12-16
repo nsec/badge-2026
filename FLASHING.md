@@ -3,17 +3,25 @@
 ## For Mass Production / Distribution
 
 ### Requirements
-- Python 3.7+ with esptool: `pip install esptool`
+
+- Python 3.7+ with esptool: `python -m pip install esptool`
 - USB-C cable
 - Badge firmware files from GitHub release
 
 ### Batch Flashing Script
 
-**Windows (batch-flash.bat):**
+**Windows (`flash.bat`):**
 ```batch
 @echo off
 set PORT=COM4
 set BAUD=460800
+
+where python > NUL 2>&1
+if %errorlevel% NEQ 0 (
+  echo ERROR: Python not found in PATH!
+  pause
+  exit /b 1
+)
 
 echo Flashing NorthSec Badge 2026...
 python -m esptool --chip esp32s3 --port %PORT% --baud %BAUD% ^
@@ -25,18 +33,58 @@ python -m esptool --chip esp32s3 --port %PORT% --baud %BAUD% ^
   0x150000 badge-ota.bin
 
 if %errorlevel% equ 0 (
-    echo SUCCESS: Badge flashed successfully!
+  echo SUCCESS: Badge flashed successfully!
 ) else (
-    echo ERROR: Flashing failed!
+  echo ERROR: Flashing failed!
+  pause
+  exit /b 1
 )
 pause
 ```
 
-**Linux/Mac (batch-flash.sh):**
+**Windows (`flash.ps1`):**
+```powershell
+$PORT = "COM4"
+$BAUD = 460800
+
+if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
+    Write-Host "ERROR: Python not found in PATH!"
+    Read-Host "Press Enter to exit"
+    exit 1
+}
+
+Write-Host "Flashing NorthSec Badge 2026..."
+
+python -m esptool --chip esp32s3 --port $PORT --baud $BAUD `
+    --before default_reset --after hard_reset write_flash -z `
+    --flash_mode dio --flash_freq 80m --flash_size 8MB `
+    0x0 bootloader.bin `
+    0x8000 partitions.bin `
+    0x10000 badge-factory.bin `
+    0x150000 badge-ota.bin
+
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "SUCCESS: Badge flashed successfully!"
+} else {
+    Write-Host "ERROR: Flashing failed!"
+    Read-Host "Press Enter to exit"
+    exit 1
+}
+
+Read-Host "Press Enter to exit"
+```
+
+**Linux/Mac (`flash.sh`):**
 ```bash
 #!/bin/bash
 PORT=/dev/ttyACM0
 BAUD=460800
+
+which python > /dev/null 2>&1
+if [ $? -neq 0 ]; then
+  echo "ERROR: Flashing failed!"
+  exit 1
+fi
 
 echo "Flashing NorthSec Badge 2026..."
 python3 -m esptool --chip esp32s3 --port $PORT --baud $BAUD \
@@ -51,6 +99,7 @@ if [ $? -eq 0 ]; then
     echo "SUCCESS: Badge flashed successfully!"
 else
     echo "ERROR: Flashing failed!"
+    exit 1
 fi
 ```
 
@@ -105,4 +154,4 @@ Test sample from each batch:
 ### Support
 
 For flashing issues or firmware bugs, open an issue at:
-https://github.com/yourusername/badge-2026/issues
+https://github.com/nsec/badge-2026/issues
