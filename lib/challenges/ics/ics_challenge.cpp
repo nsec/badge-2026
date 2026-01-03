@@ -1,8 +1,6 @@
 #include "ics_challenge.h"
-#include <WiFi.h>
-#include <PubSubClient.h>
 
-const char* mqtt_server = "broker.mqtt-dashboard.com";
+const char* mqtt_server = "192.168.1.244";
 
 namespace challenges {
 namespace ics {
@@ -48,6 +46,7 @@ void reconnect() {
       client.publish("outTopic", "hello world");
       // ... and resubscribe
       client.subscribe("inTopic");
+      client.subscribe("outTopic");
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -59,18 +58,19 @@ void reconnect() {
 }
 
 void init() {
-  // TODO: add challenge init
-  char ssid[] = "secret";
-  char pass[] = "secret";
+
   Serial.begin(115200);
   while (!Serial) { }
 
+  char SSID[] = "FAKESSID";
+  char PASS[] = "FAKEPASS";
+
   Serial.print("Attempting to connect to SSID: ");
-  Serial.println(ssid);
+  Serial.println(SSID);
 
   WiFi.useStaticBuffers(true);
   WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, pass);
+  WiFi.begin(SSID, PASS);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -81,10 +81,11 @@ void init() {
 
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
+
+  reconnect();
 }
 
 void tick() {
-  // TODO: add challenge periodic logic
   client.loop();
 
   unsigned long now = millis();

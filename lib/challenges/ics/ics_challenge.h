@@ -1,4 +1,8 @@
-#pragma once
+#ifndef ICS_H
+#define ICS_H
+
+#include <WiFi.h>
+#include <PubSubClient.h>
 
 namespace challenges {
 namespace ics {
@@ -8,3 +12,4 @@ void tick();
 
 } // namespace ics
 } // namespace challenges
+#endif
