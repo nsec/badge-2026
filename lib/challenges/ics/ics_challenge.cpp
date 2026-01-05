@@ -1,12 +1,13 @@
 #include "ics_challenge.h"
+#include "secrets.h"
 
 const char* mqtt_server = "192.168.1.244";
 
 namespace challenges {
 namespace ics {
 
-WiFiClient espClient;
-PubSubClient client(espClient);
+WiFiClientSecure espClient;
+PubSubClient* client = nullptr;
 unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE	(50)
 char msg[MSG_BUFFER_SIZE];
@@ -34,22 +35,22 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 void reconnect() {
   // Loop until we're reconnected
-  while (!client.connected()) {
+  while (!client->connected()) {
     Serial.print("Attempting MQTT connection...");
     // Create a random client ID
     String clientId = "NSEC-";
     clientId += String(random(0xffff), HEX);
     // Attempt to connect
-    if (client.connect(clientId.c_str())) {
+    if (client->connect(clientId.c_str(), "esp_user", "esp_pass")) {
       Serial.println("connected");
       // Once connected, publish an announcement...
-      client.publish("outTopic", "hello world");
+      client->publish("outTopic", "hello world");
       // ... and resubscribe
-      client.subscribe("inTopic");
-      client.subscribe("outTopic");
+      client->subscribe("inTopic");
+      client->subscribe("outTopic");
     } else {
       Serial.print("failed, rc=");
-      Serial.print(client.state());
+      Serial.print(client->state());
       Serial.println(" try again in 5 seconds");
       // Wait 5 seconds before retrying
       delay(5000);
@@ -61,9 +62,6 @@ void init() {
 
   Serial.begin(115200);
   while (!Serial) { }
-
-  char SSID[] = "FAKESSID";
-  char PASS[] = "FAKEPASS";
 
   Serial.print("Attempting to connect to SSID: ");
   Serial.println(SSID);
@@ -79,14 +77,16 @@ void init() {
   Serial.println("");
   Serial.println("Connected to WiFi");
 
-  client.setServer(mqtt_server, 1883);
-  client.setCallback(callback);
+  espClient.setInsecure();
+  client = new PubSubClient(espClient);
+  client->setServer(mqtt_server, 8883);
+  client->setCallback(callback);
 
   reconnect();
 }
 
 void tick() {
-  client.loop();
+  client->loop();
 
   unsigned long now = millis();
   if (now - lastMsg > 2000) {
@@ -95,7 +95,7 @@ void tick() {
     snprintf (msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
     Serial.print("Publish message: ");
     Serial.println(msg);
-    client.publish("outTopic", msg);
+    client->publish("outTopic", msg);
   }
 }
 

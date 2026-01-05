@@ -2,6 +2,7 @@
 #define ICS_H
 
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 
 namespace challenges {
