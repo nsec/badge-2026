@@ -164,6 +164,39 @@ pio run -t upload
 pio device monitor
 ```
 
+## Native Simulator
+
+A desktop simulator allows running the badge firmware on your development machine
+without hardware. Useful for testing CLI commands, debugging, and development.
+
+### Prerequisites
+
+- PlatformIO Core (CLI)
+- GCC with C++17 and pthread support (Linux/macOS)
+- For Windows: WSL recommended
+
+### First-Time Setup
+
+Initialize the FreeRTOS submodule:
+
+```bash
+git submodule update --init --recursive
+```
+
+### Build
+
+```bash
+pio run -e native
+```
+
+### Run
+
+```bash
+./.pio/build/native/program
+```
+
+The simulator presents the same CLI as the real badge. Press `Ctrl+C` to exit.
+
 ## CI/CD - GitHub Actions Workflow
 
 ### Automated Builds
