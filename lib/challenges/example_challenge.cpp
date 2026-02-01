@@ -17,7 +17,7 @@ void tick() {
 void registerCommands() {
     // Register the 'example' command with the CLI
     core::cli::registerCommand("example", "example challenge info", 
-        [](Stream& stream, const String& args) {
+        [](Stream& stream, const std::string& args) {
             handleExampleCommand(stream);
         });
 }

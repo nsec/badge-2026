@@ -1,6 +1,10 @@
 #include "cli.h"
 
 #include <Arduino.h>
+#include <algorithm>
+#include <cctype>
+#include <cstdlib>
+#include <string>
 #include <vector>
 
 #include "../system/ota_manager.h"
@@ -9,16 +13,33 @@
 #include "../hardware/buttons.h"
 
 namespace {
+
+// Helper functions for std::string
+inline void toLower(std::string& s) {
+  std::transform(s.begin(), s.end(), s.begin(),
+                 [](unsigned char c) { return std::tolower(c); });
+}
+
+inline void trim(std::string& s) {
+  size_t start = s.find_first_not_of(" \t\r\n");
+  size_t end = s.find_last_not_of(" \t\r\n");
+  if (start == std::string::npos) {
+    s.clear();
+  } else {
+    s = s.substr(start, end - start + 1);
+  }
+}
+
 Stream *g_io = nullptr;
-String g_line;
+std::string g_line;
 bool g_promptNeeded = true;  // deferred prompt flag
 
 // Command history
 static constexpr int HISTORY_SIZE = 16;
-String g_history[HISTORY_SIZE];
+std::string g_history[HISTORY_SIZE];
 int g_historyCount = 0;   // total items stored
 int g_historyIdx = -1;    // current browse position (-1 = not browsing)
-String g_savedLine;        // line saved when user starts browsing
+std::string g_savedLine;        // line saved when user starts browsing
 
 // ANSI escape sequence state machine
 enum class EscState { None, GotEsc, GotBracket };
@@ -26,8 +47,8 @@ EscState g_escState = EscState::None;
 
 // Registered commands
 struct Command {
-  String name;
-  String help;
+  std::string name;
+  std::string help;
   core::cli::CommandHandler handler;
 };
 std::vector<Command> g_commands;
@@ -39,17 +60,17 @@ void prompt() {
 }
 
 // Clear the current line on the terminal and replace with new text
-void replaceLine(const String &newLine) {
+void replaceLine(const std::string &newLine) {
   if (!g_io) return;
   // Erase current display: move cursor to start of input, overwrite with spaces, move back
-  for (int i = g_line.length(); i > 0; i--) {
+  for (size_t i = g_line.length(); i > 0; i--) {
     g_io->print("\b \b");
   }
   g_line = newLine;
-  g_io->print(g_line);
+  g_io->print(g_line.c_str());
 }
 
-void historyAdd(const String &line) {
+void historyAdd(const std::string &line) {
   if (line.length() == 0) return;
   // Don't add duplicates of the most recent entry
   if (g_historyCount > 0 && g_history[(g_historyCount - 1) % HISTORY_SIZE] == line) return;
@@ -83,12 +104,12 @@ void historyBrowseDown() {
   }
 }
 
-String nextToken(const String &s, int &idx) {
-  while (idx < (int)s.length() && isspace((unsigned char)s[idx])) idx++;
-  int start = idx;
-  while (idx < (int)s.length() && !isspace((unsigned char)s[idx])) idx++;
-  if (start == idx) return String();
-  return s.substring(start, idx);
+std::string nextToken(const std::string &s, size_t &idx) {
+  while (idx < s.length() && std::isspace(static_cast<unsigned char>(s[idx]))) idx++;
+  size_t start = idx;
+  while (idx < s.length() && !std::isspace(static_cast<unsigned char>(s[idx]))) idx++;
+  if (start == idx) return std::string();
+  return s.substr(start, idx - start);
 }
 
 void cmdHelp() {
@@ -100,15 +121,15 @@ void cmdHelp() {
   g_io->println("  buttontest           - interactive button test (press all 6)");
   g_io->println("  swapboot             - switch to other firmware and reboot");
   g_io->println("  reboot               - reboot now");
-  
+
   // Show registered module commands
   for (const auto& cmd : g_commands) {
     g_io->print("  ");
-    g_io->print(cmd.name);
+    g_io->print(cmd.name.c_str());
     // Pad to align help text
-    for (int i = cmd.name.length(); i < 20; i++) g_io->print(" ");
+    for (size_t i = cmd.name.length(); i < 20; i++) g_io->print(" ");
     g_io->print(" - ");
-    g_io->println(cmd.help);
+    g_io->println(cmd.help.c_str());
   }
 }
 
@@ -186,14 +207,14 @@ void ledTestOff() {
   delay(500);
 }
 
-void cmdLedTest(const String &arg) {
+void cmdLedTest(const std::string &arg) {
   g_io->println("=== RGB LED Test Suite ===");
   g_io->print("LEDs: ");
   g_io->print(core::hw::RGB_LED_COUNT);
   g_io->println(" on IO8");
   g_io->println();
 
-  int testNum = arg.toInt();  // 0 if empty/invalid = run all
+  int testNum = std::atoi(arg.c_str());  // 0 if empty/invalid = run all
 
   if (testNum == 0 || testNum == 1) ledTestRed();
   if (testNum == 0 || testNum == 2) ledTestGreen();
@@ -221,7 +242,7 @@ void cmdReboot() {
 }
 
 void cmdBoot() {
-  String current = core::ota::getRunningPartitionLabel();
+  std::string current(core::ota::getRunningPartitionLabel().c_str());
   core::ota::BootTarget target;
   const char *targetName;
 
@@ -234,17 +255,17 @@ void cmdBoot() {
   }
 
   g_io->print("Currently on: ");
-  g_io->println(current);
+  g_io->println(current.c_str());
   g_io->print("Switching to: ");
   g_io->println(targetName);
 
   if (core::ota::setNextBoot(target, *g_io)) cmdReboot();
 }
 
-void handleLine(const String &line) {
-  int i = 0;
-  String cmd = nextToken(line, i);
-  cmd.toLowerCase();
+void handleLine(const std::string &line) {
+  size_t i = 0;
+  std::string cmd = nextToken(line, i);
+  toLower(cmd);
 
   if (cmd.length() == 0) return;
 
@@ -253,7 +274,7 @@ void handleLine(const String &line) {
   if (cmd == "info") return cmdInfo();
   if (cmd == "hwid") return cmdHwid();
   if (cmd == "ledtest") {
-    String arg = nextToken(line, i);
+    std::string arg = nextToken(line, i);
     return cmdLedTest(arg);
   }
   if (cmd == "buttontest") {
@@ -270,15 +291,15 @@ void handleLine(const String &line) {
   for (const auto& registeredCmd : g_commands) {
     if (cmd == registeredCmd.name) {
       // Get remaining arguments
-      String args = line.substring(i);
-      args.trim();
+      std::string args = (i < line.length()) ? line.substr(i) : "";
+      trim(args);
       registeredCmd.handler(*g_io, args);
       return;
     }
   }
 
   g_io->print("Unknown command: ");
-  g_io->println(cmd);
+  g_io->println(cmd.c_str());
   g_io->println("Type 'help' for commands.");
 }
 } // namespace
@@ -333,7 +354,7 @@ void poll() {
       if (g_line.length() > 0) {
         historyAdd(g_line);
         handleLine(g_line);
-        g_line = "";
+        g_line.clear();
       }
       g_historyIdx = -1;  // reset history browsing
       prompt();
@@ -343,7 +364,7 @@ void poll() {
     // Backspace
     if (c == 0x08 || c == 0x7F) {
       if (g_line.length() > 0) {
-        g_line.remove(g_line.length() - 1);
+        g_line.pop_back();
         g_io->print("\b \b");
       }
       continue;
@@ -352,7 +373,7 @@ void poll() {
     // Ctrl+C - cancel current line
     if (c == 0x03) {
       g_io->println("^C");
-      g_line = "";
+      g_line.clear();
       g_historyIdx = -1;
       prompt();
       continue;
@@ -367,7 +388,7 @@ void poll() {
   }
 }
 
-void registerCommand(const String& name, const String& help, CommandHandler handler) {
+void registerCommand(const std::string& name, const std::string& help, CommandHandler handler) {
   Command cmd;
   cmd.name = name;
   cmd.help = help;

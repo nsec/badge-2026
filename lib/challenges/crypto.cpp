@@ -1,5 +1,6 @@
 #include "crypto.h"
 #include <Arduino.h>
+#include <string>
 #include <../core/cli/cli.h>
 
 namespace challenges {
@@ -12,8 +13,8 @@ void init() {
 
 void registerCommands() {
     // Register the 'crypto' command with the CLI
-    core::cli::registerCommand("crypto", "crypto challenge info", 
-        [](Stream& stream, const String& args) {
+    core::cli::registerCommand("crypto", "crypto challenge info",
+        [](Stream& stream, const std::string& args) {
             handleCryptoCommand(stream);
         });
 }
