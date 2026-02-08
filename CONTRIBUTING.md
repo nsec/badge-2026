@@ -51,7 +51,7 @@ GitHub Actions automatically builds and publishes release artifacts.
 
 ## Adding New Modules
 
-### Conference Module (Factory Firmware)
+### Conference Module (Conference Firmware)
 
 Create files under `lib/conference/`:
 
@@ -111,7 +111,7 @@ void init() {
 }
 ```
 
-### Challenge Module (OTA Firmware)
+### Challenge Module (CTF Firmware)
 
 Same process, but under `lib/challenges/` and register in `lib/challenges/registry.cpp`.
 
@@ -123,22 +123,22 @@ Same process, but under `lib/challenges/` and register in `lib/challenges/regist
 # Build both firmwares
 C:\pio\penv\Scripts\platformio.exe run
 
-# Flash and test factory
-C:\pio\penv\Scripts\platformio.exe run -e esp32-s3-devkitc-1 -t upload
+# Flash and test conference
+C:\pio\penv\Scripts\platformio.exe run -e esp32-s3-devkitc-1-conference -t upload
 
-# Flash and test OTA
-C:\pio\penv\Scripts\platformio.exe run -e esp32-s3-devkitc-1-ota -t upload
+# Flash and test CTF
+C:\pio\penv\Scripts\platformio.exe run -e esp32-s3-devkitc-1-ctf -t upload
 ```
 
 ### Test Checklist
 
-- [ ] Factory firmware builds without errors
-- [ ] OTA firmware builds without errors
+- [ ] Conference firmware builds without errors
+- [ ] CTF firmware builds without errors
 - [ ] New commands appear in `help` output
 - [ ] Commands work as expected
 - [ ] No memory leaks (monitor with `info` command)
 - [ ] Serial output clean and readable
-- [ ] Boot switching still works (`boot factory` / `boot ota`)
+- [ ] Boot switching still works (`boot conference` / `boot ctf`)
 
 ## Commit Messages
 

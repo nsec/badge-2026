@@ -34,8 +34,8 @@ void cmdHelp() {
   g_io->println("Commands:");
   g_io->println("  help                 - show this help");
   g_io->println("  info                 - print current boot/partition info");
-  g_io->println("  boot factory         - set next boot to factory partition (then reboot)");
-  g_io->println("  boot ota             - set next boot to OTA slot (then reboot)");
+  g_io->println("  boot conference      - set next boot to conference partition (then reboot)");
+  g_io->println("  boot ctf             - set next boot to CTF partition (then reboot)");
   g_io->println("  reboot               - reboot now");
   
   // Show registered module commands
@@ -60,16 +60,16 @@ void cmdReboot() {
 }
 
 void cmdBoot(const String &arg) {
-  if (arg == "factory") {
-    if (core::ota::setNextBoot(core::ota::BootTarget::Factory, *g_io)) cmdReboot();
+  if (arg == "conference") {
+    if (core::ota::setNextBoot(core::ota::BootTarget::Conference, *g_io)) cmdReboot();
     return;
   }
-  if (arg == "ota") {
-    if (core::ota::setNextBoot(core::ota::BootTarget::Ota0, *g_io)) cmdReboot();
+  if (arg == "ctf") {
+    if (core::ota::setNextBoot(core::ota::BootTarget::Ctf, *g_io)) cmdReboot();
     return;
   }
 
-  g_io->println("Usage: boot factory|ota");
+  g_io->println("Usage: boot conference|ctf");
 }
 
 void handleLine(const String &line) {

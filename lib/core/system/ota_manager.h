@@ -6,8 +6,8 @@ namespace core {
 namespace ota {
 
 enum class BootTarget {
-  Factory,
-  Ota0,
+  Conference,
+  Ctf,
 };
 
 void printBootInfo(Stream &io);

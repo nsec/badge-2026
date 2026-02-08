@@ -3,8 +3,8 @@
 ## 🎯 What You Have
 
 A complete dual-firmware badge system with:
-- **Factory firmware** - Conference features (schedule, social)
-- **OTA firmware** - CTF challenges (crypto, puzzles)
+- **Conference firmware** - Conference features (schedule, social)
+- **CTF firmware** - CTF challenges (crypto, puzzles)
 - **CLI system** - Boot partition switching and modular commands
 - **CI/CD pipeline** - Automated builds and releases
 - **Complete documentation** - For developers, users, and production
@@ -20,10 +20,10 @@ badge-2026/
 │   │   ├── cli/               # Command-line interface
 │   │   ├── hardware/          # Hardware abstraction
 │   │   └── system/            # OTA boot management
-│   ├── conference/            # Factory firmware only
+│   ├── conference/            # Conference firmware only
 │   │   ├── schedule.*         # Conference schedule module
 │   │   └── registry.*         # Conference module loader
-│   └── challenges/            # OTA firmware only
+│   └── challenges/            # CTF firmware only
 │       ├── crypto.*           # Crypto challenge module
 │       └── registry.*         # Challenge module loader
 ├── partitions/
@@ -57,8 +57,8 @@ C:\pio\penv\Scripts\platformio.exe run
 C:\pio\penv\Scripts\platformio.exe run -t upload
 
 # Or individually
-C:\pio\penv\Scripts\platformio.exe run -e esp32-s3-devkitc-1 -t upload        # Factory
-C:\pio\penv\Scripts\platformio.exe run -e esp32-s3-devkitc-1-ota -t upload    # OTA
+C:\pio\penv\Scripts\platformio.exe run -e esp32-s3-devkitc-1-conference -t upload        # Conference
+C:\pio\penv\Scripts\platformio.exe run -e esp32-s3-devkitc-1-ctf -t upload    # CTF
 ```
 
 ### Add New Feature
@@ -92,8 +92,8 @@ git push origin v1.0.0
 
 ### 4. Automated Release
 GitHub Actions automatically:
-- Builds factory firmware → `badge-factory.bin`
-- Builds OTA firmware → `badge-ota.bin`
+- Builds conference firmware → `badge-conference.bin`
+- Builds CTF firmware → `badge-ctf.bin`
 - Packages bootloader and partitions
 - Creates GitHub Release with all files
 - Attaches `FLASH_INSTRUCTIONS.txt`
@@ -103,7 +103,7 @@ Download from GitHub Releases and flash:
 ```bash
 python -m esptool --chip esp32s3 --port <PORT> write_flash -z \
   0x0 bootloader.bin 0x8000 partitions.bin \
-  0x10000 badge-factory.bin 0x150000 badge-ota.bin
+  0x10000 badge-conference.bin 0x150000 badge-ctf.bin
 ```
 
 ## 📚 Documentation Index
@@ -117,13 +117,13 @@ python -m esptool --chip esp32s3 --port <PORT> write_flash -z \
 
 ## 🎮 Using the Badge
 
-### Default Boot (Factory - Conference Mode)
+### Default Boot (Conference Mode)
 ```
 > help
 Commands:
   help       - show this help
   info       - partition info
-  boot ota   - switch to CTF mode
+  boot ctf   - switch to CTF mode
   schedule   - conference schedule
   ...
 
@@ -132,16 +132,16 @@ Commands:
 ...
 ```
 
-### Switch to OTA (Challenges Mode)
+### Switch to CTF (Challenges Mode)
 ```
-> boot ota
+> boot ctf
 Rebooting to CTF challenges...
 
 > help
 Commands:
   help         - show this help
   info         - partition info
-  boot factory - switch to conference mode
+  boot conference - switch to conference mode
   crypto       - crypto challenge
   ...
 
@@ -165,8 +165,8 @@ For mass production, see [FLASHING.md](FLASHING.md):
 0x000000   Bootloader (~15KB)
 0x008000   Partition table (3KB)
 0x00E000   OTA data selector (8KB)
-0x010000   Factory firmware (1.25MB) - Conference
-0x150000   OTA firmware (1.25MB) - Challenges
+0x010000   Conference firmware (1.25MB) - Conference
+0x150000   CTF firmware (1.25MB) - Challenges
 0x290000   Core dump (64KB)
 0x2A0000   SPIFFS filesystem (1.4MB)
 ```
@@ -175,8 +175,8 @@ For mass production, see [FLASHING.md](FLASHING.md):
 - **PlatformIO** - Build framework
 - **Arduino-ESP32** - Framework (via GitHub to avoid Windows issues)
 - **Two environments**:
-  - `esp32-s3-devkitc-1` - Factory build with `HAS_CONFERENCE=1`
-  - `esp32-s3-devkitc-1-ota` - OTA build with `HAS_CHALLENGES=1`
+  - `esp32-s3-devkitc-1-conference` - Conference build with `HAS_CONFERENCE=1`
+  - `esp32-s3-devkitc-1-ctf` - CTF build with `HAS_CHALLENGES=1`
 
 ### Module System
 - Modular design - each feature in its own file
@@ -228,8 +228,8 @@ You'll know everything works when:
 3. ✅ Tag `v1.0.0` → Release created with binaries
 4. ✅ Download → Flash → Badge boots
 5. ✅ Type `help` → See commands
-6. ✅ Type `boot ota` → Switches firmware
-7. ✅ Type `boot factory` → Returns to conference mode
+6. ✅ Type `boot ctf` → Switches firmware
+7. ✅ Type `boot conference` → Returns to conference mode
 
 ---
 

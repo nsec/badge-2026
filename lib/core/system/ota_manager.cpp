@@ -47,11 +47,11 @@ bool setNextBoot(BootTarget target, Stream &io) {
   const esp_partition_t *p = nullptr;
 
   switch (target) {
-    case BootTarget::Factory:
-      p = findAppByLabel("factory");
+    case BootTarget::Conference:
+      p = findAppByLabel("conference");
       break;
-    case BootTarget::Ota0:
-      p = findAppByLabel("ota_0");
+    case BootTarget::Ctf:
+      p = findAppByLabel("ctf");
       break;
   }
 
