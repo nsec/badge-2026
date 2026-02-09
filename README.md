@@ -6,7 +6,7 @@ Design goals (repo requirements):
 
 - **Arduino framework**, but **no `.ino`** (pure C++ entrypoint)
 - **PlatformIO-based** build (produces flashable `.bin` outputs)
-- **Two concurrent firmware images** via partitions: **`factory`** and **`ota_0`**
+- **Two concurrent firmware images** via partitions: **`conference`** and **`ctf`**
 - A simple **serial CLI**, including a command to **switch which firmware boots next**
 - Clear hierarchy separating:
   - `lib/core/` → hardware/system modules
@@ -29,7 +29,7 @@ lib/
     example_challenge.*         Placeholder challenge module
 
 partitions/
-  badge_factory_ota.csv         Partition table (factory + ota)
+  badge_factory_ota.csv         Partition table (conference + ctf)
 
 .github/workflows/
   build.yml                     CI build + tag-based release
@@ -42,12 +42,12 @@ platformio.ini                  PlatformIO project config
 This project uses PlatformIO with the Arduino framework.
 The entrypoint is `src/main.cpp` (standard Arduino `setup()` / `loop()`), not a `.ino`.
 
-## Dual firmware: `factory` + `ota_0`
+## Dual firmware: `conference` + `ctf`
 
 The partition table `partitions/badge_factory_ota.csv` defines:
 
-- `factory` (app) — a “golden” image
-- `ota_0` (app) — an alternate/updated image
+- `conference` (app) — a "golden" image
+- `ctf` (app) — an alternate/updated image
 - `otadata` (data) — controls which app partition boots next
 
 ### How switching works
@@ -69,8 +69,8 @@ Commands:
 
 - `help`
 - `info` — print running partition and configured boot partition
-- `boot factory` — set *next boot* to `factory` and reboot
-- `boot ota` — set *next boot* to `ota_0` and reboot
+- `boot conference` — set *next boot* to `conference` and reboot
+- `boot ctf` — set *next boot* to `ctf` and reboot
 - `reboot`
 
 ## Building locally
@@ -111,8 +111,8 @@ Then **restart VS Code** or your terminal.
 
 **Or via CLI:**
 ```powershell
-# Build for factory partition (default)
-C:\pio\penv\Scripts\platformio.exe run -e esp32-s3-devkitc-1
+# Build for conference partition (default)
+C:\pio\penv\Scripts\platformio.exe run -e esp32-s3-devkitc-1-conference
 
 # Or if platformio is in PATH
 pio run
@@ -122,26 +122,26 @@ First build will download Arduino-ESP32 framework and toolchains. Subsequent bui
 
 ### Dual Firmware Build
 
-The badge uses a **factory + OTA** partition layout for dual-firmware boot:
+The badge uses a **conference + CTF** partition layout for dual-firmware boot:
 
-- **factory** partition (`0x10000`) - Golden/stable image
-- **ota_0** partition (`0x150000`) - Alternate/update image
+- **conference** partition (`0x10000`) - Conference/stable image
+- **ctf** partition (`0x150000`) - CTF challenges image
 
 **To flash both partitions:**
 
 ```powershell
-# 1. Upload to factory partition
-C:\pio\penv\Scripts\platformio.exe run -e esp32-s3-devkitc-1 -t upload
+# 1. Upload to conference partition
+C:\pio\penv\Scripts\platformio.exe run -e esp32-s3-devkitc-1-conference -t upload
 
-# 2. Upload the same firmware to ota_0 partition
-C:\pio\penv\Scripts\platformio.exe run -e esp32-s3-devkitc-1-ota -t upload
+# 2. Upload the CTF firmware to ctf partition
+C:\pio\penv\Scripts\platformio.exe run -e esp32-s3-devkitc-1-ctf -t upload
 ```
 
-**In VS Code:** Use the environment switcher in the bottom toolbar to select `esp32-s3-devkitc-1` or `esp32-s3-devkitc-1-ota`, then click Upload.
+**In VS Code:** Use the environment switcher in the bottom toolbar to select `esp32-s3-devkitc-1-conference` or `esp32-s3-devkitc-1-ctf`, then click Upload.
 
 After flashing both, you can use the badge CLI commands to switch between them:
-- `boot factory` - Set next boot to factory partition
-- `boot ota` - Set next boot to ota_0 partition
+- `boot conference` - Set next boot to conference partition
+- `boot ctf` - Set next boot to ctf partition
 - `info` - Show current boot partition
 
 Build outputs (including flashable binaries) appear under:
@@ -177,8 +177,8 @@ The workflow in `.github/workflows/build.yml` automatically builds firmware on:
 ### What Gets Built
 
 Both firmware variants are built in parallel:
-- **Factory firmware** (`badge-factory.bin`) - Conference mode with schedule and social features
-- **OTA firmware** (`badge-ota.bin`) - CTF challenges mode
+- **Conference firmware** (`badge-conference.bin`) - Conference mode with schedule and social features
+- **CTF firmware** (`badge-ctf.bin`) - CTF challenges mode
 - Supporting files: `bootloader.bin`, `partitions.bin`
 
 ### Creating a Release
@@ -216,8 +216,8 @@ Or use GitHub's web interface:
 ### Release Artifacts
 
 Each release includes:
-- `badge-factory.bin` - Conference firmware for factory partition
-- `badge-ota.bin` - CTF challenges firmware for OTA partition
+- `badge-conference.bin` - Conference firmware for conference partition
+- `badge-ctf.bin` - CTF challenges firmware for CTF partition
 - `bootloader.bin` - ESP32-S3 bootloader
 - `partitions.bin` - Partition table
 - `FLASH_INSTRUCTIONS.txt` - Complete flashing guide
@@ -251,8 +251,8 @@ python -m esptool --chip esp32s3 --port COM4 --baud 460800 ^
   --flash_mode dio --flash_freq 80m --flash_size 8MB ^
   0x0 bootloader.bin ^
   0x8000 partitions.bin ^
-  0x10000 badge-factory.bin ^
-  0x150000 badge-ota.bin
+  0x10000 badge-conference.bin ^
+  0x150000 badge-ctf.bin
 ```
 
 **Linux/Mac:**
@@ -262,30 +262,30 @@ python3 -m esptool --chip esp32s3 --port /dev/ttyACM0 --baud 460800 \
   --flash_mode dio --flash_freq 80m --flash_size 8MB \
   0x0 bootloader.bin \
   0x8000 partitions.bin \
-  0x10000 badge-factory.bin \
-  0x150000 badge-ota.bin
+  0x10000 badge-conference.bin \
+  0x150000 badge-ctf.bin
 ```
 
 ### Update Only Firmware (Keep Existing Bootloader/Partitions)
 
 If badges are already initialized, flash only updated firmware:
 
-**Factory firmware only:**
+**Conference firmware only:**
 ```bash
 python -m esptool --chip esp32s3 --port <PORT> --baud 460800 \
-  write_flash -z 0x10000 badge-factory.bin
+  write_flash -z 0x10000 badge-conference.bin
 ```
 
-**OTA firmware only:**
+**CTF firmware only:**
 ```bash
 python -m esptool --chip esp32s3 --port <PORT> --baud 460800 \
-  write_flash -z 0x150000 badge-ota.bin
+  write_flash -z 0x150000 badge-ctf.bin
 ```
 
 **Both firmwares:**
 ```bash
 python -m esptool --chip esp32s3 --port <PORT> --baud 460800 \
-  write_flash -z 0x10000 badge-factory.bin 0x150000 badge-ota.bin
+  write_flash -z 0x10000 badge-conference.bin 0x150000 badge-ctf.bin
 ```
 
 ### Verify Flash
@@ -304,8 +304,8 @@ You should see the boot banner and CLI prompt. Type `help` to see available comm
 ### Switch Between Firmwares
 
 At the CLI prompt:
-- `boot factory` - Reboot to conference firmware
-- `boot ota` - Reboot to CTF challenges firmware
+- `boot conference` - Reboot to conference firmware
+- `boot ctf` - Reboot to CTF challenges firmware
 - `info` - Show current running partition
 
 ## Additional Documentation
@@ -320,13 +320,13 @@ At the CLI prompt:
 
 This badge uses a unique dual-firmware architecture:
 
-- **Factory Partition (0x10000)** - Conference mode
+- **Conference Partition (0x10000)** - Conference mode
   - Boots by default on new badges
   - Contains conference-specific features (schedule, social, etc.)
   - Libraries: `core` + `conference`
   
-- **OTA Partition (0x150000)** - CTF Challenges mode
-  - Accessible via `boot ota` command
+- **CTF Partition (0x150000)** - CTF Challenges mode
+  - Accessible via `boot ctf` command
   - Contains competition challenges (crypto, hardware, etc.)
   - Libraries: `core` + `challenges`
 
@@ -335,8 +335,8 @@ Both firmwares share the `core` library (CLI, OTA management, hardware abstracti
 ### Adding New Features
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed instructions on adding:
-- Conference modules (factory firmware)
-- Challenge modules (OTA firmware)
+- Conference modules (conference firmware)
+- Challenge modules (CTF firmware)
 - Core utilities (shared by both)
 
 ## Notes / TODO

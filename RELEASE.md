@@ -6,9 +6,9 @@ For maintainers creating firmware releases.
 
 - [ ] All PRs merged to `main`
 - [ ] Local build succeeds: `pio run`
-- [ ] Factory firmware tested on hardware
-- [ ] OTA firmware tested on hardware
-- [ ] Boot switching verified (`boot factory` ↔ `boot ota`)
+- [ ] Conference firmware tested on hardware
+- [ ] CTF firmware tested on hardware
+- [ ] Boot switching verified (`boot conference` ↔ `boot ctf`)
 - [ ] All CLI commands functional
 - [ ] No compilation warnings
 - [ ] Memory usage acceptable (check build output)
@@ -67,8 +67,8 @@ git push origin v1.0.0
 1. Go to repository → Releases
 2. Verify the release was auto-created
 3. Check all files are attached:
-   - badge-factory.bin
-   - badge-ota.bin
+   - badge-conference.bin
+   - badge-ctf.bin
    - bootloader.bin
    - partitions.bin
    - FLASH_INSTRUCTIONS.txt
@@ -110,7 +110,7 @@ Quick flash all:
 \```bash
 python -m esptool --chip esp32s3 --port <PORT> write_flash -z \
   0x0 bootloader.bin 0x8000 partitions.bin \
-  0x10000 badge-factory.bin 0x150000 badge-ota.bin
+  0x10000 badge-conference.bin 0x150000 badge-ctf.bin
 \```
 
 ### 🔄 Upgrading from Previous Version

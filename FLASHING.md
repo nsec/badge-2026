@@ -29,8 +29,8 @@ python -m esptool --chip esp32s3 --port %PORT% --baud %BAUD% ^
   --flash_mode dio --flash_freq 80m --flash_size 8MB ^
   0x0 bootloader.bin ^
   0x8000 partitions.bin ^
-  0x10000 badge-factory.bin ^
-  0x150000 badge-ota.bin
+  0x10000 badge-conference.bin ^
+  0x150000 badge-ctf.bin
 
 if %errorlevel% equ 0 (
   echo SUCCESS: Badge flashed successfully!
@@ -60,8 +60,8 @@ python -m esptool --chip esp32s3 --port $PORT --baud $BAUD `
     --flash_mode dio --flash_freq 80m --flash_size 8MB `
     0x0 bootloader.bin `
     0x8000 partitions.bin `
-    0x10000 badge-factory.bin `
-    0x150000 badge-ota.bin
+    0x10000 badge-conference.bin `
+    0x150000 badge-ctf.bin
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "SUCCESS: Badge flashed successfully!"
@@ -92,8 +92,8 @@ python3 -m esptool --chip esp32s3 --port $PORT --baud $BAUD \
   --flash_mode dio --flash_freq 80m --flash_size 8MB \
   0x0 bootloader.bin \
   0x8000 partitions.bin \
-  0x10000 badge-factory.bin \
-  0x150000 badge-ota.bin
+  0x10000 badge-conference.bin \
+  0x150000 badge-ctf.bin
 
 if [ $? -eq 0 ]; then
     echo "SUCCESS: Badge flashed successfully!"
@@ -110,8 +110,8 @@ fi
 | 0x0        | ~15KB     | bootloader.bin       | ESP32-S3 second-stage bootloader  |
 | 0x8000     | 3KB       | partitions.bin       | Partition table                   |
 | 0xE000     | 8KB       | (auto)               | OTA data selector                 |
-| 0x10000    | 1.25MB    | badge-factory.bin    | Conference firmware (factory)     |
-| 0x150000   | 1.25MB    | badge-ota.bin        | CTF challenges (ota_0)            |
+| 0x10000    | 1.25MB    | badge-conference.bin | Conference firmware (conference)  |
+| 0x150000   | 1.25MB    | badge-ctf.bin        | CTF challenges (ctf)              |
 | 0x290000   | 64KB      | (reserved)           | Core dump partition               |
 | 0x2A0000   | ~1.4MB    | (empty)              | SPIFFS filesystem                 |
 
@@ -120,11 +120,11 @@ fi
 After flashing each badge:
 
 1. **Connect to serial** (115200 baud) - Should see boot banner
-2. **Check factory boot**: Device should boot to conference firmware by default
+2. **Check conference boot**: Device should boot to conference firmware by default
 3. **Test CLI**: Type `help` - should show commands including `schedule`
-4. **Test OTA switch**: Type `boot ota` - device reboots to challenges firmware
-5. **Verify OTA boot**: Type `help` - should show commands including `crypto`
-6. **Test return**: Type `boot factory` - returns to conference firmware
+4. **Test CTF switch**: Type `boot ctf` - device reboots to challenges firmware
+5. **Verify CTF boot**: Type `help` - should show commands including `crypto`
+6. **Test return**: Type `boot conference` - returns to conference firmware
 
 ### Troubleshooting
 
@@ -139,7 +139,7 @@ After flashing each badge:
 
 **Wrong partition boots:**
 - Flash OTA data partition: `python -m esptool --chip esp32s3 --port <PORT> write_flash 0xE000 ota_data_initial.bin`
-- Or use CLI: `boot factory` then `reboot`
+- Or use CLI: `boot conference` then `reboot`
 
 ### Quality Assurance
 
