@@ -1,1 +1,0 @@
-This folder will include all the hardware reference files, without being included in the firmware build.
