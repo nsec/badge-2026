@@ -43,13 +43,12 @@ void setup() {
   Serial.flush();
 
   core::hw::statusLedInit();
-  Serial.println("LED initialized");
+  core::hw::rgbInit();
+  Serial.println("LEDs initialized");
 
   core::ota::printBootInfo(Serial);
 
   core::cli::init(Serial);
-  Serial.println("CLI initialized");
-  Serial.println("Type 'help' for commands.");
 
 #ifdef HAS_CONFERENCE
   conference::init();
@@ -62,6 +61,7 @@ void setup() {
 #endif
 
   Serial.println("Setup complete!");
+  Serial.println("Type 'help' for commands.");
   Serial.flush();
 }
 

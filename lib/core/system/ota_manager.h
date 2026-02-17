@@ -12,6 +12,9 @@ enum class BootTarget {
 
 void printBootInfo(Stream &io);
 
+// Get the label of the currently running partition (e.g. "conference" or "ctf")
+String getRunningPartitionLabel();
+
 // Set next boot partition. Returns true on success.
 bool setNextBoot(BootTarget target, Stream &io);
 
