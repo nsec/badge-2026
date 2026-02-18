@@ -44,6 +44,7 @@ void setup() {
 
   core::hw::statusLedInit();
   core::hw::rgbInit();
+  core::hw::buttonsInit();
   Serial.println("LEDs initialized");
 
   core::ota::printBootInfo(Serial);

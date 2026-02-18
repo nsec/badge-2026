@@ -3,6 +3,7 @@
 // Convenience include for core subsystems.
 
 #include "cli/cli.h"
+#include "hardware/buttons.h"
 #include "hardware/hwid.h"
 #include "hardware/rgb_led.h"
 #include "hardware/status_led.h"
