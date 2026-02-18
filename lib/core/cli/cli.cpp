@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "../system/ota_manager.h"
+#include "../hardware/hwid.h"
 
 namespace {
 Stream *g_io = nullptr;
@@ -34,6 +35,7 @@ void cmdHelp() {
   g_io->println("Commands:");
   g_io->println("  help                 - show this help");
   g_io->println("  info                 - print current boot/partition info");
+  g_io->println("  hwid                 - print unique hardware ID");
   g_io->println("  boot conference      - set next boot to conference partition (then reboot)");
   g_io->println("  boot ctf             - set next boot to CTF partition (then reboot)");
   g_io->println("  reboot               - reboot now");
@@ -51,6 +53,10 @@ void cmdHelp() {
 
 void cmdInfo() {
   core::ota::printBootInfo(*g_io);
+}
+
+void cmdHwid() {
+  core::hw::printHardwareId(*g_io);
 }
 
 void cmdReboot() {
@@ -82,6 +88,7 @@ void handleLine(const String &line) {
   // Built-in commands
   if (cmd == "help" || cmd == "?") return cmdHelp();
   if (cmd == "info") return cmdInfo();
+  if (cmd == "hwid") return cmdHwid();
   if (cmd == "reboot") return cmdReboot();
 
   if (cmd == "boot") {
