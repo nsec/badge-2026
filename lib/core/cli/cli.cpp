@@ -6,6 +6,7 @@
 #include "../system/ota_manager.h"
 #include "../hardware/hwid.h"
 #include "../hardware/rgb_led.h"
+#include "../hardware/buttons.h"
 
 namespace {
 Stream *g_io = nullptr;
@@ -96,6 +97,7 @@ void cmdHelp() {
   g_io->println("  info                 - print current boot/partition info");
   g_io->println("  hwid                 - print unique hardware ID");
   g_io->println("  ledtest [N]          - run RGB LED test suite (N=test# or all)");
+  g_io->println("  buttontest           - interactive button test (press all 6)");
   g_io->println("  swapboot             - switch to other firmware and reboot");
   g_io->println("  reboot               - reboot now");
   
@@ -253,6 +255,10 @@ void handleLine(const String &line) {
   if (cmd == "ledtest") {
     String arg = nextToken(line, i);
     return cmdLedTest(arg);
+  }
+  if (cmd == "buttontest") {
+    core::hw::buttonTestInteractive(*g_io);
+    return;
   }
   if (cmd == "reboot") return cmdReboot();
 
