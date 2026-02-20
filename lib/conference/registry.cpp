@@ -6,7 +6,7 @@ namespace conference {
 
 void init() {
     Serial.println("Conference modules initialized");
-    schedule::init();
+    //schedule::init();
 }
 
 void tick() {

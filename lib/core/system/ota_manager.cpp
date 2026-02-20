@@ -43,6 +43,12 @@ void printBootInfo(Stream &io) {
   }
 }
 
+String getRunningPartitionLabel() {
+  const esp_partition_t *running = esp_ota_get_running_partition();
+  if (running && running->label) return String(running->label);
+  return String("unknown");
+}
+
 bool setNextBoot(BootTarget target, Stream &io) {
   const esp_partition_t *p = nullptr;
 
