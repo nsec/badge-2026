@@ -4,8 +4,9 @@
   "description": "NorthSec Badge 2026 - Conference-specific modules",
   "keywords": ["northsec", "badge", "conference"],
   "platforms": ["espressif32"],
-  "frameworks": ["arduino"],
-  "dependencies": [
+  "frameworks": ["arduino"],  "build": {
+    "srcFilter": ["+<*>", "+<**/*>"]
+  },  "dependencies": [
     {
       "name": "core"
     }

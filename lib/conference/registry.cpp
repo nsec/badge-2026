@@ -1,5 +1,5 @@
 #include "registry.h"
-#include "schedule.h"
+#include "schedule/schedule.h"
 #include <Arduino.h>
 
 namespace conference {
