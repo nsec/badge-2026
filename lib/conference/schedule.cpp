@@ -1,5 +1,6 @@
 #include "schedule.h"
 #include <Arduino.h>
+#include <string>
 #include <../core/cli/cli.h>
 
 namespace conference {
@@ -12,8 +13,8 @@ void init() {
 
 void registerCommands() {
     // Register the 'schedule' command with the CLI
-    core::cli::registerCommand("schedule", "show conference schedule", 
-        [](Stream& stream, const String& args) {
+    core::cli::registerCommand("schedule", "show conference schedule",
+        [](Stream& stream, const std::string& args) {
             handleScheduleCommand(stream);
         });
 }
