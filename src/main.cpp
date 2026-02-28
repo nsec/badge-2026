@@ -61,6 +61,8 @@ void setup() {
   Serial.println("Challenges initialized");
 #endif
 
+  core::heartbeatStart();
+
   Serial.println("Setup complete!");
   Serial.println("Type 'help' for commands.");
   Serial.flush();
@@ -68,7 +70,7 @@ void setup() {
 
 void loop() {
   core::cli::poll();
-  
+
 #ifdef HAS_CONFERENCE
   conference::tick();
 #endif
@@ -76,13 +78,4 @@ void loop() {
 #ifdef HAS_CHALLENGES
   challenges::tick();
 #endif
-
-  // Placeholder heartbeat
-  static uint32_t last = 0;
-  static bool on = false;
-  if (millis() - last > 500) {
-    last = millis();
-    on = !on;
-    core::hw::statusLedSet(on);
-  }
 }

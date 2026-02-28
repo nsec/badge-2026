@@ -3,6 +3,7 @@
 // Convenience include for core subsystems.
 
 #include "tasks/cli.h"
+#include "tasks/heartbeat.h"
 #include "hardware/buttons.h"
 #include "hardware/hwid.h"
 #include "hardware/rgb_led.h"
