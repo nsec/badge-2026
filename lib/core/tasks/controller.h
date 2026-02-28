@@ -2,46 +2,26 @@
 
 #include <cstdint>
 
-#include "hardware/buttons.h"
 #include "rtos/queue.hpp"
 
 namespace core {
 
-// --- Controller event types ---
+// Forward-declare LedCommandType so the progress callback can reference it.
+enum class LedCommandType : uint8_t;
 
-enum class EventType : uint8_t {
-  ButtonPress,
-  ButtonRelease,
-  ButtonLongPress,
-  CliCommand,
-  AppEvent,
-};
+using ProgressFn = void (*)(uint8_t step, uint8_t total, LedCommandType animation);
 
-struct ButtonEventData {
-  hw::Button button;
-};
+enum class ControllerEventType : uint8_t { LedTestRequest };
 
-struct CliCommandData {
-  uint8_t commandId;
-  uint8_t args[10];
-};
-
-struct AppEventData {
-  uint8_t appId;
-  uint8_t code;
-  uint8_t data[6];
-};
-
-struct Event {
-  EventType type;
+struct ControllerEvent {
+  ControllerEventType type;
   union {
-    ButtonEventData button;
-    CliCommandData cli;
-    AppEventData app;
+    struct {
+      ProgressFn progress;
+    } ledTest;
   };
 };
-static_assert(sizeof(Event) <= 16);
 
-extern Queue<Event> *g_controllerQueue;
+extern Queue<ControllerEvent> *g_controllerQueue;
 
 }  // namespace core

@@ -25,6 +25,7 @@ inline constexpr std::chrono::milliseconds hold_poll_timeout{100};
 namespace queues {
 inline constexpr UBaseType_t controller_depth = 16;
 inline constexpr UBaseType_t led_depth = 8;
+inline constexpr UBaseType_t cli_depth = 4;
 }  // namespace queues
 
 namespace tasks {
