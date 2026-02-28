@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <cstdlib>
 #include <string>
@@ -9,8 +10,9 @@
 
 #include "system/ota_manager.h"
 #include "hardware/hwid.h"
-#include "hardware/rgb_led.h"
 #include "hardware/buttons.h"
+#include "tasks/led.h"
+#include "tasks/led_task.h"
 
 namespace {
 
@@ -141,94 +143,61 @@ void cmdHwid() {
   core::hw::printHardwareId(*g_io);
 }
 
-void ledTestRed() {
-  g_io->println("  [1/7] All RED");
-  core::hw::rgbSetAll(255, 0, 0);
-  delay(1000);
-}
+// LED test sequence and display names
+constexpr std::array<core::LedCommandType, 7> ledTestSequence = {{
+    core::LedCommandType::SolidRed,
+    core::LedCommandType::SolidGreen,
+    core::LedCommandType::SolidBlue,
+    core::LedCommandType::SolidWhite,
+    core::LedCommandType::PixelWalk,
+    core::LedCommandType::Rainbow,
+    core::LedCommandType::Off,
+}};
 
-void ledTestGreen() {
-  g_io->println("  [2/7] All GREEN");
-  core::hw::rgbSetAll(0, 255, 0);
-  delay(1000);
-}
-
-void ledTestBlue() {
-  g_io->println("  [3/7] All BLUE");
-  core::hw::rgbSetAll(0, 0, 255);
-  delay(1000);
-}
-
-void ledTestWhite() {
-  g_io->println("  [4/7] All WHITE");
-  core::hw::rgbSetAll(255, 255, 255);
-  delay(1000);
-}
-
-void ledTestChase() {
-  g_io->println("  [5/7] Chase (pixel walk)");
-  for (uint8_t i = 0; i < core::hw::RGB_LED_COUNT; i++) {
-    core::hw::rgbClear();
-    core::hw::rgbSetPixel(i, 255, 0, 255);
-    core::hw::rgbShow();
-    delay(100);
+const char *animationName(core::LedCommandType type) {
+  switch (type) {
+    case core::LedCommandType::SolidRed:   return "All RED";
+    case core::LedCommandType::SolidGreen: return "All GREEN";
+    case core::LedCommandType::SolidBlue:  return "All BLUE";
+    case core::LedCommandType::SolidWhite: return "All WHITE";
+    case core::LedCommandType::PixelWalk:  return "Pixel walk";
+    case core::LedCommandType::Rainbow:    return "Rainbow";
+    case core::LedCommandType::Off:        return "All OFF";
   }
-  delay(500);
+  return "Unknown";
 }
 
-void ledTestRainbow() {
-  g_io->println("  [6/7] Rainbow");
-  for (int frame = 0; frame < 256; frame += 4) {
-    for (uint8_t i = 0; i < core::hw::RGB_LED_COUNT; i++) {
-      uint8_t hue = (frame + i * 256 / core::hw::RGB_LED_COUNT) & 0xFF;
-      // Simple HSV-to-RGB (hue only, full sat/val)
-      uint8_t r, g, b;
-      uint8_t region = hue / 43;
-      uint8_t remainder = (hue - region * 43) * 6;
-      switch (region) {
-        case 0:  r = 255; g = remainder; b = 0; break;
-        case 1:  r = 255 - remainder; g = 255; b = 0; break;
-        case 2:  r = 0; g = 255; b = remainder; break;
-        case 3:  r = 0; g = 255 - remainder; b = 255; break;
-        case 4:  r = remainder; g = 0; b = 255; break;
-        default: r = 255; g = 0; b = 255 - remainder; break;
-      }
-      core::hw::rgbSetPixel(i, r, g, b);
-    }
-    core::hw::rgbShow();
-    delay(20);
+void runAnimation(core::LedCommandType type) {
+  switch (type) {
+    case core::LedCommandType::SolidRed:   core::led::solidColor(255, 0, 0); break;
+    case core::LedCommandType::SolidGreen: core::led::solidColor(0, 255, 0); break;
+    case core::LedCommandType::SolidBlue:  core::led::solidColor(0, 0, 255); break;
+    case core::LedCommandType::SolidWhite: core::led::solidColor(255, 255, 255); break;
+    case core::LedCommandType::PixelWalk:  core::led::pixelWalk(); break;
+    case core::LedCommandType::Rainbow:    core::led::rainbow(); break;
+    case core::LedCommandType::Off:        core::led::off(); break;
   }
-  delay(500);
-}
-
-void ledTestOff() {
-  g_io->println("  [7/7] All OFF");
-  core::hw::rgbClear();
-  delay(500);
 }
 
 void cmdLedTest(const std::string &arg) {
   g_io->println("=== RGB LED Test Suite ===");
-  g_io->print("LEDs: ");
-  g_io->print(core::hw::RGB_LED_COUNT);
-  g_io->println(" on IO8");
   g_io->println();
 
   int testNum = std::atoi(arg.c_str());  // 0 if empty/invalid = run all
 
-  if (testNum == 0 || testNum == 1) ledTestRed();
-  if (testNum == 0 || testNum == 2) ledTestGreen();
-  if (testNum == 0 || testNum == 3) ledTestBlue();
-  if (testNum == 0 || testNum == 4) ledTestWhite();
-  if (testNum == 0 || testNum == 5) ledTestChase();
-  if (testNum == 0 || testNum == 6) ledTestRainbow();
-  if (testNum == 0 || testNum == 7) ledTestOff();
-
-  if (testNum < 0 || testNum > 7) {
-    g_io->println("Usage: ledtest [1-7]  (omit number to run all)");
-    g_io->println("  1=Red  2=Green  3=Blue  4=White");
-    g_io->println("  5=Chase  6=Rainbow  7=Off");
+  if (testNum < 0 || testNum > (int)ledTestSequence.size()) {
+    g_io->printf("Usage: ledtest [1-%d]  (omit number to run all)\n\r", ledTestSequence.size());
     return;
+  }
+
+  int total = testNum == 0 ? ledTestSequence.size() : 1;
+  int step = 0;
+  for (uint8_t i = 0; i < ledTestSequence.size(); i++) {
+    if (testNum != 0 && testNum != i + 1) continue;
+    step++;
+    g_io->printf("  [%d/%d] %s\n\r", step, total,
+                 animationName(ledTestSequence[i]));
+    runAnimation(ledTestSequence[i]);
   }
 
   g_io->println();

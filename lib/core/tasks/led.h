@@ -20,8 +20,6 @@ struct LedCommand {
   LedCommandType type;
 };
 
-const char *animationName(LedCommandType type);
-
 extern Queue<LedCommand> *g_ledQueue;
 
 }  // namespace core
