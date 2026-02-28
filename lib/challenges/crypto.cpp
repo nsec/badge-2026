@@ -1,7 +1,7 @@
 #include "crypto.h"
 #include <Arduino.h>
 #include <string>
-#include <../core/cli/cli.h>
+#include <../core/tasks/cli.h>
 
 namespace challenges {
 namespace crypto {

@@ -1,4 +1,4 @@
-#include "cli.h"
+#include "tasks/cli.h"
 
 #include <Arduino.h>
 #include <algorithm>
@@ -7,10 +7,10 @@
 #include <string>
 #include <vector>
 
-#include "../system/ota_manager.h"
-#include "../hardware/hwid.h"
-#include "../hardware/rgb_led.h"
-#include "../hardware/buttons.h"
+#include "system/ota_manager.h"
+#include "hardware/hwid.h"
+#include "hardware/rgb_led.h"
+#include "hardware/buttons.h"
 
 namespace {
 

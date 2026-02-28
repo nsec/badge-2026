@@ -1,6 +1,6 @@
 #include "example_challenge.h"
 #include <Arduino.h>
-#include <../core/cli/cli.h>
+#include <../core/tasks/cli.h>
 
 namespace challenges {
 namespace example {
