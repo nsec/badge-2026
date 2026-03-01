@@ -28,7 +28,7 @@ struct ButtonPressEvent {
 /// CLI request to set a social NVS value (sent by the CLI nvstest command).
 struct SocialSetRequest {
   storage::SocialKey key;
-  uint8_t value;  // 0-254
+  uint8_t value;  // 0-255
 };
 
 using ControllerEvent = std::variant<LedTestRequest, ButtonPressEvent, SocialSetRequest>;

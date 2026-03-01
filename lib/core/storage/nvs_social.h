@@ -35,7 +35,7 @@ uint8_t socialRead(SocialKey key);
  * with the full 6-byte hardware MAC before storage, making each
  * badge's NVS data unique and opaque.
  * @param key   Which category to write.
- * @param value Raw progress value 0-254.
+ * @param value Raw progress value 0-255.
  */
 void socialWrite(SocialKey key, uint8_t value);
 

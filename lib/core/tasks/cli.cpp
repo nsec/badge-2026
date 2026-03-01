@@ -133,7 +133,7 @@ void cmdHelp() {
   g_io->println("  hwid                 - print unique hardware ID");
   g_io->println("  ledtest [N]          - run RGB LED test suite (N=test# or all)");
   g_io->println("  buttontest           - interactive button test (press all 6)");
-  g_io->println("  nvstest <key> <val>  - set social NVS (social|sponsor|light|attraction|all) (0-254)");
+  g_io->println("  nvstest <key> <val>  - set social NVS (social|sponsor|light|attraction|all) (0-255)");
   g_io->println("  status               - show social NVS values");
   g_io->println("  swapboot             - switch to other firmware and reboot");
   g_io->println("  reboot               - reboot now");
@@ -224,7 +224,7 @@ void cmdStatus() {
 }
 
 void cmdNvsTest(const std::string &args) {
-  // Parse: nvstest <social|sponsor|light|attraction> <0-254>
+  // Parse: nvstest <social|sponsor|light|attraction> <0-255>
   size_t idx = 0;
   std::string keyStr = nextToken(args, idx);
   std::string valStr = nextToken(args, idx);
@@ -253,8 +253,8 @@ void cmdNvsTest(const std::string &args) {
   }
 
   int v = std::atoi(valStr.c_str());
-  if (v < 0 || v > 254) {
-    g_io->println("Value must be 0-254.");
+  if (v < 0 || v > 255) {
+    g_io->println("Value must be 0-255.");
     return;
   }
 

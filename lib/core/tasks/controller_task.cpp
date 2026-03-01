@@ -86,21 +86,21 @@ bool ControllerTask::buttonToSocial(hw::Button btn, storage::SocialKey &key, uin
 }
 
 uint8_t ControllerTask::valueToPixelCount(uint8_t value) {
-  // Map 0-254 → 1-18 LEDs.  0 still lights 1 LED so the user sees feedback.
-  // 254 → 18, linear.
+  // Map 0-255 → 1-18 LEDs.  0 still lights 1 LED so the user sees feedback.
+  // 255 → 18, linear.
   if (value == 0)
     return 1;
-  uint8_t count = static_cast<uint8_t>(1 + (static_cast<uint16_t>(value) * 17) / 254);
+  uint8_t count = static_cast<uint8_t>(1 + (static_cast<uint16_t>(value) * 17) / 255);
   if (count > hw::RGB_LED_COUNT)
     count = hw::RGB_LED_COUNT;
   return count;
 }
 
 bool ControllerTask::allSocialMaxed() {
-  return storage::socialRead(storage::SocialKey::Social) == 254 &&
-         storage::socialRead(storage::SocialKey::Sponsor) == 254 &&
-         storage::socialRead(storage::SocialKey::Light) == 254 &&
-         storage::socialRead(storage::SocialKey::Attraction) == 254;
+  return storage::socialRead(storage::SocialKey::Social) == 255 &&
+         storage::socialRead(storage::SocialKey::Sponsor) == 255 &&
+         storage::socialRead(storage::SocialKey::Light) == 255 &&
+         storage::socialRead(storage::SocialKey::Attraction) == 255;
 }
 
 void ControllerTask::handle(const ButtonPressEvent &event) {

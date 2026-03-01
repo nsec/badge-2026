@@ -80,7 +80,7 @@ uint8_t parseU8(const char *s, size_t len, size_t &pos) {
     val = val * 10 + (s[pos] - '0');
     pos++;
   }
-  return static_cast<uint8_t>(val > 254 ? 254 : val);
+  return static_cast<uint8_t>(val > 255 ? 255 : val);
 }
 
 SocialData fromJson(const char *json, size_t len) {

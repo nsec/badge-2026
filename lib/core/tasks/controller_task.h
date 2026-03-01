@@ -27,10 +27,10 @@ private:
   /// Map a button to its social key + colour.  Returns false for unmapped buttons.
   static bool buttonToSocial(hw::Button btn, storage::SocialKey &key, uint8_t &r, uint8_t &g, uint8_t &b);
 
-  /// Convert a 0-254 value to a 1-18 pixel count.
+  /// Convert a 0-255 value to a 1-18 pixel count.
   static uint8_t valueToPixelCount(uint8_t value);
 
-  /// Check if all four social values are 254 (max).
+  /// Check if all four social values are 255 (max).
   static bool allSocialMaxed();
 
   Queue<ControllerEvent> &_inQueue;
