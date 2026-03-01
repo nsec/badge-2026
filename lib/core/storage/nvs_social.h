@@ -24,15 +24,16 @@ void socialNvsInit();
 
 /**
  * Read a social progress value from NVS.
- * The stored blob is XOR'd with the hardware ID to produce the raw value.
- * Returns 0 if the key has never been written.
+ * Internally decrypts a JSON blob stored in NVS by XOR'ing with
+ * the full 6-byte hardware MAC (cycling).  Returns 0 if never written.
  */
 uint8_t socialRead(SocialKey key);
 
 /**
  * Write a social progress value to NVS.
- * The value is XOR'd with the hardware ID before storage, making each
- * badge's NVS blob unique even for the same logical value.
+ * The entire JSON blob containing all four values is re-encrypted
+ * with the full 6-byte hardware MAC before storage, making each
+ * badge's NVS data unique and opaque.
  * @param key   Which category to write.
  * @param value Raw progress value 0-254.
  */

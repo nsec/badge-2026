@@ -15,13 +15,6 @@ static constexpr uint8_t MAC_LEN = 6;
 void getHwidMac(uint8_t out[MAC_LEN]);
 
 /**
- * Derive a single obfuscation byte from the full MAC address.
- * Uses multiplicative mixing of all 6 bytes so the mapping is
- * harder to reverse than a simple XOR fold.
- */
-uint8_t getHwidObfuscationByte();
-
-/**
  * Print the hardware ID (full MAC hex string) to a stream.
  */
 void printHardwareId(Stream &io);

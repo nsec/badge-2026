@@ -10,20 +10,6 @@ void getHwidMac(uint8_t out[MAC_LEN]) {
   esp_efuse_mac_get_default(out);
 }
 
-uint8_t getHwidObfuscationByte() {
-  uint8_t mac[MAC_LEN];
-  getHwidMac(mac);
-
-  // Mix all 6 MAC bytes with multiply-XOR to spread entropy.
-  // Much harder to reverse than a simple XOR fold.
-  uint8_t h = 0x55;  // seed
-  for (int i = 0; i < MAC_LEN; i++) {
-    h ^= mac[i];
-    h = static_cast<uint8_t>((h * 31) + mac[i]);
-  }
-  return h;
-}
-
 void printHardwareId(Stream &io) {
   uint8_t mac[MAC_LEN];
   getHwidMac(mac);

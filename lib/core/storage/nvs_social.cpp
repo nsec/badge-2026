@@ -3,6 +3,9 @@
 #include <Arduino.h>
 #include <nvs_flash.h>
 #include <nvs.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "hardware/hwid.h"
 
@@ -10,6 +13,132 @@ namespace {
 
 nvs_handle_t g_nvsHandle = 0;
 bool g_initialized = false;
+
+// NVS key under which the encrypted JSON blob is stored.
+static constexpr const char *BLOB_KEY = "data";
+
+// Maximum size of the JSON blob (with generous headroom).
+// e.g. {"social":254,"sponsor":254,"light":254,"attraction":254} ≈ 60 chars
+static constexpr size_t MAX_BLOB_SIZE = 128;
+
+/// XOR `buf` in-place with the 6-byte MAC, cycling through the MAC bytes.
+void xorWithMac(uint8_t *buf, size_t len) {
+  uint8_t mac[core::hw::MAC_LEN];
+  core::hw::getHwidMac(mac);
+  for (size_t i = 0; i < len; i++) {
+    buf[i] ^= mac[i % core::hw::MAC_LEN];
+  }
+}
+
+/// Internal struct holding all four values.
+struct SocialData {
+  uint8_t social = 0;
+  uint8_t sponsor = 0;
+  uint8_t light = 0;
+  uint8_t attraction = 0;
+};
+
+/// Serialize to JSON string.  Returns length written (excluding null terminator).
+int toJson(const SocialData &d, char *buf, size_t bufSize) {
+  return snprintf(buf, bufSize,
+                  "{\"social\":%u,\"sponsor\":%u,\"light\":%u,\"attraction\":%u}",
+                  d.social, d.sponsor, d.light, d.attraction);
+}
+
+/// Simple integer parser: read digits at `s` starting from `pos`, advance pos.
+uint8_t parseU8(const char *s, size_t len, size_t &pos) {
+  // Skip to next digit
+  while (pos < len && (s[pos] < '0' || s[pos] > '9'))
+    pos++;
+  int val = 0;
+  while (pos < len && s[pos] >= '0' && s[pos] <= '9') {
+    val = val * 10 + (s[pos] - '0');
+    pos++;
+  }
+  return static_cast<uint8_t>(val > 254 ? 254 : val);
+}
+
+/// Parse JSON blob into SocialData.  Expects the exact field order we produce.
+SocialData fromJson(const char *json, size_t len) {
+  SocialData d;
+  // Find each key and parse the value after the ':'
+  auto findKey = [&](const char *key) -> uint8_t {
+    const char *p = strstr(json, key);
+    if (!p)
+      return 0;
+    size_t pos = static_cast<size_t>((p - json) + strlen(key));
+    // Skip past the '":'
+    while (pos < len && json[pos] != ':')
+      pos++;
+    if (pos < len)
+      pos++;  // skip ':'
+    return parseU8(json, len, pos);
+  };
+
+  d.social = findKey("\"social\"");
+  d.sponsor = findKey("\"sponsor\"");
+  d.light = findKey("\"light\"");
+  d.attraction = findKey("\"attraction\"");
+  return d;
+}
+
+/// Read the encrypted blob from NVS, decrypt, and parse.
+SocialData readBlob() {
+  SocialData d;
+  if (!g_initialized)
+    return d;
+
+  size_t blobLen = 0;
+  esp_err_t err = nvs_get_blob(g_nvsHandle, BLOB_KEY, nullptr, &blobLen);
+  if (err == ESP_ERR_NVS_NOT_FOUND || blobLen == 0)
+    return d;  // never written — all zeros
+  if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND) {
+    Serial.printf("NVS: read blob size failed (%d)\r\n", err);
+    return d;
+  }
+
+  if (blobLen > MAX_BLOB_SIZE)
+    blobLen = MAX_BLOB_SIZE;
+
+  uint8_t raw[MAX_BLOB_SIZE];
+  err = nvs_get_blob(g_nvsHandle, BLOB_KEY, raw, &blobLen);
+  if (err != ESP_OK) {
+    Serial.printf("NVS: read blob failed (%d)\r\n", err);
+    return d;
+  }
+
+  // Decrypt
+  xorWithMac(raw, blobLen);
+
+  // Parse
+  d = fromJson(reinterpret_cast<const char *>(raw), blobLen);
+  return d;
+}
+
+/// Serialize, encrypt, and write the blob to NVS.
+void writeBlob(const SocialData &d) {
+  if (!g_initialized)
+    return;
+
+  char json[MAX_BLOB_SIZE];
+  int len = toJson(d, json, sizeof(json));
+  if (len <= 0)
+    return;
+
+  // Encrypt
+  xorWithMac(reinterpret_cast<uint8_t *>(json), static_cast<size_t>(len));
+
+  esp_err_t err = nvs_set_blob(g_nvsHandle, BLOB_KEY, json, static_cast<size_t>(len));
+  if (err != ESP_OK) {
+    Serial.printf("NVS: write blob failed (%d)\r\n", err);
+    return;
+  }
+
+  err = nvs_commit(g_nvsHandle);
+  if (err != ESP_OK) {
+    Serial.printf("NVS: commit failed (%d)\r\n", err);
+  }
+}
 
 const char *keyStr(core::storage::SocialKey key) {
   switch (key) {
@@ -37,19 +166,18 @@ void socialNvsInit() {
 
   esp_err_t err = nvs_flash_init();
   if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-    // NVS partition was truncated and needs to be erased
     Serial.println("NVS: erasing and re-initializing...");
     nvs_flash_erase();
     err = nvs_flash_init();
   }
   if (err != ESP_OK) {
-    Serial.printf("NVS: flash init failed (%d)\n", err);
+    Serial.printf("NVS: flash init failed (%d)\r\n", err);
     return;
   }
 
   err = nvs_open("social", NVS_READWRITE, &g_nvsHandle);
   if (err != ESP_OK) {
-    Serial.printf("NVS: open 'social' namespace failed (%d)\n", err);
+    Serial.printf("NVS: open 'social' namespace failed (%d)\r\n", err);
     return;
   }
 
@@ -58,40 +186,41 @@ void socialNvsInit() {
 }
 
 uint8_t socialRead(SocialKey key) {
-  if (!g_initialized)
-    return 0;
-
-  uint8_t stored = 0;
-  esp_err_t err = nvs_get_u8(g_nvsHandle, keyStr(key), &stored);
-  if (err == ESP_ERR_NVS_NOT_FOUND) {
-    return 0;  // never written
+  SocialData d = readBlob();
+  switch (key) {
+    case SocialKey::Social:
+      return d.social;
+    case SocialKey::Sponsor:
+      return d.sponsor;
+    case SocialKey::Light:
+      return d.light;
+    case SocialKey::Attraction:
+      return d.attraction;
+    default:
+      return 0;
   }
-  if (err != ESP_OK) {
-    Serial.printf("NVS: read '%s' failed (%d)\n", keyStr(key), err);
-    return 0;
-  }
-
-  // XOR with hardware-id byte to recover the raw value
-  return stored ^ hw::getHwidObfuscationByte();
 }
 
 void socialWrite(SocialKey key, uint8_t value) {
-  if (!g_initialized)
-    return;
-
-  // XOR with hardware-id byte before storing
-  uint8_t blob = value ^ hw::getHwidObfuscationByte();
-
-  esp_err_t err = nvs_set_u8(g_nvsHandle, keyStr(key), blob);
-  if (err != ESP_OK) {
-    Serial.printf("NVS: write '%s' failed (%d)\n", keyStr(key), err);
-    return;
+  // Read-modify-write the whole blob
+  SocialData d = readBlob();
+  switch (key) {
+    case SocialKey::Social:
+      d.social = value;
+      break;
+    case SocialKey::Sponsor:
+      d.sponsor = value;
+      break;
+    case SocialKey::Light:
+      d.light = value;
+      break;
+    case SocialKey::Attraction:
+      d.attraction = value;
+      break;
+    default:
+      return;
   }
-
-  err = nvs_commit(g_nvsHandle);
-  if (err != ESP_OK) {
-    Serial.printf("NVS: commit failed (%d)\n", err);
-  }
+  writeBlob(d);
 }
 
 const char *socialKeyName(SocialKey key) {
