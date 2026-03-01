@@ -16,7 +16,7 @@ void registerCommands();
 /**
  * Handle the 'example' command
  */
-void handleExampleCommand(Stream& stream);
+void handleExampleCommand(Stream &stream);
 
-} // namespace example
-} // namespace challenges
+}  // namespace example
+}  // namespace challenges

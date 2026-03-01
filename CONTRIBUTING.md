@@ -75,7 +75,7 @@ void handleMyCommand(Stream& stream);
 ```cpp
 #include "my_feature.h"
 #include <Arduino.h>
-#include <../core/cli/cli.h>
+#include <../core/tasks/cli.h>
 
 namespace conference {
 namespace my_feature {

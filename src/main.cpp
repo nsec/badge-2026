@@ -7,6 +7,7 @@
 
 #include <Arduino.h>
 
+#include <badge_config.h>
 #include <core.h>
 
 // Conditionally include conference or challenges based on build flags
@@ -26,12 +27,12 @@ void setup() {
     delay(100);
   }
   delay(500);  // Extra delay for stability
-  
+
   // Send test pattern
-  for(int i = 0; i < 10; i++) {
+  for (int i = 0; i < 10; i++) {
     Serial.println();
   }
-  
+
   Serial.println("=========================");
   Serial.println("NorthSec Badge 2026");
   Serial.println("BOOT SUCCESSFUL!");
@@ -61,28 +62,31 @@ void setup() {
   Serial.println("Challenges initialized");
 #endif
 
+  // Create queues
+  static core::Queue<core::ControllerEvent> controllerQueue(badge::config::queues::controller_depth);
+  static core::Queue<core::LedCommand> ledQueue(badge::config::queues::led_depth);
+  static core::Queue<core::CliResponse> cliQueue(badge::config::queues::cli_depth);
+
+  core::g_controllerQueue = &controllerQueue;
+  core::g_ledQueue = &ledQueue;
+  core::g_cliQueue = &cliQueue;
+
+  // Create tasks
+  static core::LedTask ledTask(ledQueue);
+  static core::ControllerTask controllerTask(controllerQueue, ledQueue, cliQueue);
+  static core::CliTask cliTask;
+
+  core::heartbeatStart();
+
+  ledTask.start();
+  controllerTask.start();
+  cliTask.start();
+
   Serial.println("Setup complete!");
   Serial.println("Type 'help' for commands.");
   Serial.flush();
 }
 
 void loop() {
-  core::cli::poll();
-  
-#ifdef HAS_CONFERENCE
-  conference::tick();
-#endif
-
-#ifdef HAS_CHALLENGES
-  challenges::tick();
-#endif
-
-  // Placeholder heartbeat
-  static uint32_t last = 0;
-  static bool on = false;
-  if (millis() - last > 500) {
-    last = millis();
-    on = !on;
-    core::hw::statusLedSet(on);
-  }
+  vTaskDelay(portMAX_DELAY);
 }
