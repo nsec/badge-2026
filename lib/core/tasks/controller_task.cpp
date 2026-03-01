@@ -11,15 +11,11 @@ void ControllerTask::run() {
     ControllerEvent event;
     if (!_inQueue.receive(event)) continue;
 
-    switch (event.type) {
-      case ControllerEventType::LedTestRequest:
-        handleLedTest(event);
-        break;
-    }
+    std::visit([this](const auto &data) { handle(data); }, event);
   }
 }
 
-void ControllerTask::handleLedTest(const ControllerEvent &event) {
+void ControllerTask::handle(const LedTestRequest &req) {
   constexpr LedCommandType sequence[] = {
       LedCommandType::SolidRed,   LedCommandType::SolidGreen,
       LedCommandType::SolidBlue,  LedCommandType::SolidWhite,
@@ -27,10 +23,14 @@ void ControllerTask::handleLedTest(const ControllerEvent &event) {
       LedCommandType::Off,
   };
   constexpr uint8_t count = sizeof(sequence) / sizeof(sequence[0]);
+  const uint8_t total = req.testNum ? 1 : count;
 
+  uint8_t step = 0;
   for (uint8_t i = 0; i < count; i++) {
-    if (event.ledTest.progress) {
-      event.ledTest.progress(i + 1, count, sequence[i]);
+    if (req.testNum && *req.testNum != i + 1) continue;
+    step++;
+    if (req.progress) {
+      req.progress(step, total, sequence[i]);
     }
     _ledQueue.send(LedCommand{sequence[i]});
     vTaskDelay(pdMS_TO_TICKS(2000));

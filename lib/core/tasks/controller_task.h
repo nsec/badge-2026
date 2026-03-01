@@ -23,7 +23,7 @@ protected:
   void run() override;
 
 private:
-  void handleLedTest(const ControllerEvent &event);
+  void handle(const LedTestRequest &request);
 
   Queue<ControllerEvent> &_inQueue;
   Queue<LedCommand> &_ledQueue;

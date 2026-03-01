@@ -2,7 +2,6 @@
 
 #include <Arduino.h>
 #include <algorithm>
-#include <array>
 #include <cctype>
 #include <cstdlib>
 #include <string>
@@ -12,7 +11,8 @@
 #include "hardware/hwid.h"
 #include "hardware/buttons.h"
 #include "tasks/led.h"
-#include "tasks/led_task.h"
+#include "tasks/controller.h"
+#include "tasks/cli_queue.h"
 
 namespace {
 
@@ -143,17 +143,6 @@ void cmdHwid() {
   core::hw::printHardwareId(*g_io);
 }
 
-// LED test sequence and display names
-constexpr std::array<core::LedCommandType, 7> ledTestSequence = {{
-    core::LedCommandType::SolidRed,
-    core::LedCommandType::SolidGreen,
-    core::LedCommandType::SolidBlue,
-    core::LedCommandType::SolidWhite,
-    core::LedCommandType::PixelWalk,
-    core::LedCommandType::Rainbow,
-    core::LedCommandType::Off,
-}};
-
 const char *animationName(core::LedCommandType type) {
   switch (type) {
     case core::LedCommandType::SolidRed:   return "All RED";
@@ -167,38 +156,29 @@ const char *animationName(core::LedCommandType type) {
   return "Unknown";
 }
 
-void runAnimation(core::LedCommandType type) {
-  switch (type) {
-    case core::LedCommandType::SolidRed:   core::led::solidColor(255, 0, 0); break;
-    case core::LedCommandType::SolidGreen: core::led::solidColor(0, 255, 0); break;
-    case core::LedCommandType::SolidBlue:  core::led::solidColor(0, 0, 255); break;
-    case core::LedCommandType::SolidWhite: core::led::solidColor(255, 255, 255); break;
-    case core::LedCommandType::PixelWalk:  core::led::pixelWalk(); break;
-    case core::LedCommandType::Rainbow:    core::led::rainbow(); break;
-    case core::LedCommandType::Off:        core::led::off(); break;
-  }
+void ledTestProgress(uint8_t step, uint8_t total, core::LedCommandType anim) {
+  g_io->printf("  [%d/%d] %s\n\r", step, total, animationName(anim));
 }
 
 void cmdLedTest(const std::string &arg) {
   g_io->println("=== RGB LED Test Suite ===");
   g_io->println();
 
-  int testNum = std::atoi(arg.c_str());  // 0 if empty/invalid = run all
-
-  if (testNum < 0 || testNum > (int)ledTestSequence.size()) {
-    g_io->printf("Usage: ledtest [1-%d]  (omit number to run all)\n\r", ledTestSequence.size());
+  int testNum = arg.empty() ? 0 : std::atoi(arg.c_str());
+  if (testNum < 0 || testNum > 7) {
+    g_io->println("Usage: ledtest [1-7]  (omit number to run all)");
     return;
   }
 
-  int total = testNum == 0 ? ledTestSequence.size() : 1;
-  int step = 0;
-  for (uint8_t i = 0; i < ledTestSequence.size(); i++) {
-    if (testNum != 0 && testNum != i + 1) continue;
-    step++;
-    g_io->printf("  [%d/%d] %s\n\r", step, total,
-                 animationName(ledTestSequence[i]));
-    runAnimation(ledTestSequence[i]);
-  }
+  core::LedTestRequest req;
+  req.progress = ledTestProgress;
+  if (testNum > 0) req.testNum = testNum;
+
+  // Request LED test from the controller, wait for completion.
+  core::g_controllerQueue->send(req);
+
+  core::CliResponse response;
+  core::g_cliQueue->receive(response);
 
   g_io->println();
   g_io->println("LED test complete.");
