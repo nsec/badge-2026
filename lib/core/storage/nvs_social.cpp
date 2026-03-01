@@ -3,7 +3,6 @@
 #include <Arduino.h>
 #include <nvs_flash.h>
 #include <nvs.h>
-#include <esp_random.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -18,82 +17,42 @@ bool g_initialized = false;
 // NVS key under which the encrypted blob is stored.
 static constexpr const char *BLOB_KEY = "data";
 
-// Maximum size of the payload (nonce + JSON, pre-encryption).
+// Maximum blob size (JSON + CRC, pre-encryption).
 static constexpr size_t MAX_BLOB_SIZE = 128;
 
-// Nonce length range (inclusive).
-static constexpr size_t NONCE_MIN = 3;
-static constexpr size_t NONCE_MAX = 7;
-
 // ---------------------------------------------------------------------------
-// Encryption primitives
+// Integrity check — CRC-8/CCITT (polynomial 0x07)
+//
+// The CRC is computed over the plaintext JSON and stored as the last byte
+// of the blob (before encryption).  An attacker who dumps NVS and XOR's
+// with the MAC gets the JSON, but to *modify* values they also need to
+// recompute a valid CRC — which requires knowing the CRC algorithm, the
+// polynomial, and that the CRC covers only the JSON portion.
 // ---------------------------------------------------------------------------
 
-/// Simple PRNG (xorshift32) used to generate the shuffle permutation.
-/// Seeded per-badge from the MAC so the permutation is deterministic per badge.
-struct Xorshift32 {
-  uint32_t state;
-  explicit Xorshift32(uint32_t seed) : state(seed ? seed : 1) {}
-  uint32_t next() {
-    state ^= state << 13;
-    state ^= state >> 17;
-    state ^= state << 5;
-    return state;
+uint8_t crc8(const uint8_t *data, size_t len) {
+  uint8_t crc = 0x00;
+  for (size_t i = 0; i < len; i++) {
+    crc ^= data[i];
+    for (int b = 0; b < 8; b++) {
+      if (crc & 0x80)
+        crc = (crc << 1) ^ 0x07;
+      else
+        crc <<= 1;
+    }
   }
-};
-
-/// Derive a 32-bit seed from the full MAC.
-uint32_t macSeed() {
-  uint8_t mac[core::hw::MAC_LEN];
-  core::hw::getHwidMac(mac);
-  // FNV-1a 32-bit hash of the 6 MAC bytes
-  uint32_t h = 2166136261u;
-  for (int i = 0; i < core::hw::MAC_LEN; i++) {
-    h ^= mac[i];
-    h *= 16777619u;
-  }
-  return h;
+  return crc;
 }
 
-/// XOR `buf` in-place with the 6-byte MAC, cycling.
+// ---------------------------------------------------------------------------
+// XOR encryption — cycling 6-byte MAC
+// ---------------------------------------------------------------------------
+
 void xorWithMac(uint8_t *buf, size_t len) {
   uint8_t mac[core::hw::MAC_LEN];
   core::hw::getHwidMac(mac);
   for (size_t i = 0; i < len; i++) {
     buf[i] ^= mac[i % core::hw::MAC_LEN];
-  }
-}
-
-/// Fisher-Yates shuffle of `buf` using a MAC-seeded PRNG.
-void shuffleBytes(uint8_t *buf, size_t len) {
-  if (len < 2)
-    return;
-  Xorshift32 rng(macSeed());
-  for (size_t i = len - 1; i > 0; i--) {
-    size_t j = rng.next() % (i + 1);
-    uint8_t tmp = buf[i];
-    buf[i] = buf[j];
-    buf[j] = tmp;
-  }
-}
-
-/// Reverse the Fisher-Yates shuffle (replay the same swaps in reverse order).
-void unshuffleBytes(uint8_t *buf, size_t len) {
-  if (len < 2)
-    return;
-  Xorshift32 rng(macSeed());
-  // Record the swap indices
-  size_t *indices = static_cast<size_t *>(alloca((len - 1) * sizeof(size_t)));
-  for (size_t i = len - 1; i > 0; i--) {
-    indices[len - 1 - i] = rng.next() % (i + 1);
-  }
-  // Replay in reverse
-  for (size_t k = 0; k < len - 1; k++) {
-    size_t i = k + 1;  // original i went from len-1 down to 1, reversed is 1 up to len-1
-    size_t j = indices[(len - 1) - i];
-    uint8_t tmp = buf[i];
-    buf[i] = buf[j];
-    buf[j] = tmp;
   }
 }
 
@@ -148,11 +107,12 @@ SocialData fromJson(const char *json, size_t len) {
 
 // ---------------------------------------------------------------------------
 // Blob read / write
+//
+// Stored format (encrypted):  XOR( [JSON bytes | CRC-8], cycling MAC )
+// The CRC-8 covers only the JSON bytes (plaintext), so tampering with the
+// encrypted blob without knowing both the MAC and the CRC scheme will
+// corrupt the checksum.
 // ---------------------------------------------------------------------------
-
-/// Encrypt: [nonce_len_byte | random_nonce | JSON] → XOR → shuffle
-/// The first byte stores the nonce length (NONCE_MIN..NONCE_MAX).
-/// nonce_len_byte itself is part of the XOR+shuffle, so it's not plaintext.
 
 SocialData readBlob() {
   SocialData d;
@@ -178,20 +138,30 @@ SocialData readBlob() {
     return d;
   }
 
-  // Reverse: unshuffle, then un-XOR
-  unshuffleBytes(raw, blobLen);
+  // Decrypt
   xorWithMac(raw, blobLen);
 
-  // First byte is the nonce length
-  uint8_t nonceLen = raw[0];
-  if (nonceLen < NONCE_MIN || nonceLen > NONCE_MAX)
-    return d;  // corrupted
-
-  size_t headerLen = 1 + nonceLen;  // length byte + nonce bytes
-  if (blobLen <= headerLen)
+  // Need at least 1 byte of JSON + 1 CRC byte
+  if (blobLen < 2) {
+    Serial.println("NVS: corrupted blob (too short), resetting social data");
+    nvs_erase_key(g_nvsHandle, BLOB_KEY);
+    nvs_commit(g_nvsHandle);
     return d;
+  }
 
-  d = fromJson(reinterpret_cast<const char *>(raw + headerLen), blobLen - headerLen);
+  // Last byte is CRC-8 over the JSON portion
+  size_t jsonLen = blobLen - 1;
+  uint8_t storedCrc = raw[blobLen - 1];
+  uint8_t computedCrc = crc8(raw, jsonLen);
+
+  if (storedCrc != computedCrc) {
+    Serial.println("NVS: corrupted blob (CRC mismatch), resetting social data");
+    nvs_erase_key(g_nvsHandle, BLOB_KEY);
+    nvs_commit(g_nvsHandle);
+    return d;
+  }
+
+  d = fromJson(reinterpret_cast<const char *>(raw), jsonLen);
   return d;
 }
 
@@ -201,33 +171,19 @@ void writeBlob(const SocialData &d) {
 
   uint8_t payload[MAX_BLOB_SIZE];
 
-  // Random nonce length (NONCE_MIN..NONCE_MAX)
-  uint8_t nonceLen = NONCE_MIN + (esp_random() % (NONCE_MAX - NONCE_MIN + 1));
-
-  // Byte 0: nonce length
-  payload[0] = nonceLen;
-
-  // Bytes 1..nonceLen: random nonce
-  uint32_t rnd = esp_random();
-  for (uint8_t i = 0; i < nonceLen; i++) {
-    if (i % 4 == 0 && i > 0)
-      rnd = esp_random();
-    payload[1 + i] = static_cast<uint8_t>(rnd >> (8 * (i % 4)));
-  }
-
-  size_t headerLen = 1 + nonceLen;
-
-  // Serialize JSON after header
-  int jsonLen = toJson(d, reinterpret_cast<char *>(payload + headerLen),
-                       sizeof(payload) - headerLen);
+  // Serialize JSON
+  int jsonLen = toJson(d, reinterpret_cast<char *>(payload),
+                       sizeof(payload) - 1);  // -1 for CRC byte
   if (jsonLen <= 0)
     return;
 
-  size_t totalLen = headerLen + static_cast<size_t>(jsonLen);
+  // Append CRC-8 over the plaintext JSON
+  payload[jsonLen] = crc8(payload, static_cast<size_t>(jsonLen));
 
-  // Encrypt: XOR then shuffle
+  size_t totalLen = static_cast<size_t>(jsonLen) + 1;  // JSON + CRC
+
+  // Encrypt entire payload (JSON + CRC) with cycling MAC
   xorWithMac(payload, totalLen);
-  shuffleBytes(payload, totalLen);
 
   esp_err_t err = nvs_set_blob(g_nvsHandle, BLOB_KEY, payload, totalLen);
   if (err != ESP_OK) {
