@@ -11,18 +11,6 @@ namespace {
 nvs_handle_t g_nvsHandle = 0;
 bool g_initialized = false;
 
-/// Derive a single-byte key from the hardware ID, used to XOR stored values.
-/// Folds all 6 MAC bytes into one via XOR so each badge gets a unique mask.
-uint8_t hwidXorByte() {
-  uint8_t mac[6];
-  esp_efuse_mac_get_default(mac);
-  uint8_t fold = 0;
-  for (int i = 0; i < 6; i++) {
-    fold ^= mac[i];
-  }
-  return fold;
-}
-
 const char *keyStr(core::storage::SocialKey key) {
   switch (key) {
     case core::storage::SocialKey::Social:
@@ -84,7 +72,7 @@ uint8_t socialRead(SocialKey key) {
   }
 
   // XOR with hardware-id byte to recover the raw value
-  return stored ^ hwidXorByte();
+  return stored ^ hw::getHwidObfuscationByte();
 }
 
 void socialWrite(SocialKey key, uint8_t value) {
@@ -92,7 +80,7 @@ void socialWrite(SocialKey key, uint8_t value) {
     return;
 
   // XOR with hardware-id byte before storing
-  uint8_t blob = value ^ hwidXorByte();
+  uint8_t blob = value ^ hw::getHwidObfuscationByte();
 
   esp_err_t err = nvs_set_u8(g_nvsHandle, keyStr(key), blob);
   if (err != ESP_OK) {
