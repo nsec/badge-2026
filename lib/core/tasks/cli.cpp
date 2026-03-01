@@ -287,8 +287,7 @@ void cmdNvsTest(const std::string &args) {
 
   // Read back to confirm
   uint8_t readback = core::storage::socialRead(key);
-  g_io->printf("NVS '%s' set to %u (readback: %u)\r\n",
-               core::storage::socialKeyName(key), value, readback);
+  g_io->printf("NVS '%s' set to %u (readback: %u)\r\n", core::storage::socialKeyName(key), value, readback);
 }
 
 void cmdReboot() {

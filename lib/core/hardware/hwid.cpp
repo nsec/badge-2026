@@ -15,8 +15,7 @@ void printHardwareId(Stream &io) {
   getHwidMac(mac);
 
   char buf[13];
-  snprintf(buf, sizeof(buf), "%02X%02X%02X%02X%02X%02X",
-           mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+  snprintf(buf, sizeof(buf), "%02X%02X%02X%02X%02X%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
   io.print("Hardware ID: ");
   io.println(buf);
 }

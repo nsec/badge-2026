@@ -54,24 +54,31 @@ void ControllerTask::handle(const LedTestRequest &req) {
 // Button presses → read NVS, send LED progress animation
 // ---------------------------------------------------------------------------
 
-bool ControllerTask::buttonToSocial(hw::Button btn, storage::SocialKey &key,
-                                    uint8_t &r, uint8_t &g, uint8_t &b) {
+bool ControllerTask::buttonToSocial(hw::Button btn, storage::SocialKey &key, uint8_t &r, uint8_t &g, uint8_t &b) {
   switch (btn) {
-    case hw::Button::Up:     // vendors → green
+    case hw::Button::Up:  // vendors → green
       key = storage::SocialKey::Sponsor;
-      r = 0; g = 255; b = 0;
+      r = 0;
+      g = 255;
+      b = 0;
       return true;
-    case hw::Button::Left:   // light collection → blue
+    case hw::Button::Left:  // light collection → blue
       key = storage::SocialKey::Light;
-      r = 0; g = 0; b = 255;
+      r = 0;
+      g = 0;
+      b = 255;
       return true;
-    case hw::Button::Down:   // citizens/players → purple
+    case hw::Button::Down:  // citizens/players → purple
       key = storage::SocialKey::Social;
-      r = 128; g = 0; b = 255;
+      r = 128;
+      g = 0;
+      b = 255;
       return true;
     case hw::Button::Right:  // attractions → yellow
       key = storage::SocialKey::Attraction;
-      r = 255; g = 255; b = 0;
+      r = 255;
+      g = 255;
+      b = 0;
       return true;
     default:
       return false;
@@ -145,8 +152,7 @@ void ControllerTask::handle(const ButtonPressEvent &event) {
 void ControllerTask::handle(const SocialSetRequest &req) {
   storage::socialWrite(req.key, req.value);
 
-  Serial.printf("[social] SET %s = %u (stored with HWID XOR)\r\n",
-                storage::socialKeyName(req.key), req.value);
+  Serial.printf("[social] SET %s = %u (stored with HWID XOR)\r\n", storage::socialKeyName(req.key), req.value);
 
   _cliQueue.send(CliResponse{CliResponseType::SocialSetComplete});
 }

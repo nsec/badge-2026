@@ -68,9 +68,8 @@ struct SocialData {
 };
 
 int toJson(const SocialData &d, char *buf, size_t bufSize) {
-  return snprintf(buf, bufSize,
-                  "{\"social\":%u,\"sponsor\":%u,\"light\":%u,\"attraction\":%u}",
-                  d.social, d.sponsor, d.light, d.attraction);
+  return snprintf(buf, bufSize, "{\"social\":%u,\"sponsor\":%u,\"light\":%u,\"attraction\":%u}", d.social, d.sponsor,
+                  d.light, d.attraction);
 }
 
 uint8_t parseU8(const char *s, size_t len, size_t &pos) {

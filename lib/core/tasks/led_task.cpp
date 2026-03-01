@@ -83,8 +83,10 @@ bool LedTask::sleepOrInterrupt(uint32_t ms, LedCommand &out) {
 
 bool LedTask::runProgressFlash(const LedCommand &cmd, LedCommand &out) {
   uint8_t n = cmd.pixelCount;
-  if (n == 0) n = 1;
-  if (n > hw::RGB_LED_COUNT) n = hw::RGB_LED_COUNT;
+  if (n == 0)
+    n = 1;
+  if (n > hw::RGB_LED_COUNT)
+    n = hw::RGB_LED_COUNT;
 
   // 3 flashes: 250 ms on, 250 ms off
   for (int flash = 0; flash < 3; flash++) {
@@ -92,17 +94,20 @@ bool LedTask::runProgressFlash(const LedCommand &cmd, LedCommand &out) {
     for (uint8_t i = 0; i < n; i++)
       hw::rgbSetPixel(i, cmd.r, cmd.g, cmd.b);
     hw::rgbShow();
-    if (sleepOrInterrupt(250, out)) return true;
+    if (sleepOrInterrupt(250, out))
+      return true;
 
     hw::rgbClear();
-    if (sleepOrInterrupt(250, out)) return true;
+    if (sleepOrInterrupt(250, out))
+      return true;
   }
 
   // Solid for 3 seconds
   for (uint8_t i = 0; i < n; i++)
     hw::rgbSetPixel(i, cmd.r, cmd.g, cmd.b);
   hw::rgbShow();
-  if (sleepOrInterrupt(3000, out)) return true;
+  if (sleepOrInterrupt(3000, out))
+    return true;
 
   // If hold, leave LEDs on (task will block on queue until next command).
   // Otherwise turn off.
@@ -122,12 +127,36 @@ bool LedTask::runRainbow(const LedCommand &cmd, LedCommand &out) {
         uint8_t region = hue / 43;
         uint8_t remainder = (hue - region * 43) * 6;
         switch (region) {
-          case 0:  r = 255; g = remainder;       b = 0;               break;
-          case 1:  r = 255 - remainder; g = 255; b = 0;               break;
-          case 2:  r = 0;   g = 255;             b = remainder;       break;
-          case 3:  r = 0;   g = 255 - remainder; b = 255;             break;
-          case 4:  r = remainder; g = 0;         b = 255;             break;
-          default: r = 255; g = 0;               b = 255 - remainder; break;
+          case 0:
+            r = 255;
+            g = remainder;
+            b = 0;
+            break;
+          case 1:
+            r = 255 - remainder;
+            g = 255;
+            b = 0;
+            break;
+          case 2:
+            r = 0;
+            g = 255;
+            b = remainder;
+            break;
+          case 3:
+            r = 0;
+            g = 255 - remainder;
+            b = 255;
+            break;
+          case 4:
+            r = remainder;
+            g = 0;
+            b = 255;
+            break;
+          default:
+            r = 255;
+            g = 0;
+            b = 255 - remainder;
+            break;
         }
         hw::rgbSetPixel(i, r, g, b);
       }
