@@ -13,6 +13,7 @@
 #include "tasks/led.h"
 #include "tasks/controller.h"
 #include "tasks/cli_queue.h"
+#include "storage/nvs_social.h"
 
 namespace {
 
@@ -132,6 +133,8 @@ void cmdHelp() {
   g_io->println("  hwid                 - print unique hardware ID");
   g_io->println("  ledtest [N]          - run RGB LED test suite (N=test# or all)");
   g_io->println("  buttontest           - interactive button test (press all 6)");
+  g_io->println("  nvstest <key> <val>  - set social NVS (social|sponsor|light|attraction|all) (0-254)");
+  g_io->println("  status               - show social NVS values");
   g_io->println("  swapboot             - switch to other firmware and reboot");
   g_io->println("  reboot               - reboot now");
 
@@ -171,6 +174,8 @@ const char *animationName(core::LedCommandType type) {
       return "Rainbow";
     case core::LedCommandType::Off:
       return "All OFF";
+    case core::LedCommandType::ProgressFlash:
+      return "Progress flash";
   }
   return "Unknown";
 }
@@ -202,6 +207,88 @@ void cmdLedTest(const std::string &arg) {
 
   g_io->println();
   g_io->println("LED test complete.");
+}
+
+void cmdStatus() {
+  g_io->println("=== Social Status ===");
+  const core::storage::SocialKey keys[] = {
+      core::storage::SocialKey::Social,
+      core::storage::SocialKey::Sponsor,
+      core::storage::SocialKey::Light,
+      core::storage::SocialKey::Attraction,
+  };
+  for (auto k : keys) {
+    uint8_t val = core::storage::socialRead(k);
+    g_io->printf("  %-12s = %u\r\n", core::storage::socialKeyName(k), val);
+  }
+}
+
+void cmdNvsTest(const std::string &args) {
+  // Parse: nvstest <social|sponsor|light|attraction> <0-254>
+  size_t idx = 0;
+  std::string keyStr = nextToken(args, idx);
+  std::string valStr = nextToken(args, idx);
+  toLower(keyStr);
+
+  if (keyStr.empty() || valStr.empty()) {
+    cmdStatus();
+    return;
+  }
+
+  core::storage::SocialKey key;
+  bool setAll = false;
+  if (keyStr == "social")
+    key = core::storage::SocialKey::Social;
+  else if (keyStr == "sponsor")
+    key = core::storage::SocialKey::Sponsor;
+  else if (keyStr == "light")
+    key = core::storage::SocialKey::Light;
+  else if (keyStr == "attraction")
+    key = core::storage::SocialKey::Attraction;
+  else if (keyStr == "all")
+    setAll = true;
+  else {
+    g_io->println("Unknown key. Use: social, sponsor, light, attraction, all");
+    return;
+  }
+
+  int v = std::atoi(valStr.c_str());
+  if (v < 0 || v > 254) {
+    g_io->println("Value must be 0-254.");
+    return;
+  }
+
+  uint8_t value = static_cast<uint8_t>(v);
+
+  if (setAll) {
+    const core::storage::SocialKey allKeys[] = {
+        core::storage::SocialKey::Social,
+        core::storage::SocialKey::Sponsor,
+        core::storage::SocialKey::Light,
+        core::storage::SocialKey::Attraction,
+    };
+    for (auto k : allKeys) {
+      core::SocialSetRequest req{k, value};
+      core::g_controllerQueue->send(req);
+      core::CliResponse response;
+      core::g_cliQueue->receive(response);
+    }
+    g_io->printf("NVS all keys set to %u\r\n", value);
+    return;
+  }
+
+  // Send to controller task (which handles the NVS write in its own context)
+  core::SocialSetRequest req{key, value};
+  core::g_controllerQueue->send(req);
+
+  // Wait for confirmation
+  core::CliResponse response;
+  core::g_cliQueue->receive(response);
+
+  // Read back to confirm
+  uint8_t readback = core::storage::socialRead(key);
+  g_io->printf("NVS '%s' set to %u (readback: %u)\r\n",
+               core::storage::socialKeyName(key), value, readback);
 }
 
 void cmdReboot() {
@@ -255,6 +342,13 @@ void handleLine(const std::string &line) {
     core::hw::buttonTestInteractive(*g_io);
     return;
   }
+  if (cmd == "nvstest") {
+    std::string arg = (i < line.length()) ? line.substr(i) : "";
+    trim(arg);
+    return cmdNvsTest(arg);
+  }
+  if (cmd == "status")
+    return cmdStatus();
   if (cmd == "reboot")
     return cmdReboot();
 
