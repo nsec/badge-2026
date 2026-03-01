@@ -5,6 +5,8 @@
 #include <cstdio>
 #include <csignal>
 
+extern "C" void vTaskStartScheduler();
+
 // Forward declarations for Arduino-style functions (defined in main.cpp)
 extern void setup();
 extern void loop();
@@ -65,14 +67,16 @@ int main(int argc, char *argv[]) {
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);
 
-    // Call Arduino setup
+    // Call Arduino setup (creates and registers FreeRTOS tasks)
     setup();
 
-    // Main loop
-    while (g_running) {
-        loop();
-    }
+    // Start the FreeRTOS scheduler — this does not return.
+    // On ESP32, loop() runs inside a FreeRTOS task; since loop() here
+    // just calls vTaskDelay(portMAX_DELAY), we skip it and let the
+    // scheduler run the tasks created during setup().
+    vTaskStartScheduler();
 
+    // Should never get here
     Serial.end();
-    return 0;
+    return 1;
 }
