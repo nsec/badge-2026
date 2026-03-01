@@ -17,12 +17,13 @@
 namespace {
 
 // Helper functions for std::string
-inline void toLower(std::string& s) {
-  std::transform(s.begin(), s.end(), s.begin(),
-                 [](unsigned char c) { return std::tolower(c); });
+inline void toLower(std::string &s) {
+  std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) {
+    return std::tolower(c);
+  });
 }
 
-inline void trim(std::string& s) {
+inline void trim(std::string &s) {
   size_t start = s.find_first_not_of(" \t\r\n");
   size_t end = s.find_last_not_of(" \t\r\n");
   if (start == std::string::npos) {
@@ -41,7 +42,7 @@ static constexpr int HISTORY_SIZE = 16;
 std::string g_history[HISTORY_SIZE];
 int g_historyCount = 0;   // total items stored
 int g_historyIdx = -1;    // current browse position (-1 = not browsing)
-std::string g_savedLine;        // line saved when user starts browsing
+std::string g_savedLine;  // line saved when user starts browsing
 
 // ANSI escape sequence state machine
 enum class EscState { None, GotEsc, GotBracket };
@@ -53,17 +54,20 @@ struct Command {
   std::string help;
   core::cli::CommandHandler handler;
 };
+
 std::vector<Command> g_commands;
 
 void prompt() {
-  if (!g_io) return;
+  if (!g_io)
+    return;
   g_io->print("> ");
   g_io->flush();
 }
 
 // Clear the current line on the terminal and replace with new text
 void replaceLine(const std::string &newLine) {
-  if (!g_io) return;
+  if (!g_io)
+    return;
   // Erase current display: move cursor to start of input, overwrite with spaces, move back
   for (size_t i = g_line.length(); i > 0; i--) {
     g_io->print("\b \b");
@@ -73,15 +77,18 @@ void replaceLine(const std::string &newLine) {
 }
 
 void historyAdd(const std::string &line) {
-  if (line.length() == 0) return;
+  if (line.length() == 0)
+    return;
   // Don't add duplicates of the most recent entry
-  if (g_historyCount > 0 && g_history[(g_historyCount - 1) % HISTORY_SIZE] == line) return;
+  if (g_historyCount > 0 && g_history[(g_historyCount - 1) % HISTORY_SIZE] == line)
+    return;
   g_history[g_historyCount % HISTORY_SIZE] = line;
   g_historyCount++;
 }
 
 void historyBrowseUp() {
-  if (g_historyCount == 0) return;
+  if (g_historyCount == 0)
+    return;
   if (g_historyIdx == -1) {
     // Starting to browse - save current input
     g_savedLine = g_line;
@@ -95,7 +102,8 @@ void historyBrowseUp() {
 }
 
 void historyBrowseDown() {
-  if (g_historyIdx == -1) return;
+  if (g_historyIdx == -1)
+    return;
   g_historyIdx++;
   if (g_historyIdx >= g_historyCount) {
     // Back to current input
@@ -107,10 +115,13 @@ void historyBrowseDown() {
 }
 
 std::string nextToken(const std::string &s, size_t &idx) {
-  while (idx < s.length() && std::isspace(static_cast<unsigned char>(s[idx]))) idx++;
+  while (idx < s.length() && std::isspace(static_cast<unsigned char>(s[idx])))
+    idx++;
   size_t start = idx;
-  while (idx < s.length() && !std::isspace(static_cast<unsigned char>(s[idx]))) idx++;
-  if (start == idx) return std::string();
+  while (idx < s.length() && !std::isspace(static_cast<unsigned char>(s[idx])))
+    idx++;
+  if (start == idx)
+    return std::string();
   return s.substr(start, idx - start);
 }
 
@@ -125,11 +136,12 @@ void cmdHelp() {
   g_io->println("  reboot               - reboot now");
 
   // Show registered module commands
-  for (const auto& cmd : g_commands) {
+  for (const auto &cmd : g_commands) {
     g_io->print("  ");
     g_io->print(cmd.name.c_str());
     // Pad to align help text
-    for (size_t i = cmd.name.length(); i < 20; i++) g_io->print(" ");
+    for (size_t i = cmd.name.length(); i < 20; i++)
+      g_io->print(" ");
     g_io->print(" - ");
     g_io->println(cmd.help.c_str());
   }
@@ -145,13 +157,20 @@ void cmdHwid() {
 
 const char *animationName(core::LedCommandType type) {
   switch (type) {
-    case core::LedCommandType::SolidRed:   return "All RED";
-    case core::LedCommandType::SolidGreen: return "All GREEN";
-    case core::LedCommandType::SolidBlue:  return "All BLUE";
-    case core::LedCommandType::SolidWhite: return "All WHITE";
-    case core::LedCommandType::PixelWalk:  return "Pixel walk";
-    case core::LedCommandType::Rainbow:    return "Rainbow";
-    case core::LedCommandType::Off:        return "All OFF";
+    case core::LedCommandType::SolidRed:
+      return "All RED";
+    case core::LedCommandType::SolidGreen:
+      return "All GREEN";
+    case core::LedCommandType::SolidBlue:
+      return "All BLUE";
+    case core::LedCommandType::SolidWhite:
+      return "All WHITE";
+    case core::LedCommandType::PixelWalk:
+      return "Pixel walk";
+    case core::LedCommandType::Rainbow:
+      return "Rainbow";
+    case core::LedCommandType::Off:
+      return "All OFF";
   }
   return "Unknown";
 }
@@ -172,7 +191,8 @@ void cmdLedTest(const std::string &arg) {
 
   core::LedTestRequest req;
   req.progress = ledTestProgress;
-  if (testNum > 0) req.testNum = testNum;
+  if (testNum > 0)
+    req.testNum = testNum;
 
   // Request LED test from the controller, wait for completion.
   core::g_controllerQueue->send(req);
@@ -208,7 +228,8 @@ void cmdBoot() {
   g_io->print("Switching to: ");
   g_io->println(targetName);
 
-  if (core::ota::setNextBoot(target, *g_io)) cmdReboot();
+  if (core::ota::setNextBoot(target, *g_io))
+    cmdReboot();
 }
 
 void handleLine(const std::string &line) {
@@ -216,12 +237,16 @@ void handleLine(const std::string &line) {
   std::string cmd = nextToken(line, i);
   toLower(cmd);
 
-  if (cmd.length() == 0) return;
+  if (cmd.length() == 0)
+    return;
 
   // Built-in commands
-  if (cmd == "help" || cmd == "?") return cmdHelp();
-  if (cmd == "info") return cmdInfo();
-  if (cmd == "hwid") return cmdHwid();
+  if (cmd == "help" || cmd == "?")
+    return cmdHelp();
+  if (cmd == "info")
+    return cmdInfo();
+  if (cmd == "hwid")
+    return cmdHwid();
   if (cmd == "ledtest") {
     std::string arg = nextToken(line, i);
     return cmdLedTest(arg);
@@ -230,14 +255,15 @@ void handleLine(const std::string &line) {
     core::hw::buttonTestInteractive(*g_io);
     return;
   }
-  if (cmd == "reboot") return cmdReboot();
+  if (cmd == "reboot")
+    return cmdReboot();
 
   if (cmd == "swapboot") {
     return cmdBoot();
   }
 
   // Check registered module commands
-  for (const auto& registeredCmd : g_commands) {
+  for (const auto &registeredCmd : g_commands) {
     if (cmd == registeredCmd.name) {
       // Get remaining arguments
       std::string args = (i < line.length()) ? line.substr(i) : "";
@@ -251,7 +277,7 @@ void handleLine(const std::string &line) {
   g_io->println(cmd.c_str());
   g_io->println("Type 'help' for commands.");
 }
-} // namespace
+}  // namespace
 
 namespace core {
 namespace cli {
@@ -265,7 +291,8 @@ void init(Stream &io) {
 }
 
 void poll() {
-  if (!g_io) return;
+  if (!g_io)
+    return;
 
   // Deferred prompt: print once when poll is first called (after all boot messages)
   if (g_promptNeeded) {
@@ -286,8 +313,14 @@ void poll() {
       // Not an escape sequence, fall through
     } else if (g_escState == EscState::GotBracket) {
       g_escState = EscState::None;
-      if (c == 'A') { historyBrowseUp(); continue; }   // Up arrow
-      if (c == 'B') { historyBrowseDown(); continue; }  // Down arrow
+      if (c == 'A') {
+        historyBrowseUp();
+        continue;
+      }  // Up arrow
+      if (c == 'B') {
+        historyBrowseDown();
+        continue;
+      }  // Down arrow
       // C = Right, D = Left — ignore for now
       continue;
     }
@@ -337,7 +370,7 @@ void poll() {
   }
 }
 
-void registerCommand(const std::string& name, const std::string& help, CommandHandler handler) {
+void registerCommand(const std::string &name, const std::string &help, CommandHandler handler) {
   Command cmd;
   cmd.name = name;
   cmd.help = help;
@@ -345,5 +378,5 @@ void registerCommand(const std::string& name, const std::string& help, CommandHa
   g_commands.push_back(cmd);
 }
 
-} // namespace cli
-} // namespace core
+}  // namespace cli
+}  // namespace core

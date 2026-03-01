@@ -30,12 +30,36 @@ void rainbow() {
       uint8_t region = hue / 43;
       uint8_t remainder = (hue - region * 43) * 6;
       switch (region) {
-        case 0:  r = 255; g = remainder; b = 0; break;
-        case 1:  r = 255 - remainder; g = 255; b = 0; break;
-        case 2:  r = 0; g = 255; b = remainder; break;
-        case 3:  r = 0; g = 255 - remainder; b = 255; break;
-        case 4:  r = remainder; g = 0; b = 255; break;
-        default: r = 255; g = 0; b = 255 - remainder; break;
+        case 0:
+          r = 255;
+          g = remainder;
+          b = 0;
+          break;
+        case 1:
+          r = 255 - remainder;
+          g = 255;
+          b = 0;
+          break;
+        case 2:
+          r = 0;
+          g = 255;
+          b = remainder;
+          break;
+        case 3:
+          r = 0;
+          g = 255 - remainder;
+          b = 255;
+          break;
+        case 4:
+          r = remainder;
+          g = 0;
+          b = 255;
+          break;
+        default:
+          r = 255;
+          g = 0;
+          b = 255 - remainder;
+          break;
       }
       hw::rgbSetPixel(i, r, g, b);
     }
@@ -56,16 +80,31 @@ Queue<LedCommand> *g_ledQueue = nullptr;
 void LedTask::run() {
   for (;;) {
     LedCommand cmd;
-    if (!_queue.receive(cmd)) continue;
+    if (!_queue.receive(cmd))
+      continue;
 
     switch (cmd.type) {
-      case LedCommandType::SolidRed:   led::solidColor(255, 0, 0); break;
-      case LedCommandType::SolidGreen: led::solidColor(0, 255, 0); break;
-      case LedCommandType::SolidBlue:  led::solidColor(0, 0, 255); break;
-      case LedCommandType::SolidWhite: led::solidColor(255, 255, 255); break;
-      case LedCommandType::PixelWalk:  led::pixelWalk(); break;
-      case LedCommandType::Rainbow:    led::rainbow(); break;
-      case LedCommandType::Off:        led::off(); break;
+      case LedCommandType::SolidRed:
+        led::solidColor(255, 0, 0);
+        break;
+      case LedCommandType::SolidGreen:
+        led::solidColor(0, 255, 0);
+        break;
+      case LedCommandType::SolidBlue:
+        led::solidColor(0, 0, 255);
+        break;
+      case LedCommandType::SolidWhite:
+        led::solidColor(255, 255, 255);
+        break;
+      case LedCommandType::PixelWalk:
+        led::pixelWalk();
+        break;
+      case LedCommandType::Rainbow:
+        led::rainbow();
+        break;
+      case LedCommandType::Off:
+        led::off();
+        break;
     }
   }
 }

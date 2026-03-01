@@ -29,7 +29,7 @@ void setup() {
   delay(500);  // Extra delay for stability
 
   // Send test pattern
-  for(int i = 0; i < 10; i++) {
+  for (int i = 0; i < 10; i++) {
     Serial.println();
   }
 
@@ -63,8 +63,7 @@ void setup() {
 #endif
 
   // Create queues
-  static core::Queue<core::ControllerEvent> controllerQueue(
-      badge::config::queues::controller_depth);
+  static core::Queue<core::ControllerEvent> controllerQueue(badge::config::queues::controller_depth);
   static core::Queue<core::LedCommand> ledQueue(badge::config::queues::led_depth);
   static core::Queue<core::CliResponse> cliQueue(badge::config::queues::cli_depth);
 

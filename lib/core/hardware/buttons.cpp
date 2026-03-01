@@ -13,12 +13,9 @@ struct ButtonDef {
 };
 
 static const ButtonDef g_buttons[] = {
-  { Button::A,     badge::pins::BTN_A,     "A"     },
-  { Button::B,     badge::pins::BTN_B,     "B"     },
-  { Button::Left,  badge::pins::BTN_LEFT,  "Left"  },
-  { Button::Right, badge::pins::BTN_RIGHT, "Right" },
-  { Button::Up,    badge::pins::BTN_UP,    "Up"    },
-  { Button::Down,  badge::pins::BTN_DOWN,  "Down"  },
+    {Button::A, badge::pins::BTN_A, "A"},          {Button::B, badge::pins::BTN_B, "B"},
+    {Button::Left, badge::pins::BTN_LEFT, "Left"}, {Button::Right, badge::pins::BTN_RIGHT, "Right"},
+    {Button::Up, badge::pins::BTN_UP, "Up"},       {Button::Down, badge::pins::BTN_DOWN, "Down"},
 };
 
 void buttonsInit() {
@@ -30,19 +27,22 @@ void buttonsInit() {
 
 bool buttonPressed(Button btn) {
   uint8_t idx = static_cast<uint8_t>(btn);
-  if (idx >= BUTTON_COUNT) return false;
+  if (idx >= BUTTON_COUNT)
+    return false;
   return digitalRead(g_buttons[idx].pin) == LOW;
 }
 
 const char *buttonName(Button btn) {
   uint8_t idx = static_cast<uint8_t>(btn);
-  if (idx >= BUTTON_COUNT) return "?";
+  if (idx >= BUTTON_COUNT)
+    return "?";
   return g_buttons[idx].name;
 }
 
 int buttonPin(Button btn) {
   uint8_t idx = static_cast<uint8_t>(btn);
-  if (idx >= BUTTON_COUNT) return -1;
+  if (idx >= BUTTON_COUNT)
+    return -1;
   return g_buttons[idx].pin;
 }
 
@@ -127,7 +127,8 @@ bool buttonTestInteractive(Stream &io, uint32_t timeout_ms) {
   for (uint8_t i = 0; i < BUTTON_COUNT; i++) {
     io.print("  ");
     io.print(g_buttons[i].name);
-    for (int pad = strlen(g_buttons[i].name); pad < 8; pad++) io.print(" ");
+    for (int pad = strlen(g_buttons[i].name); pad < 8; pad++)
+      io.print(" ");
     io.print("IO");
     io.print(g_buttons[i].pin);
     io.print("  ");
@@ -143,5 +144,5 @@ bool buttonTestInteractive(Stream &io, uint32_t timeout_ms) {
   return testedCount == BUTTON_COUNT;
 }
 
-} // namespace hw
-} // namespace core
+}  // namespace hw
+}  // namespace core

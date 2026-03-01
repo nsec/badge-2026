@@ -18,7 +18,7 @@ void registerCommands();
 /**
  * Handle the 'crypto' command
  */
-void handleCryptoCommand(Stream& stream);
+void handleCryptoCommand(Stream &stream);
 
-} // namespace crypto
-} // namespace challenges
+}  // namespace crypto
+}  // namespace challenges

@@ -23,9 +23,8 @@ namespace core {
 void heartbeatStart() {
   configASSERT(!g_heartbeatTimer);
 
-  g_heartbeatTimer = xTimerCreate(
-      "heartbeat", pdMS_TO_TICKS(badge::config::heartbeat::blink_interval.count()), pdTRUE,
-      nullptr, heartbeatCallback);
+  g_heartbeatTimer = xTimerCreate("heartbeat", pdMS_TO_TICKS(badge::config::heartbeat::blink_interval.count()), pdTRUE,
+                                  nullptr, heartbeatCallback);
   configASSERT(g_heartbeatTimer);
 
   BaseType_t ok = xTimerStart(g_heartbeatTimer, 0);

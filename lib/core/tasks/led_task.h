@@ -10,8 +10,7 @@ namespace core {
 
 class LedTask : public Task {
 public:
-  explicit LedTask(Queue<LedCommand> &queue)
-      : Task("led", badge::config::tasks::priority_led), _queue(queue) {}
+  explicit LedTask(Queue<LedCommand> &queue) : Task("led", badge::config::tasks::priority_led), _queue(queue) {}
 
 protected:
   void run() override;

@@ -5,9 +5,9 @@
 #include <cstdlib>
 
 inline void esp_restart() {
-    std::exit(0);
+  std::exit(0);
 }
 
 inline uint32_t esp_get_free_heap_size() {
-    return 256 * 1024;
+  return 256 * 1024;
 }

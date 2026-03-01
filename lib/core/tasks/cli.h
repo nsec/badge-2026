@@ -7,14 +7,14 @@ namespace core {
 namespace cli {
 
 // Command handler function type
-typedef void (*CommandHandler)(Stream& stream, const std::string& args);
+typedef void (*CommandHandler)(Stream &stream, const std::string &args);
 
 // Core CLI functions
 void init(Stream &io);
 void poll();
 
 // Command registration for modules
-void registerCommand(const std::string& name, const std::string& help, CommandHandler handler);
+void registerCommand(const std::string &name, const std::string &help, CommandHandler handler);
 
-} // namespace cli
-} // namespace core
+}  // namespace cli
+}  // namespace core

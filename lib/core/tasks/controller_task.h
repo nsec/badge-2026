@@ -12,11 +12,8 @@ namespace core {
 
 class ControllerTask : public Task {
 public:
-  ControllerTask(Queue<ControllerEvent> &inQueue, Queue<LedCommand> &ledQueue,
-                 Queue<CliResponse> &cliQueue)
-      : Task("controller", badge::config::tasks::priority_controller),
-        _inQueue(inQueue),
-        _ledQueue(ledQueue),
+  ControllerTask(Queue<ControllerEvent> &inQueue, Queue<LedCommand> &ledQueue, Queue<CliResponse> &cliQueue)
+      : Task("controller", badge::config::tasks::priority_controller), _inQueue(inQueue), _ledQueue(ledQueue),
         _cliQueue(cliQueue) {}
 
 protected:

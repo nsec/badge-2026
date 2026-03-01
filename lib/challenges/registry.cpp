@@ -11,7 +11,7 @@ void init() {
 
 void tick() {
   // Periodic hook for challenges.
-  //challenges::example::tick();
+  // challenges::example::tick();
 }
 
-} // namespace challenges
+}  // namespace challenges

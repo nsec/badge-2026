@@ -5,13 +5,13 @@
 namespace conference {
 
 void init() {
-    Serial.println("Conference modules initialized");
-    //schedule::init();
+  Serial.println("Conference modules initialized");
+  // schedule::init();
 }
 
 void tick() {
-    // Called periodically from main loop
-    // Update conference features here
+  // Called periodically from main loop
+  // Update conference features here
 }
 
-} // namespace conference
+}  // namespace conference

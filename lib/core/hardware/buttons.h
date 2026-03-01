@@ -47,5 +47,5 @@ int buttonPin(Button btn);
  */
 bool buttonTestInteractive(Stream &io, uint32_t timeout_ms = 30000);
 
-} // namespace hw
-} // namespace core
+}  // namespace hw
+}  // namespace core

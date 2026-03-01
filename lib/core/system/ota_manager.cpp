@@ -14,7 +14,7 @@ const char *labelOrUnknown(const esp_partition_t *p) {
 const esp_partition_t *findAppByLabel(const char *label) {
   return esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_ANY, label);
 }
-} // namespace
+}  // namespace
 
 namespace core {
 namespace ota {
@@ -45,7 +45,8 @@ void printBootInfo(Stream &io) {
 
 String getRunningPartitionLabel() {
   const esp_partition_t *running = esp_ota_get_running_partition();
-  if (running && running->label) return String(running->label);
+  if (running && running->label)
+    return String(running->label);
   return String("unknown");
 }
 
@@ -78,5 +79,5 @@ bool setNextBoot(BootTarget target, Stream &io) {
   return true;
 }
 
-} // namespace ota
-} // namespace core
+}  // namespace ota
+}  // namespace core

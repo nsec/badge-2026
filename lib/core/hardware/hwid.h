@@ -19,5 +19,5 @@ String getHardwareId();
  */
 void printHardwareId(Stream &io);
 
-} // namespace hw
-} // namespace core
+}  // namespace hw
+}  // namespace core

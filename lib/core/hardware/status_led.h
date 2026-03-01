@@ -8,5 +8,5 @@ namespace hw {
 void statusLedInit();
 void statusLedSet(bool on);
 
-} // namespace hw
-} // namespace core
+}  // namespace hw
+}  // namespace core

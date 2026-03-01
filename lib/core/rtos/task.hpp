@@ -9,8 +9,7 @@ inline constexpr configSTACK_DEPTH_TYPE DEFAULT_STACK_DEPTH = 4096;
 
 class Task {
 public:
-  Task(const char *name, UBaseType_t priority)
-      : _name(name), _priority(priority) {}
+  Task(const char *name, UBaseType_t priority) : _name(name), _priority(priority) {}
 
   virtual ~Task() {
     if (_handle) {
@@ -25,8 +24,7 @@ public:
 
   void start() {
     configASSERT(!_handle);
-    BaseType_t ok =
-        xTaskCreate(entry, _name, DEFAULT_STACK_DEPTH, this, _priority, &_handle);
+    BaseType_t ok = xTaskCreate(entry, _name, DEFAULT_STACK_DEPTH, this, _priority, &_handle);
     configASSERT(ok == pdPASS);
   }
 

@@ -8,7 +8,7 @@ namespace {
 
 Adafruit_NeoPixel g_strip(core::hw::RGB_LED_COUNT, badge::pins::LED_RGB, NEO_GRB + NEO_KHZ800);
 
-} // namespace
+}  // namespace
 
 namespace core {
 namespace hw {
@@ -22,7 +22,8 @@ void rgbInit() {
 }
 
 void rgbSetPixel(uint8_t index, uint8_t r, uint8_t g, uint8_t b) {
-  if (index >= RGB_LED_COUNT) return;
+  if (index >= RGB_LED_COUNT)
+    return;
   g_strip.setPixelColor(index, g_strip.Color(r, g, b));
 }
 
@@ -47,5 +48,5 @@ void rgbSetBrightness(uint8_t brightness) {
   g_strip.setBrightness(brightness);
 }
 
-} // namespace hw
-} // namespace core
+}  // namespace hw
+}  // namespace core
