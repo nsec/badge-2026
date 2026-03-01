@@ -76,7 +76,11 @@
 #define configUSE_POSIX_ERRNO                   1
 
 // Assert
+#ifdef __cplusplus
+extern "C" void vAssertCalled(const char *file, int line);
+#else
 extern void vAssertCalled(const char *file, int line);
+#endif
 #define configASSERT(x) if ((x) == 0) vAssertCalled(__FILE__, __LINE__)
 
 // For static allocation, provide functions

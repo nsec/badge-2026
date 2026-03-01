@@ -1,7 +1,9 @@
 #pragma once
 
+#include <cstdarg>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <string>
 
@@ -62,6 +64,18 @@ public:
     size_t println(unsigned long n, int base = DEC);
     size_t println(double n, int digits = 2);
     size_t println(const std::string& s);
+
+    size_t printf(const char *format, ...) __attribute__((format(printf, 2, 3))) {
+        va_list args;
+        va_start(args, format);
+        char *buf = nullptr;
+        int len = vasprintf(&buf, format, args);
+        va_end(args);
+        if (len <= 0) { free(buf); return 0; }
+        size_t n = write(reinterpret_cast<const uint8_t *>(buf), len);
+        free(buf);
+        return n;
+    }
 
     virtual void flush() {}
 
