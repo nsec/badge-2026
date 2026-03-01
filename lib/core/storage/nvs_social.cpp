@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <nvs_flash.h>
 #include <nvs.h>
+#include <esp_random.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -14,14 +15,47 @@ namespace {
 nvs_handle_t g_nvsHandle = 0;
 bool g_initialized = false;
 
-// NVS key under which the encrypted JSON blob is stored.
+// NVS key under which the encrypted blob is stored.
 static constexpr const char *BLOB_KEY = "data";
 
-// Maximum size of the JSON blob (with generous headroom).
-// e.g. {"social":254,"sponsor":254,"light":254,"attraction":254} ≈ 60 chars
+// Maximum size of the payload (nonce + JSON, pre-encryption).
 static constexpr size_t MAX_BLOB_SIZE = 128;
 
-/// XOR `buf` in-place with the 6-byte MAC, cycling through the MAC bytes.
+// Nonce length range (inclusive).
+static constexpr size_t NONCE_MIN = 3;
+static constexpr size_t NONCE_MAX = 7;
+
+// ---------------------------------------------------------------------------
+// Encryption primitives
+// ---------------------------------------------------------------------------
+
+/// Simple PRNG (xorshift32) used to generate the shuffle permutation.
+/// Seeded per-badge from the MAC so the permutation is deterministic per badge.
+struct Xorshift32 {
+  uint32_t state;
+  explicit Xorshift32(uint32_t seed) : state(seed ? seed : 1) {}
+  uint32_t next() {
+    state ^= state << 13;
+    state ^= state >> 17;
+    state ^= state << 5;
+    return state;
+  }
+};
+
+/// Derive a 32-bit seed from the full MAC.
+uint32_t macSeed() {
+  uint8_t mac[core::hw::MAC_LEN];
+  core::hw::getHwidMac(mac);
+  // FNV-1a 32-bit hash of the 6 MAC bytes
+  uint32_t h = 2166136261u;
+  for (int i = 0; i < core::hw::MAC_LEN; i++) {
+    h ^= mac[i];
+    h *= 16777619u;
+  }
+  return h;
+}
+
+/// XOR `buf` in-place with the 6-byte MAC, cycling.
 void xorWithMac(uint8_t *buf, size_t len) {
   uint8_t mac[core::hw::MAC_LEN];
   core::hw::getHwidMac(mac);
@@ -30,7 +64,43 @@ void xorWithMac(uint8_t *buf, size_t len) {
   }
 }
 
-/// Internal struct holding all four values.
+/// Fisher-Yates shuffle of `buf` using a MAC-seeded PRNG.
+void shuffleBytes(uint8_t *buf, size_t len) {
+  if (len < 2)
+    return;
+  Xorshift32 rng(macSeed());
+  for (size_t i = len - 1; i > 0; i--) {
+    size_t j = rng.next() % (i + 1);
+    uint8_t tmp = buf[i];
+    buf[i] = buf[j];
+    buf[j] = tmp;
+  }
+}
+
+/// Reverse the Fisher-Yates shuffle (replay the same swaps in reverse order).
+void unshuffleBytes(uint8_t *buf, size_t len) {
+  if (len < 2)
+    return;
+  Xorshift32 rng(macSeed());
+  // Record the swap indices
+  size_t *indices = static_cast<size_t *>(alloca((len - 1) * sizeof(size_t)));
+  for (size_t i = len - 1; i > 0; i--) {
+    indices[len - 1 - i] = rng.next() % (i + 1);
+  }
+  // Replay in reverse
+  for (size_t k = 0; k < len - 1; k++) {
+    size_t i = k + 1;  // original i went from len-1 down to 1, reversed is 1 up to len-1
+    size_t j = indices[(len - 1) - i];
+    uint8_t tmp = buf[i];
+    buf[i] = buf[j];
+    buf[j] = tmp;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// JSON serialization
+// ---------------------------------------------------------------------------
+
 struct SocialData {
   uint8_t social = 0;
   uint8_t sponsor = 0;
@@ -38,16 +108,13 @@ struct SocialData {
   uint8_t attraction = 0;
 };
 
-/// Serialize to JSON string.  Returns length written (excluding null terminator).
 int toJson(const SocialData &d, char *buf, size_t bufSize) {
   return snprintf(buf, bufSize,
                   "{\"social\":%u,\"sponsor\":%u,\"light\":%u,\"attraction\":%u}",
                   d.social, d.sponsor, d.light, d.attraction);
 }
 
-/// Simple integer parser: read digits at `s` starting from `pos`, advance pos.
 uint8_t parseU8(const char *s, size_t len, size_t &pos) {
-  // Skip to next digit
   while (pos < len && (s[pos] < '0' || s[pos] > '9'))
     pos++;
   int val = 0;
@@ -58,20 +125,17 @@ uint8_t parseU8(const char *s, size_t len, size_t &pos) {
   return static_cast<uint8_t>(val > 254 ? 254 : val);
 }
 
-/// Parse JSON blob into SocialData.  Expects the exact field order we produce.
 SocialData fromJson(const char *json, size_t len) {
   SocialData d;
-  // Find each key and parse the value after the ':'
   auto findKey = [&](const char *key) -> uint8_t {
     const char *p = strstr(json, key);
     if (!p)
       return 0;
     size_t pos = static_cast<size_t>((p - json) + strlen(key));
-    // Skip past the '":'
     while (pos < len && json[pos] != ':')
       pos++;
     if (pos < len)
-      pos++;  // skip ':'
+      pos++;
     return parseU8(json, len, pos);
   };
 
@@ -82,7 +146,14 @@ SocialData fromJson(const char *json, size_t len) {
   return d;
 }
 
-/// Read the encrypted blob from NVS, decrypt, and parse.
+// ---------------------------------------------------------------------------
+// Blob read / write
+// ---------------------------------------------------------------------------
+
+/// Encrypt: [nonce_len_byte | random_nonce | JSON] → XOR → shuffle
+/// The first byte stores the nonce length (NONCE_MIN..NONCE_MAX).
+/// nonce_len_byte itself is part of the XOR+shuffle, so it's not plaintext.
+
 SocialData readBlob() {
   SocialData d;
   if (!g_initialized)
@@ -91,7 +162,7 @@ SocialData readBlob() {
   size_t blobLen = 0;
   esp_err_t err = nvs_get_blob(g_nvsHandle, BLOB_KEY, nullptr, &blobLen);
   if (err == ESP_ERR_NVS_NOT_FOUND || blobLen == 0)
-    return d;  // never written — all zeros
+    return d;
   if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND) {
     Serial.printf("NVS: read blob size failed (%d)\r\n", err);
     return d;
@@ -107,28 +178,58 @@ SocialData readBlob() {
     return d;
   }
 
-  // Decrypt
+  // Reverse: unshuffle, then un-XOR
+  unshuffleBytes(raw, blobLen);
   xorWithMac(raw, blobLen);
 
-  // Parse
-  d = fromJson(reinterpret_cast<const char *>(raw), blobLen);
+  // First byte is the nonce length
+  uint8_t nonceLen = raw[0];
+  if (nonceLen < NONCE_MIN || nonceLen > NONCE_MAX)
+    return d;  // corrupted
+
+  size_t headerLen = 1 + nonceLen;  // length byte + nonce bytes
+  if (blobLen <= headerLen)
+    return d;
+
+  d = fromJson(reinterpret_cast<const char *>(raw + headerLen), blobLen - headerLen);
   return d;
 }
 
-/// Serialize, encrypt, and write the blob to NVS.
 void writeBlob(const SocialData &d) {
   if (!g_initialized)
     return;
 
-  char json[MAX_BLOB_SIZE];
-  int len = toJson(d, json, sizeof(json));
-  if (len <= 0)
+  uint8_t payload[MAX_BLOB_SIZE];
+
+  // Random nonce length (NONCE_MIN..NONCE_MAX)
+  uint8_t nonceLen = NONCE_MIN + (esp_random() % (NONCE_MAX - NONCE_MIN + 1));
+
+  // Byte 0: nonce length
+  payload[0] = nonceLen;
+
+  // Bytes 1..nonceLen: random nonce
+  uint32_t rnd = esp_random();
+  for (uint8_t i = 0; i < nonceLen; i++) {
+    if (i % 4 == 0 && i > 0)
+      rnd = esp_random();
+    payload[1 + i] = static_cast<uint8_t>(rnd >> (8 * (i % 4)));
+  }
+
+  size_t headerLen = 1 + nonceLen;
+
+  // Serialize JSON after header
+  int jsonLen = toJson(d, reinterpret_cast<char *>(payload + headerLen),
+                       sizeof(payload) - headerLen);
+  if (jsonLen <= 0)
     return;
 
-  // Encrypt
-  xorWithMac(reinterpret_cast<uint8_t *>(json), static_cast<size_t>(len));
+  size_t totalLen = headerLen + static_cast<size_t>(jsonLen);
 
-  esp_err_t err = nvs_set_blob(g_nvsHandle, BLOB_KEY, json, static_cast<size_t>(len));
+  // Encrypt: XOR then shuffle
+  xorWithMac(payload, totalLen);
+  shuffleBytes(payload, totalLen);
+
+  esp_err_t err = nvs_set_blob(g_nvsHandle, BLOB_KEY, payload, totalLen);
   if (err != ESP_OK) {
     Serial.printf("NVS: write blob failed (%d)\r\n", err);
     return;
