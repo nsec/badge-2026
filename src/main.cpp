@@ -48,6 +48,8 @@ void setup() {
   core::hw::buttonsInit();
   Serial.println("LEDs initialized");
 
+  core::storage::socialNvsInit();
+
   core::ota::printBootInfo(Serial);
 
   core::cli::init(Serial);
@@ -75,12 +77,14 @@ void setup() {
   static core::LedTask ledTask(ledQueue);
   static core::ControllerTask controllerTask(controllerQueue, ledQueue, cliQueue);
   static core::CliTask cliTask;
+  static core::ButtonTask buttonTask(controllerQueue);
 
   core::heartbeatStart();
 
   ledTask.start();
   controllerTask.start();
   cliTask.start();
+  buttonTask.start();
 
   Serial.println("Setup complete!");
   Serial.println("Type 'help' for commands.");

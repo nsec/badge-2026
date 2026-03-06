@@ -6,7 +6,7 @@
 
 namespace core {
 
-enum class CliResponseType : uint8_t { LedTestComplete };
+enum class CliResponseType : uint8_t { LedTestComplete, SocialSetComplete };
 
 struct CliResponse {
   CliResponseType type;
