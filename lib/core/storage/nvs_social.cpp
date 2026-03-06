@@ -5,7 +5,7 @@
 #include <nvs.h>
 #include <cstdio>
 #include <cstdlib>
-#include <cstring>
+#include <string_view>
 
 #include "hardware/hwid.h"
 
@@ -72,29 +72,25 @@ int toJson(const SocialData &d, char *buf, size_t bufSize) {
                   d.light, d.attraction);
 }
 
-uint8_t parseU8(const char *s, size_t len, size_t &pos) {
-  while (pos < len && (s[pos] < '0' || s[pos] > '9'))
-    pos++;
-  int val = 0;
-  while (pos < len && s[pos] >= '0' && s[pos] <= '9') {
-    val = val * 10 + (s[pos] - '0');
-    pos++;
-  }
-  return static_cast<uint8_t>(val > 255 ? 255 : val);
-}
-
-SocialData fromJson(const char *json, size_t len) {
+SocialData fromJson(std::string_view json) {
   SocialData d;
-  auto findKey = [&](const char *key) -> uint8_t {
-    const char *p = strstr(json, key);
-    if (!p)
+  auto findKey = [&](std::string_view key) -> uint8_t {
+    auto pos = json.find(key);
+    if (pos == std::string_view::npos)
       return 0;
-    size_t pos = static_cast<size_t>((p - json) + strlen(key));
-    while (pos < len && json[pos] != ':')
+    pos += key.size();
+    pos = json.find(':', pos);
+    if (pos == std::string_view::npos)
+      return 0;
+    pos++;
+    while (pos < json.size() && (json[pos] < '0' || json[pos] > '9'))
       pos++;
-    if (pos < len)
+    int val = 0;
+    while (pos < json.size() && json[pos] >= '0' && json[pos] <= '9') {
+      val = val * 10 + (json[pos] - '0');
       pos++;
-    return parseU8(json, len, pos);
+    }
+    return static_cast<uint8_t>(val > 255 ? 255 : val);
   };
 
   d.social = findKey("\"social\"");
@@ -160,7 +156,7 @@ SocialData readBlob() {
     return d;
   }
 
-  d = fromJson(reinterpret_cast<const char *>(raw), jsonLen);
+  d = fromJson({reinterpret_cast<const char *>(raw), jsonLen});
   return d;
 }
 

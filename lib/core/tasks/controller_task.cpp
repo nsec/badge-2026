@@ -43,7 +43,7 @@ void ControllerTask::handle(const LedTestRequest &req) {
     if (req.progress) {
       req.progress(step, total, sequence[i]);
     }
-    _ledQueue.send(LedCommand{sequence[i], 0, 0, 0, 0, false});
+    _ledQueue.send(LedCommand{sequence[i]});
     vTaskDelay(pdMS_TO_TICKS(2000));
   }
 
