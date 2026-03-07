@@ -393,10 +393,13 @@ static void stopAndFlush(RfalNfcClass &nfc) {
 }
 
 static bool ensureReady(RfalNfcClass &nfc) {
-  rfalNfcState st = nfc.rfalNfcGetState();
-  if (st==RFAL_NFC_STATE_NOTINIT) { if (nfc.rfalNfcInitialize()!=ERR_NONE) return false; st=nfc.rfalNfcGetState(); }
-  if (st!=RFAL_NFC_STATE_IDLE) { nfc.rfalNfcDeactivate(RFAL_NFC_DEACTIVATE_IDLE); for(int i=0;i<50;i++){nfc.rfalNfcWorker();st=nfc.rfalNfcGetState();if(st==RFAL_NFC_STATE_IDLE)break;vTaskDelay(pdMS_TO_TICKS(5));} }
-  return st==RFAL_NFC_STATE_IDLE;
+  // Always re-initialize — the emulator may have reconfigured the chip
+  ReturnCode err = nfc.rfalNfcInitialize();
+  if (err != ERR_NONE) {
+    Serial.printf("NFC: rfalNfcInitialize failed (%d)\r\n", err);
+    return false;
+  }
+  return (nfc.rfalNfcGetState() == RFAL_NFC_STATE_IDLE);
 }
 
 }  // namespace

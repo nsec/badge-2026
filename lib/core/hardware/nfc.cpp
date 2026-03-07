@@ -6,8 +6,11 @@
 namespace {
 
 SPIClass g_nfcSPI(HSPI);
+// Reader: uses interrupt-driven mode
 RfalRfST25R3916Class g_hardware(&g_nfcSPI, badge::pins::NFC_CS, badge::pins::NFC_INT);
 RfalNfcClass g_nfc(&g_hardware);
+// Emulator: polling-only mode (no IRQ) to avoid ISR watchdog in listen mode
+RfalRfST25R3916Class g_hardwarePolling(&g_nfcSPI, badge::pins::NFC_CS, -1);
 bool g_initialized = false;
 
 }  // namespace
@@ -56,7 +59,7 @@ RfalNfcClass &nfcInstance() {
 }
 
 RfalRfST25R3916Class &nfcHardware() {
-  return g_hardware;
+  return g_hardwarePolling;
 }
 
 SPIClass &nfcSPI() {
