@@ -11,8 +11,11 @@ namespace hw {
 /// Initialize the NFC SPI bus and RFAL stack.  Returns true on success.
 bool nfcInit();
 
-/// Get the RFAL NFC class instance (for use by the NFC task).
+/// Get the RFAL NFC class instance (high-level, for reader discovery).
 RfalNfcClass &nfcInstance();
+
+/// Get the RFAL hardware driver (low-level, for emulator listen mode).
+RfalRfST25R3916Class &nfcHardware();
 
 /// Get the dedicated NFC SPI bus.
 SPIClass &nfcSPI();

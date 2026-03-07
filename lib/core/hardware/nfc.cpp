@@ -55,6 +55,10 @@ RfalNfcClass &nfcInstance() {
   return g_nfc;
 }
 
+RfalRfST25R3916Class &nfcHardware() {
+  return g_hardware;
+}
+
 SPIClass &nfcSPI() {
   return g_nfcSPI;
 }
