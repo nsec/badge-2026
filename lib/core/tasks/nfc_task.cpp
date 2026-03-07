@@ -315,14 +315,23 @@ void NfcTask::runReader() {
           Serial.printf("%02X ", dev->nfcid[i]);
         Serial.printf(" (%d bytes)\r\n", dev->nfcidLen);
 
-        // Brief green flash on the RGB LEDs
-        LedCommand ledCmd(LedCommandType::SolidGreen);
+        // Flash green 3 times on RGB LEDs
+        LedCommand ledCmd{};
+        ledCmd.type = LedCommandType::ProgressFlash;
+        ledCmd.pixelCount = 18;  // all LEDs
+        ledCmd.r = 0;
+        ledCmd.g = 255;
+        ledCmd.b = 0;
+        ledCmd.hold = false;
         _ledQueue.send(ledCmd, Milliseconds(0));
 
         digitalWrite(badge::pins::NFC_LED, LOW);
       }
 
-      nfc.rfalNfcDeactivate(RFAL_NFC_DEACTIVATE_DISCOVERY);
+      // Deactivate and exit reader mode after successful read
+      stopAndFlush(nfc);
+      Serial.println("NFC reader: read complete, exiting reader mode");
+      return;
     }
 
     vTaskDelay(pdMS_TO_TICKS(10));
