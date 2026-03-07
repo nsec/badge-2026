@@ -26,6 +26,7 @@ private:
   void handle(const LedTestRequest &request);
   void handle(const ButtonPressEvent &event);
   void handle(const SocialSetRequest &request);
+  void handle(const ConfigChangedEvent &event);
 
   /// Get colour for a social category.
   static void socialColor(storage::SocialKey key, uint8_t &r, uint8_t &g, uint8_t &b);

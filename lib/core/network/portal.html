@@ -1,0 +1,266 @@
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, system-ui, sans-serif;
+  background: #111;
+  color: #eee;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+}
+
+h1 {
+  font-size: 1.4em;
+  margin: 12px 0 4px;
+  color: #b060ff;
+}
+
+h2 {
+  font-size: 1.1em;
+  margin: 18px 0 8px;
+  color: #aaaaaa;
+}
+
+.card {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 16px;
+  width: 100%;
+  max-width: 400px;
+  margin: 8px 0;
+}
+
+label {
+  display: block;
+  font-size: 0.9em;
+  color: #aaa;
+  margin: 10px 0 4px;
+}
+
+input[type=text] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #333;
+  border-radius: 8px;
+  background: #222;
+  color: #eee;
+  font-size: 1em;
+}
+
+input[type=range] {
+  width: 100%;
+  margin: 4px 0;
+  accent-color: #b060ff;
+}
+
+input[type=color] {
+  width: 60px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.color-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.color-preview {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #333;
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin: 16px 0 0;
+  border: none;
+  border-radius: 8px;
+  background: #b060ff;
+  color: #fff;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn:active {
+  background: #9040dd;
+}
+
+.bar-wrap {
+  background: #222;
+  border-radius: 6px;
+  height: 14px;
+  margin: 4px 0 8px;
+  overflow: hidden;
+}
+
+.bar {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.3s;
+}
+
+.bar-social {
+  background: #8000ff;
+}
+
+.bar-sponsor {
+  background: #00cc00;
+}
+
+.bar-light {
+  background: #0066ff;
+}
+
+.bar-attraction {
+  background: #ffcc00;
+}
+
+.val {
+  font-size: 0.85em;
+  color: #666;
+  float: right;
+}
+
+.status {
+  text-align: center;
+  font-size: 0.85em;
+  color: #666;
+  margin: 8px 0;
+}
+
+.bright-val {
+  font-size: 0.85em;
+  color: #aaa;
+  text-align: right;
+}
+</style>
+</head>
+<body>
+<h1>NSEC</h1>
+
+<!-- I'd like to make it clear which info will be shared via NFC -->
+<div class="card">
+  <h2>Preferences</h2>
+  <label for="name">Your Name</label>
+  <input type="text" id="name" maxlength="20" placeholder="Participant">
+
+  <label>Favorite Color</label>
+  <div class="color-row">
+    <input type="color" id="color" value="#8000ff">
+    <div class="color-preview" id="preview"></div>
+  </div>
+
+  <label for="brightness">Badge Brightness</label>
+  <input type="range" id="brightness" min="1" max="255" value="255">
+  <div class="bright-val" id="bright-label">255</div>
+
+  <button class="btn" onclick="save()">Save</button>
+  <div class="status" id="status"></div>
+</div>
+
+<!-- Not sure how many levels we'll have for each category, so it's a percentage of 255 for the moment. -->
+<div class="card">
+  <h2>Social Progress</h2>
+  <label>Social <span class="val" id="v-social">0</span></label>
+  <div class="bar-wrap"><div class="bar bar-social" id="b-social" style="width:0%"></div></div>
+  <label>Sponsor <span class="val" id="v-sponsor">0</span></label>
+  <div class="bar-wrap"><div class="bar bar-sponsor" id="b-sponsor" style="width:0%"></div></div>
+  <label>Light <span class="val" id="v-light">0</span></label>
+  <div class="bar-wrap"><div class="bar bar-light" id="b-light" style="width:0%"></div></div>
+  <label>Attraction <span class="val" id="v-attraction">0</span></label>
+  <div class="bar-wrap"><div class="bar bar-attraction" id="b-attraction" style="width:0%"></div></div>
+</div>
+
+<!-- TODO: List sync'ed contacts with NFC? -->
+
+<script>
+
+const $ = id => document.getElementById(id);
+
+function hexToRgb(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+function rgbToHex(r, g, b) {
+  return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+}
+
+function updatePreview() {
+  $('preview').style.background = $('color').value;
+}
+
+$('color').addEventListener('input', updatePreview);
+$('brightness').addEventListener('input', () => {
+  $('bright-label').textContent = $('brightness').value;
+});
+
+async function load() {
+  try {
+    const [cfgRes, socRes] = await Promise.all([
+      fetch('/api/config'), fetch('/api/social')
+    ]);
+    const cfg = await cfgRes.json();
+    const soc = await socRes.json();
+
+    $('name').value = cfg.name || '';
+    $('color').value = rgbToHex(cfg.r, cfg.g, cfg.b);
+    $('brightness').value = cfg.brightness;
+    $('bright-label').textContent = cfg.brightness;
+    updatePreview();
+
+    for (const key of ['social', 'sponsor', 'light', 'attraction']) {
+      const pct = Math.round(soc[key] / 255 * 100);
+      $('b-' + key).style.width = pct + '%';
+      $('v-' + key).textContent = soc[key];
+    }
+  } catch (e) {
+    $('status').textContent = 'Failed to load config';
+  }
+}
+
+async function save() {
+  const rgb = hexToRgb($('color').value);
+  const body = {
+    name: $('name').value,
+    r: rgb.r, g: rgb.g, b: rgb.b,
+    brightness: parseInt($('brightness').value)
+  };
+  try {
+    const res = await fetch('/api/config', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    if (res.ok) {
+      $('status').textContent = 'Saved!';
+      setTimeout(() => $('status').textContent = '', 2000);
+    } else {
+      $('status').textContent = 'Save failed';
+    }
+  } catch (e) {
+    $('status').textContent = 'Connection error';
+  }
+}
+
+// Load initial config on page load
+load();
+
+</script>
+</body>
+</html>

@@ -51,3 +51,6 @@ flake8_output.txt
 GTAGS
 GRTAGS
 GPATH
+
+# Generated at build time from portal.html
+lib/core/network/web_page.h

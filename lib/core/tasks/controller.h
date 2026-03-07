@@ -7,6 +7,7 @@
 #include "rtos/queue.hpp"
 #include "hardware/buttons.h"
 #include "storage/nvs_social.h"
+#include "network/wifi_portal.h"
 
 namespace core {
 
@@ -31,7 +32,7 @@ struct SocialSetRequest {
   uint8_t value;  // 0-255
 };
 
-using ControllerEvent = std::variant<LedTestRequest, ButtonPressEvent, SocialSetRequest>;
+using ControllerEvent = std::variant<LedTestRequest, ButtonPressEvent, SocialSetRequest, ConfigChangedEvent>;
 
 extern Queue<ControllerEvent> *g_controllerQueue;
 

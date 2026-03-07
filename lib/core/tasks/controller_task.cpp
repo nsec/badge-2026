@@ -266,4 +266,18 @@ void ControllerTask::handle(const SocialSetRequest &req) {
   _cliQueue.send(CliResponse{CliResponseType::SocialSetComplete});
 }
 
+// ---------------------------------------------------------------------------
+// Config changed (from WiFi portal) — update LEDs to reflect new settings
+// ---------------------------------------------------------------------------
+
+void ControllerTask::handle(const ConfigChangedEvent &event) {
+  const auto &cfg = event.config;
+  LedCommand cmd{};
+  cmd.type = LedCommandType::SolidColor;
+  cmd.r = cfg.favoriteColor.r;
+  cmd.g = cfg.favoriteColor.g;
+  cmd.b = cfg.favoriteColor.b;
+  _ledQueue.send(cmd);
+}
+
 }  // namespace core
