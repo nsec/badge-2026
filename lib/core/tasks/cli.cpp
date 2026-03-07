@@ -138,6 +138,7 @@ void cmdHelp() {
               "  help                 - show this help\r\n"
               "  ndef [text|reset]    - show/set/reset NFC emulator text\r\n"
               "  status               - show social NVS values\r\n"
+              "  wifitest             - toggle WiFi config portal on/off\r\n"
               "  clear                - clear the screen\r\n"
 #ifndef CONFERENCE_ONLY
               "  swapboot             - switch to other firmware and reboot\r\n"
@@ -358,6 +359,11 @@ void cmdPairTest(const std::string &args) {
   g_io->printf("Social value: %d\r\n", core::storage::socialRead(core::storage::SocialKey::Social));
 }
 
+void cmdWifiTest() {
+  core::g_controllerQueue->send(core::PortalToggleRequest{});
+  g_io->println("WiFi portal toggled.");
+}
+
 void cmdReboot() {
   g_io->println("Rebooting...");
   delay(50);
@@ -511,6 +517,8 @@ void handleLine(const std::string &line) {
     }
     return;
   }
+  if (cmd == "wifitest")
+    return cmdWifiTest();
   if (cmd == "clear") {
     g_io->print("\033[2J\033[H");
     g_io->flush();
