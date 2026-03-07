@@ -15,6 +15,7 @@
 #include "hardware/nfc.h"
 #include "hardware/board_pins.h"
 #include "hardware/crypto1.h"
+#include "hardware/hwid.h"
 
 namespace core {
 
@@ -36,14 +37,12 @@ static const uint8_t NTAG213_VERSION[] = {
     0x00, 0x04, 0x04, 0x02, 0x01, 0x00, 0x0F, 0x03,
 };
 
-static const uint8_t NDEF_MESSAGE[] = {
-    0x03, 0x0C,
-    0xD1, 0x01, 0x08, 0x55,
-    0x04, 'n', 's', 'e', 'c', '.', 'i', 'o',
-    0xFE,
-};
+// NDEF message is built dynamically in initTagMemory() with the badge's MAC
+static uint8_t g_ndefBuf[64];
+static uint8_t g_ndefLen = 0;
 
-static const uint8_t TAG_UID[] = {0x04, 0x4E, 0x53, 0x45, 0x43, 0x00, 0x01};
+// UID is derived from the badge's MAC: 0x04 + 6 MAC bytes = 7-byte NTAG UID
+static uint8_t g_tagUid[7];
 
 #define TX_BUF_LEN (NTAG213_PAGES * NTAG213_PAGE_SIZE)
 #define RX_BUF_LEN 64
@@ -59,16 +58,57 @@ static uint32_t g_lastActivityMs = 0;
 #define STUCK_TIMEOUT_MS 1000
 
 void initTagMemory() {
+  // Build unique UID from MAC: 0x04 (NXP) + 6 MAC bytes
+  uint8_t mac[core::hw::MAC_LEN];
+  core::hw::getHwidMac(mac);
+  g_tagUid[0] = 0x04;  // NXP manufacturer code (required for NTAG)
+  memcpy(&g_tagUid[1], mac, 6);
+
   memset(tagMemory, 0x00, sizeof(tagMemory));
-  tagMemory[0] = TAG_UID[0]; tagMemory[1] = TAG_UID[1]; tagMemory[2] = TAG_UID[2];
-  tagMemory[3] = TAG_UID[0] ^ TAG_UID[1] ^ TAG_UID[2] ^ 0x88;
-  tagMemory[4] = TAG_UID[3]; tagMemory[5] = TAG_UID[4]; tagMemory[6] = TAG_UID[5]; tagMemory[7] = TAG_UID[6];
-  tagMemory[8] = TAG_UID[3] ^ TAG_UID[4] ^ TAG_UID[5] ^ TAG_UID[6];
+  tagMemory[0] = g_tagUid[0]; tagMemory[1] = g_tagUid[1]; tagMemory[2] = g_tagUid[2];
+  tagMemory[3] = g_tagUid[0] ^ g_tagUid[1] ^ g_tagUid[2] ^ 0x88;
+  tagMemory[4] = g_tagUid[3]; tagMemory[5] = g_tagUid[4]; tagMemory[6] = g_tagUid[5]; tagMemory[7] = g_tagUid[6];
+  tagMemory[8] = g_tagUid[3] ^ g_tagUid[4] ^ g_tagUid[5] ^ g_tagUid[6];
   tagMemory[9] = 0x48;
   tagMemory[12] = 0xE1; tagMemory[13] = 0x10; tagMemory[14] = 0x12; tagMemory[15] = 0x00;
-  memcpy(&tagMemory[NTAG213_USER_START * NTAG213_PAGE_SIZE], NDEF_MESSAGE, sizeof(NDEF_MESSAGE));
+
+  // Build NDEF Text record: "NSEC Badge <MAC>"
+  char macHex[13];
+  snprintf(macHex, sizeof(macHex), "%02X%02X%02X%02X%02X%02X",
+           mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+  const char *prefix = "NSEC Badge ";
+  uint8_t prefixLen = 11;
+  uint8_t textPayloadLen = 1 + 2 + prefixLen + 12;  // status + "en" + prefix + MAC
+
+  // NDEF record header (SR=1, MB=1, ME=1, TNF=0x01 well-known, type='T')
+  uint8_t ndefRecord[40];
+  uint8_t pos = 0;
+  ndefRecord[pos++] = 0xD1;              // MB|ME|SR, TNF=0x01
+  ndefRecord[pos++] = 0x01;              // type length = 1
+  ndefRecord[pos++] = textPayloadLen;    // payload length
+  ndefRecord[pos++] = 'T';              // type = Text
+  ndefRecord[pos++] = 0x02;             // status: UTF-8, lang len = 2
+  ndefRecord[pos++] = 'e';
+  ndefRecord[pos++] = 'n';
+  memcpy(&ndefRecord[pos], prefix, prefixLen); pos += prefixLen;
+  memcpy(&ndefRecord[pos], macHex, 12); pos += 12;
+
+  // Build TLV: 0x03 <len> <record> 0xFE
+  g_ndefLen = 0;
+  g_ndefBuf[g_ndefLen++] = 0x03;        // NDEF TLV type
+  g_ndefBuf[g_ndefLen++] = pos;          // NDEF record length
+  memcpy(&g_ndefBuf[g_ndefLen], ndefRecord, pos); g_ndefLen += pos;
+  g_ndefBuf[g_ndefLen++] = 0xFE;        // Terminator TLV
+
+  memcpy(&tagMemory[NTAG213_USER_START * NTAG213_PAGE_SIZE], g_ndefBuf, g_ndefLen);
   tagMemory[41 * 4] = 0x04; tagMemory[41 * 4 + 3] = 0xFF;
   tagMemory[43 * 4] = tagMemory[43 * 4 + 1] = tagMemory[43 * 4 + 2] = tagMemory[43 * 4 + 3] = 0xFF;
+
+  Serial.printf("NFC emu: NDEF text = \"%s%s\"\r\n", prefix, macHex);
+  Serial.printf("NFC emu: UID = %02X:%02X:%02X:%02X:%02X:%02X:%02X\r\n",
+                g_tagUid[0], g_tagUid[1], g_tagUid[2], g_tagUid[3],
+                g_tagUid[4], g_tagUid[5], g_tagUid[6]);
 }
 
 uint16_t handleNtagCommand(const uint8_t *cmd, uint16_t cmdLen, uint8_t *resp) {
@@ -487,7 +527,7 @@ void NfcTask::runEmulator() {
 
   memset(&g_lmConfigA, 0, sizeof(g_lmConfigA));
   g_lmConfigA.nfcidLen = RFAL_LM_NFCID_LEN_07;
-  memcpy(g_lmConfigA.nfcid, TAG_UID, sizeof(TAG_UID));
+  memcpy(g_lmConfigA.nfcid, g_tagUid, sizeof(g_tagUid));
   g_lmConfigA.SENS_RES[0]=0x44; g_lmConfigA.SENS_RES[1]=0x00; g_lmConfigA.SEL_RES=0x00;
   g_lmConfigMask = RFAL_LM_MASK_NFCA;
 
