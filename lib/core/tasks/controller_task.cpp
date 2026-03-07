@@ -267,17 +267,34 @@ void ControllerTask::handle(const SocialSetRequest &req) {
 }
 
 // ---------------------------------------------------------------------------
+// WiFi portal toggle (A+B or CLI)
+// ---------------------------------------------------------------------------
+
+void ControllerTask::handle(const PortalToggleRequest &) {
+  _portalActive = !_portalActive;
+  _portalQueue.send(_portalActive ? PortalCommand::Start : PortalCommand::Stop);
+  Serial.printf("[controller] Portal %s\r\n", _portalActive ? "starting" : "stopping");
+}
+
+// ---------------------------------------------------------------------------
 // Config changed (from WiFi portal) — update LEDs to reflect new settings
 // ---------------------------------------------------------------------------
 
 void ControllerTask::handle(const ConfigChangedEvent &event) {
   const auto &cfg = event.config;
+
+  hw::rgbSetBrightness(cfg.brightness);
+
   LedCommand cmd{};
   cmd.type = LedCommandType::SolidColor;
   cmd.r = cfg.favoriteColor.r;
   cmd.g = cfg.favoriteColor.g;
   cmd.b = cfg.favoriteColor.b;
   _ledQueue.send(cmd);
+
+  Serial.printf("[controller] Config updated: name=%s bright=%u color=(%u,%u,%u)\r\n",
+                cfg.name, cfg.brightness,
+                cfg.favoriteColor.r, cfg.favoriteColor.g, cfg.favoriteColor.b);
 }
 
 }  // namespace core

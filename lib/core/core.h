@@ -26,4 +26,7 @@
 #include "hardware/rgb_led.h"
 #include "hardware/status_led.h"
 #include "storage/nvs_social.h"
+#include "storage/nvs_config.h"
+#include "network/wifi_portal.h"
+#include "network/wifi_portal_task.h"
 #include "system/ota_manager.h"

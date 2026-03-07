@@ -32,7 +32,11 @@ struct SocialSetRequest {
   uint8_t value;  // 0-255
 };
 
-using ControllerEvent = std::variant<LedTestRequest, ButtonPressEvent, SocialSetRequest, ConfigChangedEvent>;
+/// Request the controller to start or stop the WiFi config portal.
+struct PortalToggleRequest {};
+
+using ControllerEvent = std::variant<LedTestRequest, ButtonPressEvent, SocialSetRequest,
+                                     PortalToggleRequest, ConfigChangedEvent>;
 
 extern Queue<ControllerEvent> *g_controllerQueue;
 

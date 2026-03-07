@@ -9,15 +9,17 @@
 #include "tasks/led.h"
 #include "tasks/cli_queue.h"
 #include "tasks/nfc.h"
+#include "network/wifi_portal.h"
 
 namespace core {
 
 class ControllerTask : public Task {
 public:
   ControllerTask(Queue<ControllerEvent> &inQueue, Queue<LedCommand> &ledQueue, Queue<CliResponse> &cliQueue,
-                 Queue<NfcCommand> &nfcQueue, Queue<DisplayCommand> &displayQueue)
+                 Queue<NfcCommand> &nfcQueue, Queue<DisplayCommand> &displayQueue,
+                 Queue<PortalCommand> &portalQueue)
       : Task("controller", badge::config::tasks::priority_controller), _inQueue(inQueue), _ledQueue(ledQueue),
-        _cliQueue(cliQueue), _nfcQueue(nfcQueue), _displayQueue(displayQueue) {}
+        _cliQueue(cliQueue), _nfcQueue(nfcQueue), _displayQueue(displayQueue), _portalQueue(portalQueue) {}
 
 protected:
   void run() override;
@@ -26,6 +28,7 @@ private:
   void handle(const LedTestRequest &request);
   void handle(const ButtonPressEvent &event);
   void handle(const SocialSetRequest &request);
+  void handle(const PortalToggleRequest &request);
   void handle(const ConfigChangedEvent &event);
 
   /// Get colour for a social category.
@@ -45,6 +48,7 @@ private:
   Queue<CliResponse> &_cliQueue;
   Queue<NfcCommand> &_nfcQueue;
   Queue<DisplayCommand> &_displayQueue;
+  Queue<PortalCommand> &_portalQueue;
 
   // Social display state
   uint8_t _socialIndex = 0;    // current category index (0-3)
@@ -57,6 +61,8 @@ private:
 
   // NFC mode tracking for toggle behavior
   NfcMode _nfcMode = NfcMode::Off;
+
+  bool _portalActive = false;  // portal on/off state
 };
 
 }  // namespace core
