@@ -133,8 +133,74 @@ bool NfcTask::checkCommand(NfcCommand &out) {
   return _nfcQueue.receive(out, Milliseconds(0));
 }
 
+static const char *nfcStateName(rfalNfcState st) {
+  switch (st) {
+    case RFAL_NFC_STATE_NOTINIT:            return "NOTINIT";
+    case RFAL_NFC_STATE_IDLE:               return "IDLE";
+    case RFAL_NFC_STATE_START_DISCOVERY:    return "START_DISCOVERY";
+    case RFAL_NFC_STATE_WAKEUP_MODE:        return "WAKEUP_MODE";
+    case RFAL_NFC_STATE_POLL_TECHDETECT:    return "POLL_TECHDETECT";
+    case RFAL_NFC_STATE_POLL_COLAVOIDANCE:  return "POLL_COLAVOIDANCE";
+    case RFAL_NFC_STATE_POLL_SELECT:        return "POLL_SELECT";
+    case RFAL_NFC_STATE_POLL_ACTIVATION:    return "POLL_ACTIVATION";
+    case RFAL_NFC_STATE_LISTEN_TECHDETECT:  return "LISTEN_TECHDETECT";
+    case RFAL_NFC_STATE_LISTEN_COLAVOIDANCE:return "LISTEN_COLAVOIDANCE";
+    case RFAL_NFC_STATE_LISTEN_ACTIVATION:  return "LISTEN_ACTIVATION";
+    case RFAL_NFC_STATE_LISTEN_SLEEP:       return "LISTEN_SLEEP";
+    case RFAL_NFC_STATE_ACTIVATED:          return "ACTIVATED";
+    case RFAL_NFC_STATE_DATAEXCHANGE:       return "DATAEXCHANGE";
+    default: return "UNKNOWN";
+  }
+}
+
+/// Deactivate and pump the worker until the stack returns to IDLE.
+static void stopAndFlush(RfalNfcClass &nfc) {
+  nfc.rfalNfcDeactivate(RFAL_NFC_DEACTIVATE_IDLE);
+  for (int i = 0; i < 50; i++) {
+    nfc.rfalNfcWorker();
+    rfalNfcState st = nfc.rfalNfcGetState();
+    if (st == RFAL_NFC_STATE_IDLE || st == RFAL_NFC_STATE_NOTINIT)
+      break;
+    vTaskDelay(pdMS_TO_TICKS(5));
+  }
+  Serial.printf("NFC: stopAndFlush — state = %s\r\n", nfcStateName(nfc.rfalNfcGetState()));
+}
+
+/// Ensure the RFAL stack is initialized and in IDLE state, ready for discover.
+static bool ensureReady(RfalNfcClass &nfc) {
+  rfalNfcState st = nfc.rfalNfcGetState();
+  Serial.printf("NFC: ensureReady — current state = %s\r\n", nfcStateName(st));
+
+  if (st == RFAL_NFC_STATE_NOTINIT) {
+    Serial.println("NFC: stack not initialized, calling rfalNfcInitialize()...");
+    ReturnCode err = nfc.rfalNfcInitialize();
+    if (err != ERR_NONE) {
+      Serial.printf("NFC: rfalNfcInitialize failed (err=%d)\r\n", err);
+      return false;
+    }
+    st = nfc.rfalNfcGetState();
+    Serial.printf("NFC: post-init state = %s\r\n", nfcStateName(st));
+  }
+
+  if (st != RFAL_NFC_STATE_IDLE) {
+    // Try to get to IDLE
+    nfc.rfalNfcDeactivate(RFAL_NFC_DEACTIVATE_IDLE);
+    for (int i = 0; i < 50; i++) {
+      nfc.rfalNfcWorker();
+      st = nfc.rfalNfcGetState();
+      if (st == RFAL_NFC_STATE_IDLE)
+        break;
+      vTaskDelay(pdMS_TO_TICKS(5));
+    }
+    Serial.printf("NFC: state after flush = %s\r\n", nfcStateName(st));
+  }
+
+  return (st == RFAL_NFC_STATE_IDLE);
+}
+
 void NfcTask::run() {
   buildNdefFile();
+  NfcMode currentMode = NfcMode::Off;
 
   NfcCommand cmd;
   for (;;) {
@@ -142,30 +208,53 @@ void NfcTask::run() {
     if (!_nfcQueue.receive(cmd))
       continue;
 
+    // Same mode pressed again = toggle off
+    if (cmd.mode == currentMode && currentMode != NfcMode::Off) {
+      Serial.printf("NFC: button toggle — stopping %s mode\r\n",
+                     currentMode == NfcMode::Reader ? "reader" : "emulator");
+      stopAndFlush(hw::nfcInstance());
+      currentMode = NfcMode::Off;
+      digitalWrite(badge::pins::NFC_LED, LOW);
+      continue;
+    }
+
+    // Switching modes
+    if (currentMode != NfcMode::Off) {
+      Serial.printf("NFC: switching from %s to %s\r\n",
+                     currentMode == NfcMode::Reader ? "reader" : "emulator",
+                     cmd.mode == NfcMode::Reader ? "reader" : "emulator");
+      stopAndFlush(hw::nfcInstance());
+    }
+
+    currentMode = cmd.mode;
+
     switch (cmd.mode) {
       case NfcMode::Reader:
-        Serial.println("NFC: entering reader mode");
+        Serial.println("NFC: === ENTERING READER MODE ===");
         runReader();
+        Serial.println("NFC: === EXITED READER MODE ===");
         break;
       case NfcMode::Emulator:
-        Serial.println("NFC: entering emulator mode");
+        Serial.println("NFC: === ENTERING EMULATOR MODE ===");
         runEmulator();
+        Serial.println("NFC: === EXITED EMULATOR MODE ===");
         break;
       case NfcMode::Off:
         Serial.println("NFC: off");
         digitalWrite(badge::pins::NFC_LED, LOW);
         break;
     }
+
+    // When runReader/runEmulator return, we're back to off
+    currentMode = NfcMode::Off;
   }
 }
 
 void NfcTask::runReader() {
   RfalNfcClass &nfc = hw::nfcInstance();
 
-  // Re-initialize to clear any previous state
-  ReturnCode err = nfc.rfalNfcInitialize();
-  if (err != ERR_NONE) {
-    Serial.printf("NFC reader: reinit failed (%d)\r\n", err);
+  if (!ensureReady(nfc)) {
+    Serial.println("NFC reader: failed to reach IDLE state");
     return;
   }
 
@@ -182,21 +271,22 @@ void NfcTask::runReader() {
   params.wakeupConfigDefault = true;
   params.notifyCb = nullptr;
 
-  err = nfc.rfalNfcDiscover(&params);
+  ReturnCode err = nfc.rfalNfcDiscover(&params);
   if (err != ERR_NONE) {
-    Serial.printf("NFC reader: discover failed (%d)\r\n", err);
+    Serial.printf("NFC reader: discover failed (err=%d, state=%s)\r\n",
+                  err, nfcStateName(nfc.rfalNfcGetState()));
     return;
   }
 
-  Serial.println("NFC reader: polling for tags...");
+  Serial.println("NFC reader: polling for tags... (press A to stop, B for emulator)");
 
   for (;;) {
     // Check for new command (non-blocking)
     NfcCommand cmd;
     if (checkCommand(cmd)) {
-      nfc.rfalNfcDeactivate(RFAL_NFC_DEACTIVATE_IDLE);
-      // Re-queue the command so run() dispatches it
-      if (cmd.mode != NfcMode::Reader)
+      stopAndFlush(nfc);
+      // Re-queue if it's a different mode
+      if (cmd.mode != NfcMode::Off && cmd.mode != NfcMode::Reader)
         _nfcQueue.send(cmd, Milliseconds(0));
       return;
     }
@@ -209,7 +299,6 @@ void NfcTask::runReader() {
       nfc.rfalNfcGetActiveDevice(&dev);
 
       if (dev) {
-        // Flash LED
         digitalWrite(badge::pins::NFC_LED, HIGH);
 
         const char *typeName = "Unknown";
@@ -220,10 +309,11 @@ void NfcTask::runReader() {
         else if (dev->type == RFAL_NFC_LISTEN_TYPE_NFCV)
           typeName = "ISO15693";
 
-        Serial.printf("NFC reader: %s tag, UID: ", typeName);
+        Serial.printf("NFC reader: %s tag detected!\r\n", typeName);
+        Serial.print("  UID: ");
         for (uint8_t i = 0; i < dev->nfcidLen; i++)
           Serial.printf("%02X ", dev->nfcid[i]);
-        Serial.println();
+        Serial.printf(" (%d bytes)\r\n", dev->nfcidLen);
 
         // Brief green flash on the RGB LEDs
         LedCommand ledCmd(LedCommandType::SolidGreen);
@@ -242,10 +332,8 @@ void NfcTask::runReader() {
 void NfcTask::runEmulator() {
   RfalNfcClass &nfc = hw::nfcInstance();
 
-  // Re-initialize
-  ReturnCode err = nfc.rfalNfcInitialize();
-  if (err != ERR_NONE) {
-    Serial.printf("NFC emulator: reinit failed (%d)\r\n", err);
+  if (!ensureReady(nfc)) {
+    Serial.println("NFC emulator: failed to reach IDLE state");
     return;
   }
 
@@ -267,21 +355,22 @@ void NfcTask::runEmulator() {
   params.lmConfigPA.SENS_RES[1] = 0x04;
   params.lmConfigPA.SEL_RES = 0x20;
 
-  err = nfc.rfalNfcDiscover(&params);
+  ReturnCode err = nfc.rfalNfcDiscover(&params);
   if (err != ERR_NONE) {
-    Serial.printf("NFC emulator: discover failed (%d)\r\n", err);
+    Serial.printf("NFC emulator: discover failed (err=%d, state=%s)\r\n",
+                  err, nfcStateName(nfc.rfalNfcGetState()));
     return;
   }
 
-  Serial.println("NFC emulator: waiting for reader...");
+  Serial.println("NFC emulator: waiting for reader... (press B to stop, A for reader)");
   g_tagState = TAG_IDLE;
 
   for (;;) {
     // Check for new command (non-blocking)
     NfcCommand cmd;
     if (checkCommand(cmd)) {
-      nfc.rfalNfcDeactivate(RFAL_NFC_DEACTIVATE_IDLE);
-      if (cmd.mode != NfcMode::Emulator)
+      stopAndFlush(nfc);
+      if (cmd.mode != NfcMode::Off && cmd.mode != NfcMode::Emulator)
         _nfcQueue.send(cmd, Milliseconds(0));
       return;
     }
@@ -291,7 +380,7 @@ void NfcTask::runEmulator() {
 
     if (state == RFAL_NFC_STATE_ACTIVATED) {
       digitalWrite(badge::pins::NFC_LED, HIGH);
-      Serial.println("NFC emulator: activated by reader");
+      Serial.println("NFC emulator: === READER CONNECTED ===");
       g_tagState = TAG_IDLE;
 
       // Brief blue flash on RGB LEDs
@@ -304,6 +393,7 @@ void NfcTask::runEmulator() {
 
       err = nfc.rfalNfcDataExchangeStart(nullptr, 0, &rxData, &rxLen, 0);
       if (err != ERR_NONE) {
+        Serial.printf("NFC emulator: DataExchange start failed (err=%d)\r\n", err);
         nfc.rfalNfcDeactivate(RFAL_NFC_DEACTIVATE_DISCOVERY);
         digitalWrite(badge::pins::NFC_LED, LOW);
         continue;
@@ -315,8 +405,8 @@ void NfcTask::runEmulator() {
         // Check for new command
         NfcCommand pendingCmd;
         if (checkCommand(pendingCmd)) {
-          nfc.rfalNfcDeactivate(RFAL_NFC_DEACTIVATE_IDLE);
-          if (pendingCmd.mode != NfcMode::Emulator)
+          stopAndFlush(nfc);
+          if (pendingCmd.mode != NfcMode::Off && pendingCmd.mode != NfcMode::Emulator)
             _nfcQueue.send(pendingCmd, Milliseconds(0));
           digitalWrite(badge::pins::NFC_LED, LOW);
           return;
@@ -331,16 +421,30 @@ void NfcTask::runEmulator() {
         }
 
         if (err == ERR_NONE && rxData && rxLen && *rxLen > 0) {
+          Serial.printf("NFC emulator: RX APDU (%d bytes): ", *rxLen);
+          for (uint16_t i = 0; i < *rxLen; i++)
+            Serial.printf("%02X ", rxData[i]);
+          Serial.println();
+
           uint16_t txLen = handleApdu(rxData, *rxLen, g_txBuf);
+
+          Serial.printf("NFC emulator: TX APDU (%d bytes): ", txLen);
+          for (uint16_t i = 0; i < txLen; i++)
+            Serial.printf("%02X ", g_txBuf[i]);
+          Serial.println();
+
           err = nfc.rfalNfcDataExchangeStart(g_txBuf, txLen, &rxData, &rxLen, 0);
           if (err != ERR_NONE) {
+            Serial.printf("NFC emulator: TX failed (err=%d)\r\n", err);
             linkActive = false;
           }
         } else {
+          Serial.printf("NFC emulator: link lost (err=%d)\r\n", err);
           linkActive = false;
         }
       }
 
+      Serial.println("NFC emulator: reader disconnected");
       digitalWrite(badge::pins::NFC_LED, LOW);
       nfc.rfalNfcDeactivate(RFAL_NFC_DEACTIVATE_DISCOVERY);
     }

@@ -27,6 +27,19 @@ bool nfcInit() {
   g_nfcSPI.begin(badge::pins::NFC_SCK, badge::pins::NFC_MISO, badge::pins::NFC_MOSI);
   delay(100);
 
+  // Debug: read the ST25R3916 IC Identity register (0x3F) via direct SPI
+  {
+    g_nfcSPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
+    digitalWrite(badge::pins::NFC_CS, LOW);
+    // ST25R3916 SPI: read register command = 0x40 | reg_addr
+    // IC Identity register is at address 0x3F
+    g_nfcSPI.transfer(0x40 | 0x3F);  // Read command for register 0x3F
+    uint8_t chipId = g_nfcSPI.transfer(0x00);
+    digitalWrite(badge::pins::NFC_CS, HIGH);
+    g_nfcSPI.endTransaction();
+    Serial.printf("NFC: raw chip ID register (0x3F) = 0x%02X\r\n", chipId);
+  }
+
   ReturnCode err = g_nfc.rfalNfcInitialize();
   if (err != ERR_NONE) {
     Serial.printf("NFC: init failed (err=%d)\r\n", err);
