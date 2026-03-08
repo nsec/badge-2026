@@ -20,6 +20,7 @@ protected:
 private:
   void runReader();
   void runEmulator();
+  void runPair();
 
   /// Check for a new command without blocking.  Returns true if one was received.
   bool checkCommand(NfcCommand &out);
