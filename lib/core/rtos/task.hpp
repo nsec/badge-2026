@@ -9,7 +9,8 @@ inline constexpr configSTACK_DEPTH_TYPE DEFAULT_STACK_DEPTH = 4096;
 
 class Task {
 public:
-  Task(const char *name, UBaseType_t priority) : _name(name), _priority(priority) {}
+  Task(const char *name, UBaseType_t priority, configSTACK_DEPTH_TYPE stackDepth = DEFAULT_STACK_DEPTH)
+      : _name(name), _priority(priority), _stackDepth(stackDepth) {}
 
   virtual ~Task() {
     if (_handle) {
@@ -24,7 +25,7 @@ public:
 
   void start() {
     configASSERT(!_handle);
-    BaseType_t ok = xTaskCreate(entry, _name, DEFAULT_STACK_DEPTH, this, _priority, &_handle);
+    BaseType_t ok = xTaskCreate(entry, _name, _stackDepth, this, _priority, &_handle);
     configASSERT(ok == pdPASS);
   }
 
@@ -46,6 +47,7 @@ private:
 
   const char *_name;
   UBaseType_t _priority;
+  configSTACK_DEPTH_TYPE _stackDepth;
   TaskHandle_t _handle = nullptr;
 };
 

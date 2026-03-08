@@ -107,8 +107,18 @@ void ControllerTask::handle(const ButtonPressEvent &event) {
   storage::SocialKey key;
   uint8_t r, g, b;
 
-  if (!buttonToSocial(event.button, key, r, g, b))
-    return;  // unmapped button (A/B) — ignore
+  if (!buttonToSocial(event.button, key, r, g, b)) {
+    // A/B buttons → NFC modes
+    if (event.button == hw::Button::A) {
+      _nfcQueue.send(NfcCommand{NfcMode::Reader}, Milliseconds(0));
+      return;
+    }
+    if (event.button == hw::Button::B) {
+      _nfcQueue.send(NfcCommand{NfcMode::Emulator}, Milliseconds(0));
+      return;
+    }
+    return;
+  }
 
   // Determine hold (toggle): same button cycles off→on→off, different button resets.
   bool hold = false;

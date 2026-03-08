@@ -18,5 +18,13 @@ static constexpr int BTN_RIGHT = 16;  // IO16
 static constexpr int BTN_UP = 13;     // IO13
 static constexpr int BTN_DOWN = 14;   // IO14
 
+// NFC (ST25R3916) — dedicated SPI bus
+static constexpr int NFC_SCK = 9;
+static constexpr int NFC_MISO = 10;
+static constexpr int NFC_MOSI = 11;
+static constexpr int NFC_CS = 12;
+static constexpr int NFC_INT = 21;
+static constexpr int NFC_LED = 40;
+
 }  // namespace pins
 }  // namespace badge

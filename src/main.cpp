@@ -50,6 +50,12 @@ void setup() {
 
   core::storage::socialNvsInit();
 
+  if (core::hw::nfcInit()) {
+    Serial.println("NFC initialized");
+  } else {
+    Serial.println("NFC init failed - NFC features disabled");
+  }
+
   core::ota::printBootInfo(Serial);
 
   core::cli::init(Serial);
@@ -68,16 +74,19 @@ void setup() {
   static core::Queue<core::ControllerEvent> controllerQueue(badge::config::queues::controller_depth);
   static core::Queue<core::LedCommand> ledQueue(badge::config::queues::led_depth);
   static core::Queue<core::CliResponse> cliQueue(badge::config::queues::cli_depth);
+  static core::Queue<core::NfcCommand> nfcQueue(badge::config::queues::nfc_depth);
 
   core::g_controllerQueue = &controllerQueue;
   core::g_ledQueue = &ledQueue;
   core::g_cliQueue = &cliQueue;
+  core::g_nfcQueue = &nfcQueue;
 
   // Create tasks
   static core::LedTask ledTask(ledQueue);
-  static core::ControllerTask controllerTask(controllerQueue, ledQueue, cliQueue);
+  static core::ControllerTask controllerTask(controllerQueue, ledQueue, cliQueue, nfcQueue);
   static core::CliTask cliTask;
   static core::ButtonTask buttonTask(controllerQueue);
+  static core::NfcTask nfcTask(nfcQueue, ledQueue);
 
   core::heartbeatStart();
 
@@ -85,6 +94,7 @@ void setup() {
   controllerTask.start();
   cliTask.start();
   buttonTask.start();
+  nfcTask.start();
 
   Serial.println("Setup complete!");
   Serial.println("Type 'help' for commands.");
