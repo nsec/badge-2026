@@ -135,6 +135,7 @@ void cmdHelp() {
   g_io->println("  buttontest           - interactive button test (press all 6)");
   g_io->println("  nvstest <key> <val>  - set social NVS (social|sponsor|light|attraction|all) (0-255)");
   g_io->println("  status               - show social NVS values");
+  g_io->println("  clear                - clear the screen");
   g_io->println("  swapboot             - switch to other firmware and reboot");
   g_io->println("  reboot               - reboot now");
 
@@ -326,6 +327,10 @@ void handleLine(const std::string &line) {
   if (cmd.length() == 0)
     return;
 
+  // These commands are available through both firmware versions, and include test
+  // commands meant to facilitate development. They should be commented out/removed
+  // before the final release.
+
   // Built-in commands
   if (cmd == "help" || cmd == "?")
     return cmdHelp();
@@ -348,6 +353,10 @@ void handleLine(const std::string &line) {
   }
   if (cmd == "status")
     return cmdStatus();
+  if (cmd == "clear") {
+    g_io->print("\033[2J\033[H");
+    return;
+  }
   if (cmd == "reboot")
     return cmdReboot();
 

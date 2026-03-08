@@ -6,16 +6,6 @@ namespace challenges {
 namespace example {
 
 void init() {
-  // TODO: add challenge init
-  registerCommands();
-}
-
-void tick() {
-  // TODO: add challenge periodic logic
-}
-
-void registerCommands() {
-  // Register the 'example' command with the CLI
   core::cli::registerCommand("example", "example challenge info", [](Stream &stream, const std::string &args) {
     handleExampleCommand(stream);
   });

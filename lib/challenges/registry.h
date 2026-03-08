@@ -3,6 +3,5 @@
 namespace challenges {
 
 void init();
-void tick();
 
 }  // namespace challenges

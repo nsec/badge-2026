@@ -1,17 +1,13 @@
 #include "registry.h"
-#include "example_challenge.h"
-#include "crypto.h"
+#include "example/example_challenge.h"
+#include "crypto/crypto.h"
 
 namespace challenges {
 
 void init() {
-  // Register/init challenge modules here.
+  // Initialize challenge modules (each registers its own CLI commands)
   challenges::example::init();
-}
-
-void tick() {
-  // Periodic hook for challenges.
-  // challenges::example::tick();
+  challenges::crypto::init();
 }
 
 }  // namespace challenges

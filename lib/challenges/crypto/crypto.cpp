@@ -8,11 +8,6 @@ namespace crypto {
 
 void init() {
   Serial.println("  - Crypto challenge module loaded");
-  registerCommands();
-}
-
-void registerCommands() {
-  // Register the 'crypto' command with the CLI
   core::cli::registerCommand("crypto", "crypto challenge info", [](Stream &stream, const std::string &args) {
     handleCryptoCommand(stream);
   });

@@ -6,12 +6,6 @@ namespace challenges {
 namespace example {
 
 void init();
-void tick();
-
-/**
- * Register CLI commands for this module
- */
-void registerCommands();
 
 /**
  * Handle the 'example' command
