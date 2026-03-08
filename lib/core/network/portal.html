@@ -6,65 +6,191 @@
 }
 
 body {
-  font-family: -apple-system, system-ui, sans-serif;
-  background: #111;
-  color: #eee;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #0a0f0a;
+  color: #d4e0c8;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 16px;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Animated vine SVG background */
+.vine-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.3;
+}
+
+.vine-bg path {
+  fill: none;
+  stroke: #2a5a1a;
+  stroke-width: 2;
+  stroke-dasharray: 800;
+  stroke-dashoffset: 800;
+  animation: grow 8s ease-out forwards;
+}
+
+.vine-bg path:nth-child(2) { stroke: #1a4a2a; animation-delay: 1.5s; }
+.vine-bg path:nth-child(3) { stroke: #2a6a1a; animation-delay: 3s; }
+.vine-bg path:nth-child(4) { stroke: #1a5a2a; animation-delay: 4.5s; stroke-width: 1.5; }
+
+.vine-bg circle {
+  fill: #3a8a2a;
+  opacity: 0;
+  animation: leaf-appear 1s ease-out forwards;
+}
+
+@keyframes grow {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes leaf-appear {
+  from { opacity: 0; transform: scale(0); }
+  to { opacity: 0.5; transform: scale(1); }
+}
+
+/* Floating spores */
+.spore {
+  position: fixed;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, #7ab648, transparent);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-up linear infinite;
+  opacity: 0;
+}
+
+@keyframes float-up {
+  0% { opacity: 0; transform: translateY(0) translateX(0); }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.3; }
+  100% { opacity: 0; transform: translateY(-100vh) translateX(40px); }
+}
+
+/* Content sits above background */
+h1, .card, .status {
+  position: relative;
+  z-index: 1;
 }
 
 h1 {
-  font-size: 1.4em;
+  font-size: 1.5em;
   margin: 12px 0 4px;
-  color: #b060ff;
+  color: #7ab648;
+  letter-spacing: 3px;
+  text-shadow: 0 0 20px rgba(122, 182, 72, 0.3);
+  animation: pulse-glow 4s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { text-shadow: 0 0 20px rgba(122, 182, 72, 0.2); }
+  50% { text-shadow: 0 0 30px rgba(122, 182, 72, 0.5), 0 0 60px rgba(122, 182, 72, 0.15); }
 }
 
 h2 {
   font-size: 1.1em;
   margin: 18px 0 8px;
-  color: #aaaaaa;
+  color: #8aa87a;
+  font-weight: 400;
 }
 
 .card {
-  background: #1a1a1a;
-  border-radius: 12px;
-  padding: 16px;
+  background: linear-gradient(145deg, #111a11, #0e160e);
+  border: 1px solid #1e3a1e;
+  border-radius: 16px;
+  padding: 18px;
   width: 100%;
   max-width: 400px;
   margin: 8px 0;
+  animation: card-breathe 6s ease-in-out infinite;
+  box-shadow: 0 0 20px rgba(42, 90, 26, 0.08);
+}
+
+.card:nth-child(3) {
+  animation-delay: 3s;
+}
+
+@keyframes card-breathe {
+  0%, 100% {
+    border-color: #1e3a1e;
+    box-shadow: 0 0 20px rgba(42, 90, 26, 0.08);
+  }
+  50% {
+    border-color: #2a5a2a;
+    box-shadow: 0 0 30px rgba(42, 90, 26, 0.15);
+  }
 }
 
 label {
   display: block;
   font-size: 0.9em;
-  color: #aaa;
+  color: #7a9a6a;
   margin: 10px 0 4px;
 }
 
 input[type=text] {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #333;
-  border-radius: 8px;
-  background: #222;
-  color: #eee;
+  padding: 10px 12px;
+  border: 1px solid #1e3a1e;
+  border-radius: 10px;
+  background: #0a140a;
+  color: #d4e0c8;
   font-size: 1em;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input[type=text]:focus {
+  outline: none;
+  border-color: #4a8a3a;
+  box-shadow: 0 0 12px rgba(74, 138, 58, 0.2);
 }
 
 input[type=range] {
+  -webkit-appearance: none;
   width: 100%;
-  margin: 4px 0;
-  accent-color: #b060ff;
+  height: 6px;
+  margin: 8px 0;
+  border-radius: 3px;
+  background: #1a2a1a;
+  outline: none;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #8ac85a, #4a8a3a);
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(122, 182, 72, 0.4);
+}
+
+input[type=range]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #8ac85a, #4a8a3a);
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(122, 182, 72, 0.4);
 }
 
 input[type=color] {
   width: 60px;
   height: 40px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   background: transparent;
 }
@@ -79,7 +205,8 @@ input[type=color] {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 2px solid #333;
+  border: 2px solid #2a4a2a;
+  box-shadow: 0 0 12px rgba(122, 182, 72, 0.15);
 }
 
 .btn {
@@ -87,70 +214,111 @@ input[type=color] {
   width: 100%;
   padding: 12px;
   margin: 16px 0 0;
-  border: none;
-  border-radius: 8px;
-  background: #b060ff;
-  color: #fff;
+  border: 1px solid #3a7a2a;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2a5a1a, #3a7a2a);
+  color: #d4f0c8;
   font-size: 1em;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.3s;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
 .btn:active {
-  background: #9040dd;
+  background: linear-gradient(135deg, #1a4a0a, #2a6a1a);
+  box-shadow: 0 0 20px rgba(74, 138, 58, 0.3);
 }
 
 .bar-wrap {
-  background: #222;
+  background: #0e1a0e;
   border-radius: 6px;
   height: 14px;
   margin: 4px 0 8px;
   overflow: hidden;
+  border: 1px solid #1a2a1a;
 }
 
 .bar {
   height: 100%;
-  border-radius: 6px;
-  transition: width 0.3s;
+  border-radius: 5px;
+  transition: width 0.6s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Shimmer effect on progress bars */
+.bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
 }
 
 .bar-social {
-  background: #8000ff;
+  background: linear-gradient(90deg, #2a5a1a, #5a9a3a);
 }
 
 .bar-sponsor {
-  background: #00cc00;
+  background: linear-gradient(90deg, #8a7a1a, #c8b030);
 }
 
 .bar-light {
-  background: #0066ff;
+  background: linear-gradient(90deg, #1a5a5a, #30a8a0);
 }
 
 .bar-attraction {
-  background: #ffcc00;
+  background: linear-gradient(90deg, #6a4a1a, #c87830);
 }
 
 .val {
   font-size: 0.85em;
-  color: #666;
+  color: #4a6a3a;
   float: right;
 }
 
 .status {
   text-align: center;
   font-size: 0.85em;
-  color: #666;
+  color: #5a8a4a;
   margin: 8px 0;
 }
 
 .bright-val {
   font-size: 0.85em;
-  color: #aaa;
+  color: #6a8a5a;
   text-align: right;
 }
 </style>
 </head>
 <body>
+
+<!-- Animated vine background -->
+<svg class="vine-bg" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice">
+  <path d="M-10 800 Q30 650 20 500 Q10 400 50 300 Q80 200 40 100 Q20 50 60 -10"/>
+  <path d="M410 800 Q370 680 380 550 Q390 420 350 320 Q320 240 360 140 Q380 60 340 -10"/>
+  <path d="M200 810 Q160 700 180 580 Q200 460 160 360 Q130 280 170 180 Q200 100 160 -10"/>
+  <path d="M50 810 Q100 720 80 620 Q60 530 110 430 Q140 350 100 250 Q70 170 120 60"/>
+  <!-- Growths at vine intersections -->
+  <circle cx="20" cy="500" r="5" style="animation-delay:4s"/>
+  <circle cx="50" cy="300" r="4" style="animation-delay:5s"/>
+  <circle cx="380" cy="550" r="5" style="animation-delay:5.5s"/>
+  <circle cx="350" cy="320" r="4" style="animation-delay:6s"/>
+  <circle cx="180" cy="580" r="5" style="animation-delay:6.5s"/>
+  <circle cx="160" cy="360" r="4" style="animation-delay:7s"/>
+  <circle cx="80" cy="620" r="3" style="animation-delay:7.5s"/>
+  <circle cx="110" cy="430" r="4" style="animation-delay:8s"/>
+</svg>
+
 <h1>NSEC</h1>
 
 <!-- I'd like to make it clear which info will be shared via NFC -->
@@ -204,6 +372,23 @@ function rgbToHex(r, g, b) {
 function updatePreview() {
   $('preview').style.background = $('color').value;
 }
+
+// Spawn floating spores
+function spawnSpores() {
+  const body = document.body;
+  for (let i = 0; i < 1000; i++) {
+    const spore = document.createElement('div');
+    spore.className = 'spore';
+    spore.style.left = Math.random() * 100 + 'vw';
+    spore.style.bottom = '-10px';
+    spore.style.animationDuration = (8 + Math.random() * 12) + 's';
+    spore.style.animationDelay = (Math.random() * 10) + 's';
+    spore.style.width = spore.style.height = (2 + Math.random() * 4) + 'px';
+    body.appendChild(spore);
+  }
+}
+
+spawnSpores();
 
 $('color').addEventListener('input', updatePreview);
 $('brightness').addEventListener('input', () => {
