@@ -18,7 +18,7 @@ void registerCommands();
 /**
  * Handle the 'schedule' command
  */
-void handleScheduleCommand(Stream& stream);
+void handleScheduleCommand(Stream &stream);
 
-} // namespace schedule
-} // namespace conference
+}  // namespace schedule
+}  // namespace conference

@@ -1,23 +1,23 @@
 #pragma once
 
 #include <Arduino.h>
+#include <cstdint>
 
 namespace core {
 namespace hw {
 
-/**
- * Get the unique hardware ID for this badge.
- *
- * Returns the ESP32-S3 base MAC address as a 12-character
- * uppercase hex string (e.g. "4827E2E91584").
- * This value is unique per chip and burned into eFuse at the factory.
- */
-String getHardwareId();
+/// MAC address length.
+static constexpr uint8_t MAC_LEN = 6;
 
 /**
- * Print the hardware ID to a stream.
+ * Copy the factory MAC address into `out` (6 bytes).
+ */
+void getHwidMac(uint8_t out[MAC_LEN]);
+
+/**
+ * Print the hardware ID (full MAC hex string) to a stream.
  */
 void printHardwareId(Stream &io);
 
-} // namespace hw
-} // namespace core
+}  // namespace hw
+}  // namespace core

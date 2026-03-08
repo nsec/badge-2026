@@ -12,6 +12,19 @@ permissions:
   contents: write
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run clang-format
+        run: ./format-cpp
+
+      - name: Check for formatting changes
+        run: git diff --exit-code
+
   build:
     runs-on: ubuntu-latest
 

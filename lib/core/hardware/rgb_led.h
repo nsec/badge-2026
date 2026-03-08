@@ -40,5 +40,5 @@ void rgbClear();
  */
 void rgbSetBrightness(uint8_t brightness);
 
-} // namespace hw
-} // namespace core
+}  // namespace hw
+}  // namespace core

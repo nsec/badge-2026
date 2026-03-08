@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# Copyright (C) 2020-2022 Philippe Proulx <pproulx@efficios.com>
+
+# Runs the formatter, making sure it's the expected version.
+format_cpp() {
+	local formatter=$1
+	local root_dir
+
+	root_dir="$(dirname "${BASH_SOURCE[0]}")"
+
+	# Using xargs to fail as soon as the formatter fails (`-exec`
+	# won't stop if its subprocess fails).
+	# shellcheck disable=SC2086
+	find "$root_dir/src" "$root_dir/lib" \
+		-type f \( -name '*\.h' -o -name '*\.hpp' -o -name '*\.c' -o -name '*\.cpp' \) \
+		-not -path '*/\.*' -print0 | \
+		xargs -P"$(nproc)" -n1 -0 $formatter -i --style=file --fallback-style=none
+}
+
+if [[ -n "$FORMATTER" ]]; then
+	# Try using environment-provided formatter
+	formatter=$FORMATTER
+else
+	# Try using `clang-format` as is
+	formatter='clang-format'
+fi
+
+# Try to format files
+format_cpp "$formatter"

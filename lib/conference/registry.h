@@ -14,4 +14,4 @@ void init();
  */
 void tick();
 
-} // namespace conference
+}  // namespace conference
