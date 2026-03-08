@@ -8,11 +8,6 @@ namespace schedule {
 
 void init() {
   Serial.println("  - Schedule module loaded");
-  registerCommands();
-}
-
-void registerCommands() {
-  // Register the 'schedule' command with the CLI
   core::cli::registerCommand("schedule", "show conference schedule", [](Stream &stream, const std::string &args) {
     handleScheduleCommand(stream);
   });

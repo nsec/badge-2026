@@ -11,11 +11,6 @@ namespace crypto {
 void init();
 
 /**
- * Register CLI commands for this module
- */
-void registerCommands();
-
-/**
  * Handle the 'crypto' command
  */
 void handleCryptoCommand(Stream &stream);

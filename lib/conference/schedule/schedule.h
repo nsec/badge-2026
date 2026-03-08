@@ -11,11 +11,6 @@ namespace schedule {
 void init();
 
 /**
- * Register CLI commands for this module
- */
-void registerCommands();
-
-/**
  * Handle the 'schedule' command
  */
 void handleScheduleCommand(Stream &stream);

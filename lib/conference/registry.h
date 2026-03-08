@@ -8,10 +8,4 @@ namespace conference {
  */
 void init();
 
-/**
- * Poll/update conference modules
- * Called from main.cpp loop()
- */
-void tick();
-
 }  // namespace conference

@@ -326,6 +326,10 @@ void handleLine(const std::string &line) {
   if (cmd.length() == 0)
     return;
 
+  // These commands are available through both firmware versions, and include test
+  // commands meant to facilitate development. They should be commented out/removed
+  // before the final release.
+
   // Built-in commands
   if (cmd == "help" || cmd == "?")
     return cmdHelp();
