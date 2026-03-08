@@ -6,11 +6,11 @@
 namespace {
 
 SPIClass g_nfcSPI(HSPI);
-// Reader: uses interrupt-driven mode
+// Single hardware instance with interrupt pin for both reader and emulator.
+// The deferred ISR patch (in patch_rfal.py) makes the ISR just set a flag
+// instead of doing SPI — safe on ESP32 where SPI is not allowed in ISR context.
 RfalRfST25R3916Class g_hardware(&g_nfcSPI, badge::pins::NFC_CS, badge::pins::NFC_INT);
 RfalNfcClass g_nfc(&g_hardware);
-// Emulator: polling-only mode (no IRQ) to avoid ISR watchdog in listen mode
-RfalRfST25R3916Class g_hardwarePolling(&g_nfcSPI, badge::pins::NFC_CS, -1);
 bool g_initialized = false;
 
 }  // namespace
@@ -59,7 +59,7 @@ RfalNfcClass &nfcInstance() {
 }
 
 RfalRfST25R3916Class &nfcHardware() {
-  return g_hardwarePolling;
+  return g_hardware;
 }
 
 SPIClass &nfcSPI() {
