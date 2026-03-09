@@ -14,6 +14,7 @@
 #include "tasks/controller.h"
 #include "tasks/cli_queue.h"
 #include "storage/nvs_social.h"
+#include "tasks/nfc.h"
 
 namespace {
 
@@ -135,6 +136,7 @@ void cmdHelp() {
   g_io->println("  buttontest           - interactive button test (press all 6)");
   g_io->println("  nvstest <key> <val>  - set social NVS (social|sponsor|light|attraction|all) (0-255)");
   g_io->println("  status               - show social NVS values");
+  g_io->println("  pair                 - start NFC peer-to-peer pairing");
   g_io->println("  clear                - clear the screen");
   g_io->println("  swapboot             - switch to other firmware and reboot");
   g_io->println("  reboot               - reboot now");
@@ -362,6 +364,14 @@ void handleLine(const std::string &line) {
 
   if (cmd == "swapboot") {
     return cmdBoot();
+  }
+
+  if (cmd == "pair") {
+    if (core::g_nfcQueue) {
+      core::g_nfcQueue->send(core::NfcCommand{core::NfcMode::Pair}, core::Milliseconds(0));
+      g_io->println("Pair mode started. Press A or B to cancel.");
+    }
+    return;
   }
 
   // Check registered module commands
