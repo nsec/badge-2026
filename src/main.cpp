@@ -56,6 +56,8 @@ void setup() {
     Serial.println("NFC init failed - NFC features disabled");
   }
 
+  core::hw::dockInit();
+
   core::ota::printBootInfo(Serial);
 
   core::cli::init(Serial);
@@ -87,6 +89,7 @@ void setup() {
   static core::CliTask cliTask;
   static core::ButtonTask buttonTask(controllerQueue);
   static core::NfcTask nfcTask(nfcQueue, ledQueue);
+  static core::DockTask dockTask(ledQueue);
 
   core::heartbeatStart();
 
@@ -95,6 +98,7 @@ void setup() {
   cliTask.start();
   buttonTask.start();
   nfcTask.start();
+  dockTask.start();
 
   Serial.println("Setup complete!");
   Serial.println("Type 'help' for commands.");

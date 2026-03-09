@@ -15,6 +15,9 @@
 #include "tasks/cli_queue.h"
 #include "storage/nvs_social.h"
 
+#include <nvs_flash.h>
+#include <nvs.h>
+
 namespace {
 
 // Helper functions for std::string
@@ -134,6 +137,7 @@ void cmdHelp() {
   g_io->println("  ledtest [N]          - run RGB LED test suite (N=test# or all)");
   g_io->println("  buttontest           - interactive button test (press all 6)");
   g_io->println("  nvstest <key> <val>  - set social NVS (social|sponsor|light|attraction|all) (0-255)");
+  g_io->println("  docktest [reset]     - show/reset seen dock stations");
   g_io->println("  status               - show social NVS values");
   g_io->println("  clear                - clear the screen");
   g_io->println("  swapboot             - switch to other firmware and reboot");
@@ -297,6 +301,52 @@ void cmdReboot() {
   ESP.restart();
 }
 
+void cmdDockTest(const std::string &args) {
+  nvs_handle_t handle;
+  if (nvs_open("docks", NVS_READWRITE, &handle) != ESP_OK) {
+    g_io->println("Failed to open docks NVS");
+    return;
+  }
+
+  std::string arg = args;
+  toLower(arg);
+  trim(arg);
+
+  if (arg == "reset") {
+    nvs_set_u32(handle, "seen", 0);
+    nvs_commit(handle);
+    nvs_close(handle);
+    // Also reset sponsor value
+    core::storage::socialWrite(core::storage::SocialKey::Sponsor, 0);
+    g_io->println("Dock seen bitmask and sponsor value reset to 0");
+    return;
+  }
+
+  uint32_t mask = 0;
+  nvs_get_u32(handle, "seen", &mask);
+  nvs_close(handle);
+
+  // Count set bits
+  uint8_t count = 0;
+  uint32_t v = mask;
+  while (v) { count += v & 1; v >>= 1; }
+
+  g_io->printf("Seen docks: %d/16\r\n", count);
+  g_io->printf("Bitmask: 0x%08X\r\n", mask);
+  g_io->print("Dock IDs: ");
+  bool first = true;
+  for (int i = 0; i < 32; i++) {
+    if (mask & (1u << i)) {
+      if (!first) g_io->print(", ");
+      g_io->printf("%d", i + 1);
+      first = false;
+    }
+  }
+  if (first) g_io->print("(none)");
+  g_io->println();
+  g_io->printf("Sponsor value: %d\r\n", core::storage::socialRead(core::storage::SocialKey::Sponsor));
+}
+
 void cmdBoot() {
   std::string current(core::ota::getRunningPartitionLabel().c_str());
   core::ota::BootTarget target;
@@ -350,6 +400,11 @@ void handleLine(const std::string &line) {
     std::string arg = (i < line.length()) ? line.substr(i) : "";
     trim(arg);
     return cmdNvsTest(arg);
+  }
+  if (cmd == "docktest") {
+    std::string arg = (i < line.length()) ? line.substr(i) : "";
+    trim(arg);
+    return cmdDockTest(arg);
   }
   if (cmd == "status")
     return cmdStatus();
