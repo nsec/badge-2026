@@ -6,8 +6,8 @@ import threading
 import time
 import sys
 
-PORT1 = "/dev/cu.usbmodem1101"
-PORT2 = "/dev/cu.usbmodem31201"
+PORT1 = "/dev/cu.usbmodem311201"
+PORT2 = "/dev/cu.usbmodem311301"
 BAUD = 115200
 TIMEOUT = 30  # seconds to wait for pairing
 
@@ -82,8 +82,13 @@ def main():
     t1.start()
     t2.start()
 
-    # Wait for badges to boot and settle
-    print("Waiting 4s for badges to be ready...")
+    # Reset badges via DTR toggle
+    print("Resetting badges via DTR...")
+    for s in (ser1, ser2):
+        s.dtr = False
+        time.sleep(0.1)
+        s.dtr = True
+    print("Waiting 4s for badges to boot...")
     time.sleep(4)
 
     # Drain boot output
