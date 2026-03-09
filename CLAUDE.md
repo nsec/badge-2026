@@ -33,7 +33,7 @@ Five FreeRTOS tasks communicate via type-safe `Queue<T>` wrappers (no shared mem
 | Task | Priority | Role |
 |------|----------|------|
 | ButtonTask | 5 | Polls 6 buttons (15ms debounce), sends `ButtonPressEvent` |
-| NfcTask | 3 | Reader (RFAL discovery) or NTAG213 emulator (deferred ISR) |
+| NfcTask | 3 | Reader, NTAG213 emulator (deferred ISR), or NFC-DEP P2P pairing |
 | LedTask | 3 | Processes `LedCommand` queue, drives 18x WS2812 on IO8 |
 | ControllerTask | 2 | Central event router: buttons → NFC/LED/social commands |
 | CliTask | 1 | Serial CLI with command registration, history, ANSI escape |
@@ -60,11 +60,17 @@ After modifying patches: `rm -rf .pio/libdeps` to force re-patching.
 
 ### Dual Firmware / OTA
 
-Partition layout: conference at `0x10000` (factory), ctf at `0x150000` (ota_0). CLI commands `boot conference` / `boot ctf` switch via `esp_ota_set_boot_partition()`.
+Partition layout: conference at `0x10000` (factory), ctf at `0x150000` (ota_0). CLI command `swapboot` toggles between firmwares via `esp_ota_set_boot_partition()`.
 
 ### NVS Social Storage
 
-Four social categories (0-255 progress) stored in NVS with XOR encryption (MAC-keyed) + CRC-8 integrity. See `lib/core/storage/nvs_social.*`.
+Four social categories (0-255 progress) stored in NVS with XOR encryption (MAC-keyed) + CRC-8/CCITT integrity:
+- **Social** — Citizens/Players (Down button)
+- **Sponsor** — Vendors (Up button)
+- **Light** — Light collection (Left button)
+- **Attraction** — Attractions (Right button)
+
+See `lib/core/storage/nvs_social.*`.
 
 ## Code Style
 
@@ -82,7 +88,26 @@ Four social categories (0-255 progress) stored in NVS with XOR encryption (MAC-k
 
 ## Adding Modules
 
-New conference modules go in `lib/conference/`, CTF challenges in `lib/challenges/`. Register CLI commands via `core::cli::registerCommand()` and hook into the registry's `init()` function. See CONTRIBUTING.md for templates.
+New conference modules go in `lib/conference/`, CTF challenges in `lib/challenges/` (each in its own subfolder, e.g. `lib/challenges/crypto/`). Register CLI commands via `core::cli::registerCommand()` and hook into the registry's `init()` function. See CONTRIBUTING.md for templates.
+
+## CLI Commands
+
+Built-in commands (registered in `lib/core/tasks/cli.cpp`):
+
+| Command | Description |
+|---------|-------------|
+| `help` / `?` | Show command help |
+| `info` | Print boot/partition info |
+| `hwid` | Print hardware ID (MAC-based) |
+| `ledtest [N]` | RGB LED test suite |
+| `buttontest` | Interactive button test |
+| `nvstest <key> <val>` | Set social NVS value (social/sponsor/light/attraction/all) |
+| `status` | Show social NVS values |
+| `clear` | Clear screen |
+| `reboot` | Reboot |
+| `swapboot` | Toggle between conference/CTF firmware |
+
+Conference and CTF modules register additional commands via `core::cli::registerCommand()`.
 
 ## Simulator
 
