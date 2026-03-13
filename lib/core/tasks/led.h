@@ -12,6 +12,7 @@ enum class LedCommandType : uint8_t {
   SolidBlue,
   SolidWhite,
   SolidOrange,
+  SolidCyan,
   PixelWalk,
   Rainbow,
   Off,

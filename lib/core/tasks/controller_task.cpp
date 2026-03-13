@@ -134,6 +134,7 @@ void ControllerTask::handle(const ButtonPressEvent &event) {
 
     // --- UP: show current social category ---
     case hw::Button::Up: {
+      _nfcQueue.send(NfcCommand{NfcMode::Off}, Milliseconds(0));
       _socialActive = true;
 
       // Double-press toggle for hold
@@ -152,6 +153,7 @@ void ControllerTask::handle(const ButtonPressEvent &event) {
 
     // --- LEFT: cycle through social categories ---
     case hw::Button::Left: {
+      _nfcQueue.send(NfcCommand{NfcMode::Off}, Milliseconds(0));
       _socialIndex = (_socialIndex + 1) % 4;
       _lastButton = hw::Button::Left;
 
@@ -166,6 +168,7 @@ void ControllerTask::handle(const ButtonPressEvent &event) {
 
     // --- RIGHT: cycle brightness (10 levels) ---
     case hw::Button::Right: {
+      _nfcQueue.send(NfcCommand{NfcMode::Off}, Milliseconds(0));
       _brightnessLevel++;
       if (_brightnessLevel > 10)
         _brightnessLevel = 1;

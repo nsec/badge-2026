@@ -857,7 +857,7 @@ void NfcTask::runEmulator() {
   g_wasEverActivated = false;
   g_lastActivityMs = millis();
 
-  LedCommand lc(LedCommandType::SolidBlue);
+  LedCommand lc(LedCommandType::SolidCyan);
   _ledQueue.send(lc, Milliseconds(0));
 
   for (;;) {
