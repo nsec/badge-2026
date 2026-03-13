@@ -279,5 +279,48 @@ const char *socialKeyName(SocialKey key) {
   return keyStr(key);
 }
 
+// ---------------------------------------------------------------------------
+// Pair partner tracking
+// ---------------------------------------------------------------------------
+
+uint16_t pairCount() {
+  nvs_handle_t h;
+  if (nvs_open("pairs", NVS_READONLY, &h) != ESP_OK)
+    return 0;
+  size_t blobLen = 0;
+  nvs_get_blob(h, "seen", nullptr, &blobLen);
+  nvs_close(h);
+  return static_cast<uint16_t>(blobLen / 6);
+}
+
+bool pairGet(uint16_t index, uint8_t mac[6]) {
+  nvs_handle_t h;
+  if (nvs_open("pairs", NVS_READONLY, &h) != ESP_OK)
+    return false;
+  size_t blobLen = 0;
+  nvs_get_blob(h, "seen", nullptr, &blobLen);
+  uint16_t count = static_cast<uint16_t>(blobLen / 6);
+  if (index >= count) {
+    nvs_close(h);
+    return false;
+  }
+  uint8_t *buf = static_cast<uint8_t *>(malloc(blobLen));
+  if (!buf) { nvs_close(h); return false; }
+  nvs_get_blob(h, "seen", buf, &blobLen);
+  memcpy(mac, buf + index * 6, 6);
+  free(buf);
+  nvs_close(h);
+  return true;
+}
+
+void pairReset() {
+  nvs_handle_t h;
+  if (nvs_open("pairs", NVS_READWRITE, &h) != ESP_OK)
+    return;
+  nvs_erase_key(h, "seen");
+  nvs_commit(h);
+  nvs_close(h);
+}
+
 }  // namespace storage
 }  // namespace core

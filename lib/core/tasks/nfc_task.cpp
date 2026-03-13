@@ -19,6 +19,11 @@
 #include "hardware/crypto1.h"
 #include "hardware/hwid.h"
 
+#include <nvs_flash.h>
+#include <nvs.h>
+
+#include "storage/nvs_social.h"
+
 namespace core {
 
 Queue<NfcCommand> *g_nfcQueue = nullptr;
@@ -89,6 +94,85 @@ static void computeProof(const uint8_t key[32], const uint8_t nonce[PAIR_NONCE_L
   memcpy(msg, nonce, PAIR_NONCE_LEN);
   memcpy(msg + PAIR_NONCE_LEN, mac, core::hw::MAC_LEN);
   mbedtls_md_hmac(mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), key, 32, msg, sizeof(msg), hmacOut);
+}
+
+// ===========================================================================
+// Partner tracking — NVS-based unique pair tracking
+// ===========================================================================
+
+// Store seen partner MACs as a blob of 6-byte entries in NVS.
+// Max 128 partners (768 bytes blob). Each entry is a raw 6-byte MAC.
+#define MAX_PAIRED_PARTNERS 128
+
+/// Check if a partner MAC has been seen before. Returns true if new (not seen).
+static bool isNewPartner(const uint8_t mac[core::hw::MAC_LEN]) {
+  nvs_handle_t h;
+  if (nvs_open("pairs", NVS_READONLY, &h) != ESP_OK)
+    return true;  // namespace doesn't exist yet → definitely new
+
+  size_t blobLen = 0;
+  esp_err_t err = nvs_get_blob(h, "seen", nullptr, &blobLen);
+  if (err != ESP_OK || blobLen == 0) {
+    nvs_close(h);
+    return true;
+  }
+
+  uint8_t *buf = static_cast<uint8_t *>(malloc(blobLen));
+  if (!buf) { nvs_close(h); return true; }
+
+  nvs_get_blob(h, "seen", buf, &blobLen);
+  nvs_close(h);
+
+  size_t count = blobLen / core::hw::MAC_LEN;
+  for (size_t i = 0; i < count; i++) {
+    if (memcmp(buf + i * core::hw::MAC_LEN, mac, core::hw::MAC_LEN) == 0) {
+      free(buf);
+      return false;  // already seen
+    }
+  }
+  free(buf);
+  return true;  // new partner
+}
+
+/// Record a partner MAC as seen.
+static void recordPartner(const uint8_t mac[core::hw::MAC_LEN]) {
+  nvs_handle_t h;
+  if (nvs_open("pairs", NVS_READWRITE, &h) != ESP_OK)
+    return;
+
+  size_t blobLen = 0;
+  nvs_get_blob(h, "seen", nullptr, &blobLen);
+
+  size_t count = blobLen / core::hw::MAC_LEN;
+  if (count >= MAX_PAIRED_PARTNERS) {
+    nvs_close(h);
+    return;  // storage full
+  }
+
+  size_t newLen = blobLen + core::hw::MAC_LEN;
+  uint8_t *buf = static_cast<uint8_t *>(malloc(newLen));
+  if (!buf) { nvs_close(h); return; }
+
+  if (blobLen > 0)
+    nvs_get_blob(h, "seen", buf, &blobLen);
+
+  memcpy(buf + blobLen, mac, core::hw::MAC_LEN);
+  nvs_set_blob(h, "seen", buf, newLen);
+  nvs_commit(h);
+  nvs_close(h);
+  free(buf);
+}
+
+/// Get the count of unique partners seen.
+static uint16_t getPartnerCount() {
+  nvs_handle_t h;
+  if (nvs_open("pairs", NVS_READONLY, &h) != ESP_OK)
+    return 0;
+
+  size_t blobLen = 0;
+  nvs_get_blob(h, "seen", nullptr, &blobLen);
+  nvs_close(h);
+  return static_cast<uint16_t>(blobLen / core::hw::MAC_LEN);
 }
 
 /// Fill buffer with random bytes from hardware RNG
@@ -1179,13 +1263,38 @@ void NfcTask::runPair() {
     digitalWrite(badge::pins::NFC_LED, LOW);
 
     if (verified) {
-      Serial.printf("NFC-DEP pair: VERIFIED (%s) — partner %02X:%02X:%02X:%02X:%02X:%02X\r\n", role, partnerMac[0],
-                    partnerMac[1], partnerMac[2], partnerMac[3], partnerMac[4], partnerMac[5]);
-      LedCommand sc{};
-      sc.type = LedCommandType::ProgressFlash;
-      sc.pixelCount = 18;
-      sc.g = 255;
-      _ledQueue.send(sc, Milliseconds(0));
+      bool isNew = isNewPartner(partnerMac);
+
+      if (isNew) {
+        recordPartner(partnerMac);
+        // Increment social NVS by 3 (capped at 255)
+        uint8_t current = storage::socialRead(storage::SocialKey::Social);
+        uint16_t newVal = (uint16_t)current + 3;
+        if (newVal > 255) newVal = 255;
+        storage::socialWrite(storage::SocialKey::Social, (uint8_t)newVal);
+
+        Serial.printf("NFC-DEP pair: NEW partner %02X:%02X:%02X:%02X:%02X:%02X (%s) — social=%d (+3)\r\n",
+                      partnerMac[0], partnerMac[1], partnerMac[2], partnerMac[3], partnerMac[4], partnerMac[5],
+                      role, newVal);
+
+        // Green flash — new partner
+        LedCommand sc{};
+        sc.type = LedCommandType::ProgressFlash;
+        sc.pixelCount = 18;
+        sc.g = 255;
+        _ledQueue.send(sc, Milliseconds(0));
+      } else {
+        Serial.printf("NFC-DEP pair: ALREADY SEEN partner %02X:%02X:%02X:%02X:%02X:%02X (%s)\r\n",
+                      partnerMac[0], partnerMac[1], partnerMac[2], partnerMac[3], partnerMac[4], partnerMac[5], role);
+
+        // Yellow flash — already paired before
+        LedCommand sc{};
+        sc.type = LedCommandType::ProgressFlash;
+        sc.pixelCount = 18;
+        sc.r = 255;
+        sc.g = 255;
+        _ledQueue.send(sc, Milliseconds(0));
+      }
     } else {
       Serial.printf("NFC-DEP pair: HMAC FAILED — partner %02X:%02X:%02X:%02X:%02X:%02X\r\n", partnerMac[0],
                     partnerMac[1], partnerMac[2], partnerMac[3], partnerMac[4], partnerMac[5]);
