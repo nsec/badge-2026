@@ -51,43 +51,10 @@ void ControllerTask::handle(const LedTestRequest &req) {
 }
 
 // ---------------------------------------------------------------------------
-// Button presses → read NVS, send LED progress animation
+// Utility helpers
 // ---------------------------------------------------------------------------
 
-bool ControllerTask::buttonToSocial(hw::Button btn, storage::SocialKey &key, uint8_t &r, uint8_t &g, uint8_t &b) {
-  switch (btn) {
-    case hw::Button::Up:  // vendors → green
-      key = storage::SocialKey::Sponsor;
-      r = 0;
-      g = 255;
-      b = 0;
-      return true;
-    case hw::Button::Left:  // light collection → blue
-      key = storage::SocialKey::Light;
-      r = 0;
-      g = 0;
-      b = 255;
-      return true;
-    case hw::Button::Down:  // citizens/players → purple
-      key = storage::SocialKey::Social;
-      r = 128;
-      g = 0;
-      b = 255;
-      return true;
-    case hw::Button::Right:  // attractions → yellow
-      key = storage::SocialKey::Attraction;
-      r = 255;
-      g = 255;
-      b = 0;
-      return true;
-    default:
-      return false;
-  }
-}
-
 uint8_t ControllerTask::valueToPixelCount(uint8_t value) {
-  // Map 0-255 → 1-18 LEDs.  0 still lights 1 LED so the user sees feedback.
-  // 255 → 18, linear.
   if (value == 0)
     return 1;
   uint8_t count = static_cast<uint8_t>(1 + (static_cast<uint16_t>(value) * 17) / 255);
@@ -103,37 +70,41 @@ bool ControllerTask::allSocialMaxed() {
          storage::socialRead(storage::SocialKey::Attraction) == 255;
 }
 
-void ControllerTask::handle(const ButtonPressEvent &event) {
-  storage::SocialKey key;
+// ---------------------------------------------------------------------------
+// Button handling — new layout
+//
+// UP    = show social progress (double-press = hold LEDs on)
+// LEFT  = cycle through 4 social categories
+// RIGHT = cycle brightness (10 levels)
+// DOWN  = NFC emulate
+// A     = NFC read
+// B     = NFC P2P pair (press again to cancel)
+// ---------------------------------------------------------------------------
+
+static constexpr storage::SocialKey SOCIAL_ORDER[] = {
+    storage::SocialKey::Social,      // purple — citizens/players
+    storage::SocialKey::Sponsor,     // green — vendors
+    storage::SocialKey::Light,       // blue — light collection
+    storage::SocialKey::Attraction,  // yellow — attractions
+};
+static constexpr const char *SOCIAL_NAMES[] = {"social", "sponsor", "light", "attraction"};
+
+void ControllerTask::socialColor(storage::SocialKey key, uint8_t &r, uint8_t &g, uint8_t &b) {
+  switch (key) {
+    case storage::SocialKey::Social:     r = 128; g = 0;   b = 255; break;  // purple
+    case storage::SocialKey::Sponsor:    r = 0;   g = 255; b = 0;   break;  // green
+    case storage::SocialKey::Light:      r = 0;   g = 0;   b = 255; break;  // blue
+    case storage::SocialKey::Attraction: r = 255; g = 255; b = 0;   break;  // yellow
+    default:                             r = 255; g = 255; b = 255; break;
+  }
+}
+
+void ControllerTask::showCurrentSocial(bool hold) {
+  storage::SocialKey key = SOCIAL_ORDER[_socialIndex];
   uint8_t r, g, b;
+  socialColor(key, r, g, b);
 
-  if (!buttonToSocial(event.button, key, r, g, b)) {
-    // A/B buttons → NFC modes
-    if (event.button == hw::Button::A) {
-      _nfcQueue.send(NfcCommand{NfcMode::Reader}, Milliseconds(0));
-      return;
-    }
-    if (event.button == hw::Button::B) {
-      _nfcQueue.send(NfcCommand{NfcMode::Emulator}, Milliseconds(0));
-      return;
-    }
-    return;
-  }
-
-  // Determine hold (toggle): same button cycles off→on→off, different button resets.
-  bool hold = false;
-  if (event.button == _lastButton) {
-    // Same button again — toggle hold
-    _holdActive = !_holdActive;
-    hold = _holdActive;
-  } else {
-    // Different button — reset
-    _holdActive = false;
-    hold = false;
-  }
-  _lastButton = event.button;
-
-  // If all four categories are maxed, show rainbow instead.
+  // If all maxed, rainbow instead
   if (allSocialMaxed()) {
     LedCommand cmd{};
     cmd.type = LedCommandType::Rainbow;
@@ -145,6 +116,9 @@ void ControllerTask::handle(const ButtonPressEvent &event) {
   uint8_t value = storage::socialRead(key);
   uint8_t pixels = valueToPixelCount(value);
 
+  Serial.printf("[social] showing %s = %u → %u LEDs%s\r\n",
+                SOCIAL_NAMES[_socialIndex], value, pixels, hold ? " (hold)" : "");
+
   LedCommand cmd{};
   cmd.type = LedCommandType::ProgressFlash;
   cmd.pixelCount = pixels;
@@ -153,6 +127,87 @@ void ControllerTask::handle(const ButtonPressEvent &event) {
   cmd.b = b;
   cmd.hold = hold;
   _ledQueue.send(cmd);
+}
+
+void ControllerTask::handle(const ButtonPressEvent &event) {
+  switch (event.button) {
+
+    // --- UP: show current social category ---
+    case hw::Button::Up: {
+      _socialActive = true;
+
+      // Double-press toggle for hold
+      bool hold = false;
+      if (_lastButton == hw::Button::Up) {
+        _holdActive = !_holdActive;
+        hold = _holdActive;
+      } else {
+        _holdActive = false;
+      }
+      _lastButton = hw::Button::Up;
+
+      showCurrentSocial(hold);
+      break;
+    }
+
+    // --- LEFT: cycle through social categories ---
+    case hw::Button::Left: {
+      _socialIndex = (_socialIndex + 1) % 4;
+      _lastButton = hw::Button::Left;
+
+      Serial.printf("[social] switched to: %s\r\n", SOCIAL_NAMES[_socialIndex]);
+
+      // If social display was active (UP was pressed), show immediately
+      if (_socialActive) {
+        showCurrentSocial(_holdActive);
+      }
+      break;
+    }
+
+    // --- RIGHT: cycle brightness (10 levels) ---
+    case hw::Button::Right: {
+      _brightnessLevel++;
+      if (_brightnessLevel > 10)
+        _brightnessLevel = 1;
+      _lastButton = hw::Button::Right;
+
+      // Map 1-10 to brightness: level 1 = 25, level 10 = 255
+      uint8_t brightness = static_cast<uint8_t>(25 + (_brightnessLevel - 1) * (230 / 9));
+
+      hw::rgbSetBrightness(brightness);
+      Serial.printf("[brightness] level %u/10 (raw=%u)\r\n", _brightnessLevel, brightness);
+
+      // Re-show the current social display at the new brightness
+      if (_socialActive) {
+        showCurrentSocial(_holdActive);
+      }
+      break;
+    }
+
+    // --- DOWN: NFC emulate ---
+    case hw::Button::Down: {
+      _lastButton = hw::Button::Down;
+      _nfcQueue.send(NfcCommand{NfcMode::Emulator}, Milliseconds(0));
+      break;
+    }
+
+    // --- A: NFC read ---
+    case hw::Button::A: {
+      _lastButton = hw::Button::A;
+      _nfcQueue.send(NfcCommand{NfcMode::Reader}, Milliseconds(0));
+      break;
+    }
+
+    // --- B: NFC P2P pair ---
+    case hw::Button::B: {
+      _lastButton = hw::Button::B;
+      _nfcQueue.send(NfcCommand{NfcMode::Pair}, Milliseconds(0));
+      break;
+    }
+
+    default:
+      break;
+  }
 }
 
 // ---------------------------------------------------------------------------

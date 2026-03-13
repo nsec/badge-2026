@@ -196,6 +196,9 @@ void LedTask::run() {
       case LedCommandType::SolidWhite:
         led::solidColor(255, 255, 255);
         break;
+      case LedCommandType::SolidOrange:
+        led::solidColor(255, 80, 0);
+        break;
       case LedCommandType::PixelWalk:
         led::pixelWalk();
         break;

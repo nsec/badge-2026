@@ -759,13 +759,16 @@ void NfcTask::runReader() {
     return;
   }
   Serial.println("NFC reader: scanning... (press A to stop)");
+  _ledQueue.send(LedCommand(LedCommandType::SolidWhite), Milliseconds(0));
 
   for (;;) {
     NfcCommand cmd;
     if (checkCommand(cmd)) {
       stopAndFlush(nfc);
+      _ledQueue.send(LedCommand(LedCommandType::Off), Milliseconds(0));
       if (cmd.mode != NfcMode::Off && cmd.mode != NfcMode::Reader)
         _nfcQueue.send(cmd, Milliseconds(0));
+      Serial.print("> ");
       return;
     }
     nfc.rfalNfcWorker();
@@ -922,7 +925,7 @@ void NfcTask::runPair() {
   fillRandom(myNonce, sizeof(myNonce));
 
   Serial.println("NFC-DEP pair: searching... (press A/B to stop)");
-  _ledQueue.send(LedCommand(LedCommandType::SolidBlue), Milliseconds(0));
+  _ledQueue.send(LedCommand(LedCommandType::SolidOrange), Milliseconds(0));
 
   // Break symmetry with true hardware RNG — different on every attempt
   bool preferPoll = (esp_random() & 0x01) != 0;

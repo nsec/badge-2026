@@ -26,8 +26,8 @@ private:
   void handle(const ButtonPressEvent &event);
   void handle(const SocialSetRequest &request);
 
-  /// Map a button to its social key + colour.  Returns false for unmapped buttons.
-  static bool buttonToSocial(hw::Button btn, storage::SocialKey &key, uint8_t &r, uint8_t &g, uint8_t &b);
+  /// Get colour for a social category.
+  static void socialColor(storage::SocialKey key, uint8_t &r, uint8_t &g, uint8_t &b);
 
   /// Convert a 0-255 value to a 1-18 pixel count.
   static uint8_t valueToPixelCount(uint8_t value);
@@ -35,13 +35,22 @@ private:
   /// Check if all four social values are 255 (max).
   static bool allSocialMaxed();
 
+  /// Show the current social category on the LEDs.
+  void showCurrentSocial(bool hold);
+
   Queue<ControllerEvent> &_inQueue;
   Queue<LedCommand> &_ledQueue;
   Queue<CliResponse> &_cliQueue;
   Queue<NfcCommand> &_nfcQueue;
 
-  hw::Button _lastButton = hw::Button::COUNT;  // tracks double-press
-  bool _holdActive = false;                    // toggles on repeated same-button
+  // Social display state
+  uint8_t _socialIndex = 0;             // current category index (0-3)
+  bool _socialActive = false;           // UP was pressed at least once
+  hw::Button _lastButton = hw::Button::COUNT;
+  bool _holdActive = false;
+
+  // Brightness state (1-10, default 5)
+  uint8_t _brightnessLevel = 5;
 };
 
 }  // namespace core

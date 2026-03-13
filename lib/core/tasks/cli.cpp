@@ -171,6 +171,8 @@ const char *animationName(core::LedCommandType type) {
       return "All BLUE";
     case core::LedCommandType::SolidWhite:
       return "All WHITE";
+    case core::LedCommandType::SolidOrange:
+      return "All ORANGE";
     case core::LedCommandType::PixelWalk:
       return "Pixel walk";
     case core::LedCommandType::Rainbow:
