@@ -44,8 +44,8 @@ private:
   Queue<NfcCommand> &_nfcQueue;
 
   // Social display state
-  uint8_t _socialIndex = 0;             // current category index (0-3)
-  bool _socialActive = false;           // UP was pressed at least once
+  uint8_t _socialIndex = 0;    // current category index (0-3)
+  bool _socialActive = false;  // UP was pressed at least once
   hw::Button _lastButton = hw::Button::COUNT;
   bool _holdActive = false;
 

@@ -118,7 +118,10 @@ static bool isNewPartner(const uint8_t mac[core::hw::MAC_LEN]) {
   }
 
   uint8_t *buf = static_cast<uint8_t *>(malloc(blobLen));
-  if (!buf) { nvs_close(h); return true; }
+  if (!buf) {
+    nvs_close(h);
+    return true;
+  }
 
   nvs_get_blob(h, "seen", buf, &blobLen);
   nvs_close(h);
@@ -151,7 +154,10 @@ static void recordPartner(const uint8_t mac[core::hw::MAC_LEN]) {
 
   size_t newLen = blobLen + core::hw::MAC_LEN;
   uint8_t *buf = static_cast<uint8_t *>(malloc(newLen));
-  if (!buf) { nvs_close(h); return; }
+  if (!buf) {
+    nvs_close(h);
+    return;
+  }
 
   if (blobLen > 0)
     nvs_get_blob(h, "seen", buf, &blobLen);
@@ -1270,12 +1276,13 @@ void NfcTask::runPair() {
         // Increment social NVS by 3 (capped at 255)
         uint8_t current = storage::socialRead(storage::SocialKey::Social);
         uint16_t newVal = (uint16_t)current + 3;
-        if (newVal > 255) newVal = 255;
+        if (newVal > 255)
+          newVal = 255;
         storage::socialWrite(storage::SocialKey::Social, (uint8_t)newVal);
 
         Serial.printf("NFC-DEP pair: NEW partner %02X:%02X:%02X:%02X:%02X:%02X (%s) — social=%d (+3)\r\n",
-                      partnerMac[0], partnerMac[1], partnerMac[2], partnerMac[3], partnerMac[4], partnerMac[5],
-                      role, newVal);
+                      partnerMac[0], partnerMac[1], partnerMac[2], partnerMac[3], partnerMac[4], partnerMac[5], role,
+                      newVal);
 
         // Green flash — new partner
         LedCommand sc{};
@@ -1284,8 +1291,8 @@ void NfcTask::runPair() {
         sc.g = 255;
         _ledQueue.send(sc, Milliseconds(0));
       } else {
-        Serial.printf("NFC-DEP pair: ALREADY SEEN partner %02X:%02X:%02X:%02X:%02X:%02X (%s)\r\n",
-                      partnerMac[0], partnerMac[1], partnerMac[2], partnerMac[3], partnerMac[4], partnerMac[5], role);
+        Serial.printf("NFC-DEP pair: ALREADY SEEN partner %02X:%02X:%02X:%02X:%02X:%02X (%s)\r\n", partnerMac[0],
+                      partnerMac[1], partnerMac[2], partnerMac[3], partnerMac[4], partnerMac[5], role);
 
         // Yellow flash — already paired before
         LedCommand sc{};

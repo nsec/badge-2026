@@ -315,8 +315,7 @@ void cmdPairTest(const std::string &args) {
   for (uint16_t i = 0; i < count; i++) {
     uint8_t mac[6];
     if (core::storage::pairGet(i, mac)) {
-      g_io->printf("  %3d: %02X:%02X:%02X:%02X:%02X:%02X\r\n",
-                   i + 1, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+      g_io->printf("  %3d: %02X:%02X:%02X:%02X:%02X:%02X\r\n", i + 1, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     }
   }
 
@@ -382,11 +381,13 @@ void handleLine(const std::string &line) {
     std::string arg = (i < line.length()) ? line.substr(i) : "";
     trim(arg);
     return cmdNvsTest(arg);
-  }  if (cmd == "pairtest") {
+  }
+  if (cmd == "pairtest") {
     std::string arg = (i < line.length()) ? line.substr(i) : "";
     trim(arg);
     return cmdPairTest(arg);
-  }  if (cmd == "status")
+  }
+  if (cmd == "status")
     return cmdStatus();
   if (cmd == "clear") {
     g_io->print("\033[2J\033[H");

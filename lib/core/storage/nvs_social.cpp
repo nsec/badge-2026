@@ -305,7 +305,10 @@ bool pairGet(uint16_t index, uint8_t mac[6]) {
     return false;
   }
   uint8_t *buf = static_cast<uint8_t *>(malloc(blobLen));
-  if (!buf) { nvs_close(h); return false; }
+  if (!buf) {
+    nvs_close(h);
+    return false;
+  }
   nvs_get_blob(h, "seen", buf, &blobLen);
   memcpy(mac, buf + index * 6, 6);
   free(buf);

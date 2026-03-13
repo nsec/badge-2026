@@ -91,11 +91,31 @@ static constexpr const char *SOCIAL_NAMES[] = {"social", "sponsor", "light", "at
 
 void ControllerTask::socialColor(storage::SocialKey key, uint8_t &r, uint8_t &g, uint8_t &b) {
   switch (key) {
-    case storage::SocialKey::Social:     r = 128; g = 0;   b = 255; break;  // purple
-    case storage::SocialKey::Sponsor:    r = 0;   g = 255; b = 0;   break;  // green
-    case storage::SocialKey::Light:      r = 0;   g = 0;   b = 255; break;  // blue
-    case storage::SocialKey::Attraction: r = 255; g = 255; b = 0;   break;  // yellow
-    default:                             r = 255; g = 255; b = 255; break;
+    case storage::SocialKey::Social:
+      r = 128;
+      g = 0;
+      b = 255;
+      break;  // purple
+    case storage::SocialKey::Sponsor:
+      r = 0;
+      g = 255;
+      b = 0;
+      break;  // green
+    case storage::SocialKey::Light:
+      r = 0;
+      g = 0;
+      b = 255;
+      break;  // blue
+    case storage::SocialKey::Attraction:
+      r = 255;
+      g = 255;
+      b = 0;
+      break;  // yellow
+    default:
+      r = 255;
+      g = 255;
+      b = 255;
+      break;
   }
 }
 
@@ -116,8 +136,8 @@ void ControllerTask::showCurrentSocial(bool hold) {
   uint8_t value = storage::socialRead(key);
   uint8_t pixels = valueToPixelCount(value);
 
-  Serial.printf("[social] showing %s = %u → %u LEDs%s\r\n",
-                SOCIAL_NAMES[_socialIndex], value, pixels, hold ? " (hold)" : "");
+  Serial.printf("[social] showing %s = %u → %u LEDs%s\r\n", SOCIAL_NAMES[_socialIndex], value, pixels,
+                hold ? " (hold)" : "");
 
   LedCommand cmd{};
   cmd.type = LedCommandType::ProgressFlash;
