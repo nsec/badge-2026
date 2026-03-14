@@ -292,8 +292,7 @@ void ControllerTask::handle(const ConfigChangedEvent &event) {
   cmd.b = cfg.favoriteColor.b;
   _ledQueue.send(cmd);
 
-  Serial.printf("[controller] Config updated: name=%s bright=%u color=(%u,%u,%u)\r\n",
-                cfg.name, cfg.brightness,
+  Serial.printf("[controller] Config updated: name=%s bright=%u color=(%u,%u,%u)\r\n", cfg.name, cfg.brightness,
                 cfg.favoriteColor.r, cfg.favoriteColor.g, cfg.favoriteColor.b);
 }
 

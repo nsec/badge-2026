@@ -12,8 +12,7 @@ namespace core {
 class PortalTask : public Task {
 public:
   PortalTask(Queue<PortalCommand> &cmdQueue, Queue<ControllerEvent> &controllerQueue)
-      : Task("portal", badge::config::tasks::priority_portal, 8192),
-        _cmdQueue(cmdQueue),
+      : Task("portal", badge::config::tasks::priority_portal, 8192), _cmdQueue(cmdQueue),
         _controllerQueue(controllerQueue) {}
 
 protected:
