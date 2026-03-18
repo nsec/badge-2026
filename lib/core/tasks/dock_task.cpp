@@ -14,6 +14,19 @@ extern volatile core::hw::DockLedColor g_pendingLedColor;
 extern volatile bool g_ledColorPending;
 extern volatile uint8_t g_pendingDockId;
 extern volatile bool g_dockIdPending;
+extern volatile uint8_t g_challengeSubOpcode;
+extern volatile uint8_t g_challengeData[];
+extern volatile uint8_t g_challengeDataLen;
+extern volatile bool g_challengeDataPending;
+
+// Challenge handler registry (defined in dock.cpp)
+#define MAX_CHALLENGE_HANDLERS 8
+struct ChallengeHandlerEntry {
+  uint8_t subOpcode;
+  core::hw::DockChallengeHandler handler;
+};
+extern ChallengeHandlerEntry g_challengeHandlers[];
+extern uint8_t g_challengeHandlerCount;
 
 namespace {
 
@@ -93,6 +106,27 @@ void DockTask::run() {
         } else {
           Serial.printf("Dock: dock #%d already seen\r\n", dockId);
         }
+      }
+    }
+
+    // Handle challenge data from dock
+    if (g_challengeDataPending) {
+      g_challengeDataPending = false;
+      uint8_t subOp = g_challengeSubOpcode;
+      uint8_t dataCopy[32];
+      uint8_t dataLen = g_challengeDataLen;
+      memcpy(dataCopy, const_cast<uint8_t *>(const_cast<volatile uint8_t *>(g_challengeData)), dataLen);
+
+      bool handled = false;
+      for (uint8_t i = 0; i < g_challengeHandlerCount; i++) {
+        if (g_challengeHandlers[i].subOpcode == subOp) {
+          g_challengeHandlers[i].handler(subOp, dataCopy, dataLen);
+          handled = true;
+          break;
+        }
+      }
+      if (!handled) {
+        Serial.printf("Dock: unhandled challenge sub-opcode 0x%02X\r\n", subOp);
       }
     }
 

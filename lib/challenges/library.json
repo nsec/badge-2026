@@ -1,12 +1,12 @@
 {
   "name": "challenges",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "NorthSec Badge 2026 CTF challenge modules",
   "keywords": "badge, esp32s3, ctf",
   "frameworks": "*",
   "platforms": "*",
   "build": {
-    "srcFilter": ["+<*>", "+<example/>", "+<crypto/>"]
+    "srcFilter": ["+<*>", "+<example/>", "+<crypto/>", "+<quantum/>"]
   },
   "dependencies": [
     { "name": "core" }

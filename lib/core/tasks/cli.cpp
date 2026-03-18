@@ -134,7 +134,6 @@ void cmdHelp() {
   g_io->print(
       "Commands:\r\n"
       "  help                 - show this help\r\n"
-      "  info                 - print current boot/partition info\r\n"
       "  hwid                 - print unique hardware ID\r\n"
       "  nvstest <key> <val>  - set social NVS\r\n"
       "  pairtest [reset]     - show/reset paired partners\r\n");
@@ -412,8 +411,8 @@ void handleLine(const std::string &line) {
   // Built-in commands
   if (cmd == "help" || cmd == "?")
     return cmdHelp();
-  if (cmd == "info")
-    return cmdInfo();
+  //if (cmd == "info")
+  //  return cmdInfo();
   if (cmd == "hwid")
     return cmdHwid();
   //if (cmd == "ledtest") {

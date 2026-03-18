@@ -12,6 +12,28 @@ volatile bool g_ledColorPending = false;
 volatile uint8_t g_pendingDockId = 0;
 volatile bool g_dockIdPending = false;
 
+// Custom response buffer for next I2C read
+#define RESPONSE_BUF_MAX 64
+static uint8_t g_responseBuf[RESPONSE_BUF_MAX];
+static uint8_t g_responseLen = 0;
+static volatile bool g_responseReady = false;
+
+// Challenge data buffer — filled in ISR, consumed by dock task
+#define CHALLENGE_DATA_MAX 32
+volatile uint8_t g_challengeSubOpcode = 0;
+volatile uint8_t g_challengeData[CHALLENGE_DATA_MAX];
+volatile uint8_t g_challengeDataLen = 0;
+volatile bool g_challengeDataPending = false;
+
+// Challenge handler registry
+#define MAX_CHALLENGE_HANDLERS 8
+struct ChallengeHandlerEntry {
+  uint8_t subOpcode;
+  core::hw::DockChallengeHandler handler;
+};
+ChallengeHandlerEntry g_challengeHandlers[MAX_CHALLENGE_HANDLERS];
+uint8_t g_challengeHandlerCount = 0;
+
 namespace {
 
 // The 12-char hex hardware ID, built once at init
@@ -49,6 +71,17 @@ void onReceive(int numBytes) {
       }
       break;
 
+    case core::hw::DockCmd::ChallengeData:
+      if (numBytes >= 2) {
+        g_challengeSubOpcode = Wire.read();
+        g_challengeDataLen = 0;
+        while (Wire.available() && g_challengeDataLen < CHALLENGE_DATA_MAX) {
+          g_challengeData[g_challengeDataLen++] = Wire.read();
+        }
+        g_challengeDataPending = true;
+      }
+      break;
+
     default:
       break;
   }
@@ -60,8 +93,15 @@ void onReceive(int numBytes) {
 
 // I2C request handler — called when dock reads from badge
 void onRequest() {
-  Serial.printf("Dock I2C: request received, sending HWID: %s\r\n", g_hwidHex);
-  Wire.write(reinterpret_cast<const uint8_t *>(g_hwidHex), 12);
+  if (g_responseReady && g_responseLen > 0) {
+    // Send custom response (e.g. quantum challenge data)
+    Wire.write(g_responseBuf, g_responseLen);
+    g_responseReady = false;
+    g_responseLen = 0;
+  } else {
+    // Default: send hardware ID
+    Wire.write(reinterpret_cast<const uint8_t *>(g_hwidHex), 12);
+  }
 }
 
 }  // namespace
@@ -90,6 +130,22 @@ void dockInit() {
   //Serial.printf("I2C follower ready on 0x%02X, SDA=%d, SCL=%d (HWID: %s)\r\n",
   //              DOCK_I2C_ADDR, badge::pins::I2C_SDA, badge::pins::I2C_SCL, g_hwidHex);
   Serial.printf("I2C initialized\r\n");
+}
+
+void dockRegisterChallengeHandler(uint8_t subOpcode, DockChallengeHandler handler) {
+  if (g_challengeHandlerCount < MAX_CHALLENGE_HANDLERS) {
+    g_challengeHandlers[g_challengeHandlerCount].subOpcode = subOpcode;
+    g_challengeHandlers[g_challengeHandlerCount].handler = handler;
+    g_challengeHandlerCount++;
+  }
+}
+
+void dockSetResponseBuffer(const uint8_t *data, uint8_t len) {
+  if (len > RESPONSE_BUF_MAX)
+    len = RESPONSE_BUF_MAX;
+  memcpy(g_responseBuf, data, len);
+  g_responseLen = len;
+  g_responseReady = true;
 }
 
 }  // namespace hw
