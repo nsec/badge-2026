@@ -10,10 +10,10 @@ static constexpr uint8_t DOCK_I2C_ADDR = 0x68;
 
 /// Dock I2C command codes (sent by dock, handled by badge).
 enum class DockCmd : uint8_t {
-  RequestHwid = 0x01,   // Dock requests the badge's 12-byte hex hardware ID
-  SetLedColor = 0x02,   // Dock tells the badge to set LED color (1 byte payload)
-  SendDockId = 0x03,    // Dock sends its ID (1 byte: 1-255)
-  ChallengeData = 0x10, // Challenge dock sends opcode + payload (routed to registered handler)
+  RequestHwid = 0x01,    // Dock requests the badge's 12-byte hex hardware ID
+  SetLedColor = 0x02,    // Dock tells the badge to set LED color (1 byte payload)
+  SendDockId = 0x03,     // Dock sends its ID (1 byte: 1-255)
+  ChallengeData = 0x10,  // Challenge dock sends opcode + payload (routed to registered handler)
 };
 
 /// LED color codes sent by dock.

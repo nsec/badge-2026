@@ -27,10 +27,12 @@ volatile bool g_challengeDataPending = false;
 
 // Challenge handler registry
 #define MAX_CHALLENGE_HANDLERS 8
+
 struct ChallengeHandlerEntry {
   uint8_t subOpcode;
   core::hw::DockChallengeHandler handler;
 };
+
 ChallengeHandlerEntry g_challengeHandlers[MAX_CHALLENGE_HANDLERS];
 uint8_t g_challengeHandlerCount = 0;
 
@@ -113,8 +115,7 @@ void dockInit() {
   // Build the hardware ID hex string
   uint8_t mac[MAC_LEN];
   getHwidMac(mac);
-  snprintf(g_hwidHex, sizeof(g_hwidHex), "%02X%02X%02X%02X%02X%02X",
-           mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+  snprintf(g_hwidHex, sizeof(g_hwidHex), "%02X%02X%02X%02X%02X%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
   // Initialize I2C slave on the badge
   // For ESP32-S3 Arduino: Wire.begin(addr, sda, scl, freq)
@@ -127,8 +128,8 @@ void dockInit() {
   Wire.onReceive(onReceive);
   Wire.onRequest(onRequest);
 
-  //Serial.printf("I2C follower ready on 0x%02X, SDA=%d, SCL=%d (HWID: %s)\r\n",
-  //              DOCK_I2C_ADDR, badge::pins::I2C_SDA, badge::pins::I2C_SCL, g_hwidHex);
+  // Serial.printf("I2C follower ready on 0x%02X, SDA=%d, SCL=%d (HWID: %s)\r\n",
+  //               DOCK_I2C_ADDR, badge::pins::I2C_SDA, badge::pins::I2C_SCL, g_hwidHex);
   Serial.printf("I2C initialized\r\n");
 }
 

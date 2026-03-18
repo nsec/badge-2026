@@ -40,7 +40,7 @@ bool nfcInit() {
     uint8_t chipId = g_nfcSPI.transfer(0x00);
     digitalWrite(badge::pins::NFC_CS, HIGH);
     g_nfcSPI.endTransaction();
-    //Serial.printf("NFC: raw chip ID register (0x3F) = 0x%02X\r\n", chipId);
+    // Serial.printf("NFC: raw chip ID register (0x3F) = 0x%02X\r\n", chipId);
   }
 
   ReturnCode err = g_nfc.rfalNfcInitialize();
@@ -50,7 +50,7 @@ bool nfcInit() {
   }
 
   g_initialized = true;
-  //Serial.println("NFC: ST25R3916 initialized");
+  // Serial.println("NFC: ST25R3916 initialized");
   return true;
 }
 

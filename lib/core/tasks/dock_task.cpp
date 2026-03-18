@@ -21,10 +21,12 @@ extern volatile bool g_challengeDataPending;
 
 // Challenge handler registry (defined in dock.cpp)
 #define MAX_CHALLENGE_HANDLERS 8
+
 struct ChallengeHandlerEntry {
   uint8_t subOpcode;
   core::hw::DockChallengeHandler handler;
 };
+
 extern ChallengeHandlerEntry g_challengeHandlers[];
 extern uint8_t g_challengeHandlerCount;
 
@@ -98,11 +100,11 @@ void DockTask::run() {
           uint8_t seen = countSeenDocks();
           // 16 docks = 255 exactly.  Use rounding: (seen * 255 + 15) / 16
           uint16_t sponsorVal = ((uint16_t)seen * 255 + (hw::MAX_SPONSOR_DOCKS - 1)) / hw::MAX_SPONSOR_DOCKS;
-          if (sponsorVal > 255) sponsorVal = 255;
+          if (sponsorVal > 255)
+            sponsorVal = 255;
           storage::socialWrite(storage::SocialKey::Sponsor, (uint8_t)sponsorVal);
 
-          Serial.printf("Dock: NEW dock #%d seen (%d total), sponsor=%d\r\n",
-                        dockId, seen, sponsorVal);
+          Serial.printf("Dock: NEW dock #%d seen (%d total), sponsor=%d\r\n", dockId, seen, sponsorVal);
         } else {
           Serial.printf("Dock: dock #%d already seen\r\n", dockId);
         }
@@ -141,13 +143,19 @@ void DockTask::run() {
 
       switch (color) {
         case hw::DockLedColor::Red:
-          cmd.r = 255; cmd.g = 0; cmd.b = 0;
+          cmd.r = 255;
+          cmd.g = 0;
+          cmd.b = 0;
           break;
         case hw::DockLedColor::Green:
-          cmd.r = 0; cmd.g = 255; cmd.b = 0;
+          cmd.r = 0;
+          cmd.g = 255;
+          cmd.b = 0;
           break;
         case hw::DockLedColor::Blue:
-          cmd.r = 0; cmd.g = 0; cmd.b = 255;
+          cmd.r = 0;
+          cmd.g = 0;
+          cmd.b = 255;
           break;
         case hw::DockLedColor::Off:
         default:

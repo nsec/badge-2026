@@ -131,19 +131,17 @@ std::string nextToken(const std::string &s, size_t &idx) {
 }
 
 void cmdHelp() {
-  g_io->print(
-      "Commands:\r\n"
-      "  help                 - show this help\r\n"
-      "  hwid                 - print unique hardware ID\r\n"
-      "  nvstest <key> <val>  - set social NVS\r\n"
-      "  pairtest [reset]     - show/reset paired partners\r\n");
+  g_io->print("Commands:\r\n"
+              "  help                 - show this help\r\n"
+              "  hwid                 - print unique hardware ID\r\n"
+              "  nvstest <key> <val>  - set social NVS\r\n"
+              "  pairtest [reset]     - show/reset paired partners\r\n");
   g_io->flush();
-  g_io->print(
-      "  docktest [reset]     - show/reset seen dock stations\r\n"
-      "  status               - show social NVS values\r\n"
-      "  clear                - clear the screen\r\n"
-      "  swapboot             - switch to other firmware and reboot\r\n"
-      "  reboot               - reboot now\r\n");
+  g_io->print("  docktest [reset]     - show/reset seen dock stations\r\n"
+              "  status               - show social NVS values\r\n"
+              "  clear                - clear the screen\r\n"
+              "  swapboot             - switch to other firmware and reboot\r\n"
+              "  reboot               - reboot now\r\n");
   g_io->flush();
 
   // Show registered module commands
@@ -356,7 +354,10 @@ void cmdDockTest(const std::string &args) {
   // Count set bits
   uint8_t count = 0;
   uint32_t v = mask;
-  while (v) { count += v & 1; v >>= 1; }
+  while (v) {
+    count += v & 1;
+    v >>= 1;
+  }
 
   g_io->printf("Seen docks: %d/16\r\n", count);
   g_io->printf("Bitmask: 0x%08X\r\n", mask);
@@ -364,12 +365,14 @@ void cmdDockTest(const std::string &args) {
   bool first = true;
   for (int i = 0; i < 32; i++) {
     if (mask & (1u << i)) {
-      if (!first) g_io->print(", ");
+      if (!first)
+        g_io->print(", ");
       g_io->printf("%d", i + 1);
       first = false;
     }
   }
-  if (first) g_io->print("(none)");
+  if (first)
+    g_io->print("(none)");
   g_io->println();
   g_io->printf("Sponsor value: %d\r\n", core::storage::socialRead(core::storage::SocialKey::Sponsor));
 }
@@ -411,18 +414,18 @@ void handleLine(const std::string &line) {
   // Built-in commands
   if (cmd == "help" || cmd == "?")
     return cmdHelp();
-  //if (cmd == "info")
-  //  return cmdInfo();
+  // if (cmd == "info")
+  //   return cmdInfo();
   if (cmd == "hwid")
     return cmdHwid();
-  //if (cmd == "ledtest") {
-  //  std::string arg = nextToken(line, i);
-  //  return cmdLedTest(arg);
-  //}
-  //if (cmd == "buttontest") {
-  //  core::hw::buttonTestInteractive(*g_io);
-  // return;
-  //}
+  // if (cmd == "ledtest") {
+  //   std::string arg = nextToken(line, i);
+  //   return cmdLedTest(arg);
+  // }
+  // if (cmd == "buttontest") {
+  //   core::hw::buttonTestInteractive(*g_io);
+  //  return;
+  // }
   if (cmd == "nvstest") {
     std::string arg = (i < line.length()) ? line.substr(i) : "";
     trim(arg);

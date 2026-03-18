@@ -33,7 +33,8 @@ static void onQuantumResponse(uint8_t subOpcode, const uint8_t *data, uint8_t da
   if (success && dataLen > 1) {
     char flag[33] = {};
     uint8_t flagLen = dataLen - 1;
-    if (flagLen > 32) flagLen = 32;
+    if (flagLen > 32)
+      flagLen = 32;
     memcpy(flag, &data[1], flagLen);
     flag[flagLen] = '\0';
 
@@ -52,7 +53,9 @@ void init() {
   Serial.println("  - Quantum challenge module loaded");
 
   core::cli::registerCommand("quantum", "quantum challenge (list|set|flag)",
-                             [](Stream &stream, const std::string &args) { handleQuantumCommand(stream, args); });
+                             [](Stream &stream, const std::string &args) {
+                               handleQuantumCommand(stream, args);
+                             });
 
   core::hw::dockRegisterChallengeHandler(QUANTUM_REQUEST, onQuantumRequest);
   core::hw::dockRegisterChallengeHandler(QUANTUM_RESPONSE, onQuantumResponse);

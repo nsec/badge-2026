@@ -5,8 +5,8 @@
 namespace conference {
 
 void init() {
-  //Serial.println("Conference modules initialized");
-  // Initialize conference modules (each registers its own CLI commands)
+  // Serial.println("Conference modules initialized");
+  //  Initialize conference modules (each registers its own CLI commands)
   conference::schedule::init();
 }
 
