@@ -88,6 +88,18 @@ def patch_rfal(env):
                 f.write(content)
             print("  [patch_rfal] Enabled LISTEN_NFCA in rfal_default_config.h")
 
+        # Re-read in case we just wrote
+        with open(listen_config, "r") as f:
+            content = f.read()
+
+        old_ap2p = "#define RFAL_SUPPORT_MODE_LISTEN_ACTIVE_P2P        false"
+        new_ap2p = "#define RFAL_SUPPORT_MODE_LISTEN_ACTIVE_P2P        true"
+        if old_ap2p in content:
+            content = content.replace(old_ap2p, new_ap2p)
+            with open(listen_config, "w") as f:
+                f.write(content)
+            print("  [patch_rfal] Enabled LISTEN_ACTIVE_P2P in rfal_default_config.h")
+
     # --- Patch 4: Deferred ISR in st25r3916_interrupt.cpp ---
     # ESP32 cannot run SPI in ISR context.  Make ISR just set a flag.
     # Also add pin-level check in st25r3916CheckForReceivedInterrupts

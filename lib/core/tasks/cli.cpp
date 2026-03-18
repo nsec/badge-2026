@@ -17,6 +17,7 @@
 
 #include <nvs_flash.h>
 #include <nvs.h>
+#include "tasks/nfc.h"
 
 namespace {
 
@@ -136,7 +137,8 @@ void cmdHelp() {
   g_io->println("  hwid                 - print unique hardware ID");
   g_io->println("  ledtest [N]          - run RGB LED test suite (N=test# or all)");
   g_io->println("  buttontest           - interactive button test (press all 6)");
-  g_io->println("  nvstest <key> <val>  - set social NVS (social|sponsor|light|attraction|all) (0-255)");
+  g_io->println("  nvstest <key> <val>  - set social NVS");
+  g_io->println("  pairtest [reset]     - show/reset paired partners");
   g_io->println("  docktest [reset]     - show/reset seen dock stations");
   g_io->println("  status               - show social NVS values");
   g_io->println("  clear                - clear the screen");
@@ -173,6 +175,10 @@ const char *animationName(core::LedCommandType type) {
       return "All BLUE";
     case core::LedCommandType::SolidWhite:
       return "All WHITE";
+    case core::LedCommandType::SolidOrange:
+      return "All ORANGE";
+    case core::LedCommandType::SolidCyan:
+      return "All CYAN";
     case core::LedCommandType::PixelWalk:
       return "Pixel walk";
     case core::LedCommandType::Rainbow:
@@ -295,6 +301,31 @@ void cmdNvsTest(const std::string &args) {
   g_io->printf("NVS '%s' set to %u (readback: %u)\r\n", core::storage::socialKeyName(key), value, readback);
 }
 
+void cmdPairTest(const std::string &args) {
+  std::string arg = args;
+  toLower(arg);
+  trim(arg);
+
+  if (arg == "reset") {
+    core::storage::pairReset();
+    core::storage::socialWrite(core::storage::SocialKey::Social, 0);
+    g_io->println("Paired partners and social value reset to 0");
+    return;
+  }
+
+  uint16_t count = core::storage::pairCount();
+  g_io->printf("Paired partners: %d\r\n", count);
+
+  for (uint16_t i = 0; i < count; i++) {
+    uint8_t mac[6];
+    if (core::storage::pairGet(i, mac)) {
+      g_io->printf("  %3d: %02X:%02X:%02X:%02X:%02X:%02X\r\n", i + 1, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    }
+  }
+
+  g_io->printf("Social value: %d\r\n", core::storage::socialRead(core::storage::SocialKey::Social));
+}
+
 void cmdReboot() {
   g_io->println("Rebooting...");
   delay(50);
@@ -405,6 +436,11 @@ void handleLine(const std::string &line) {
     std::string arg = (i < line.length()) ? line.substr(i) : "";
     trim(arg);
     return cmdDockTest(arg);
+  }
+  if (cmd == "pairtest") {
+    std::string arg = (i < line.length()) ? line.substr(i) : "";
+    trim(arg);
+    return cmdPairTest(arg);
   }
   if (cmd == "status")
     return cmdStatus();

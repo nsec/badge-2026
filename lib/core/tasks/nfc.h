@@ -10,6 +10,7 @@ enum class NfcMode : uint8_t {
   Off,
   Reader,
   Emulator,
+  Pair,
 };
 
 struct NfcCommand {

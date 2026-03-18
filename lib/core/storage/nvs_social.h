@@ -44,5 +44,21 @@ void socialWrite(SocialKey key, uint8_t value);
  */
 const char *socialKeyName(SocialKey key);
 
+// ---------------------------------------------------------------------------
+// Pair partner tracking
+// ---------------------------------------------------------------------------
+
+/// Get the number of unique paired partners stored.
+uint16_t pairCount();
+
+/**
+ * Get the MAC of a paired partner by index.
+ * Returns false if index is out of range.
+ */
+bool pairGet(uint16_t index, uint8_t mac[6]);
+
+/// Erase all paired partners from NVS.
+void pairReset();
+
 }  // namespace storage
 }  // namespace core
