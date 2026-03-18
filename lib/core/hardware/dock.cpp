@@ -87,8 +87,9 @@ void dockInit() {
   Wire.onReceive(onReceive);
   Wire.onRequest(onRequest);
 
-  Serial.printf("Dock: I2C slave ready on 0x%02X, SDA=%d, SCL=%d (HWID: %s)\r\n",
-                DOCK_I2C_ADDR, badge::pins::I2C_SDA, badge::pins::I2C_SCL, g_hwidHex);
+  //Serial.printf("I2C follower ready on 0x%02X, SDA=%d, SCL=%d (HWID: %s)\r\n",
+  //              DOCK_I2C_ADDR, badge::pins::I2C_SDA, badge::pins::I2C_SCL, g_hwidHex);
+  Serial.printf("I2C initialized\r\n");
 }
 
 }  // namespace hw

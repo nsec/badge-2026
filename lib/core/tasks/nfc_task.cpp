@@ -250,9 +250,9 @@ void initTagMemory() {
   tagMemory[41 * 4 + 3] = 0xFF;
   tagMemory[43 * 4] = tagMemory[43 * 4 + 1] = tagMemory[43 * 4 + 2] = tagMemory[43 * 4 + 3] = 0xFF;
 
-  Serial.printf("NFC emu: NDEF text = \"%s%s\"\r\n", prefix, macHex);
-  Serial.printf("NFC emu: UID = %02X:%02X:%02X:%02X:%02X:%02X:%02X\r\n", g_tagUid[0], g_tagUid[1], g_tagUid[2],
-                g_tagUid[3], g_tagUid[4], g_tagUid[5], g_tagUid[6]);
+  //Serial.printf("NFC emu: NDEF text = \"%s%s\"\r\n", prefix, macHex);
+  //Serial.printf("NFC emu: UID = %02X:%02X:%02X:%02X:%02X:%02X:%02X\r\n", g_tagUid[0], g_tagUid[1], g_tagUid[2],
+  //              g_tagUid[3], g_tagUid[4], g_tagUid[5], g_tagUid[6]);
 }
 
 uint16_t handleNtagCommand(const uint8_t *cmd, uint16_t cmdLen, uint8_t *resp) {

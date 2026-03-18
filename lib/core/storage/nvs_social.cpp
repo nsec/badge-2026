@@ -234,7 +234,7 @@ void socialNvsInit() {
   }
 
   g_initialized = true;
-  Serial.println("NVS: 'social' namespace ready");
+  Serial.println("NVS initialized");
 }
 
 uint8_t socialRead(SocialKey key) {

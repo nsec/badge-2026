@@ -131,30 +131,27 @@ std::string nextToken(const std::string &s, size_t &idx) {
 }
 
 void cmdHelp() {
-  g_io->println("Commands:");
-  g_io->println("  help                 - show this help");
-  g_io->println("  info                 - print current boot/partition info");
-  g_io->println("  hwid                 - print unique hardware ID");
-  g_io->println("  ledtest [N]          - run RGB LED test suite (N=test# or all)");
-  g_io->println("  buttontest           - interactive button test (press all 6)");
-  g_io->println("  nvstest <key> <val>  - set social NVS");
-  g_io->println("  pairtest [reset]     - show/reset paired partners");
-  g_io->println("  docktest [reset]     - show/reset seen dock stations");
-  g_io->println("  status               - show social NVS values");
-  g_io->println("  clear                - clear the screen");
-  g_io->println("  swapboot             - switch to other firmware and reboot");
-  g_io->println("  reboot               - reboot now");
+  g_io->print(
+      "Commands:\r\n"
+      "  help                 - show this help\r\n"
+      "  info                 - print current boot/partition info\r\n"
+      "  hwid                 - print unique hardware ID\r\n"
+      "  nvstest <key> <val>  - set social NVS\r\n"
+      "  pairtest [reset]     - show/reset paired partners\r\n");
+  g_io->flush();
+  g_io->print(
+      "  docktest [reset]     - show/reset seen dock stations\r\n"
+      "  status               - show social NVS values\r\n"
+      "  clear                - clear the screen\r\n"
+      "  swapboot             - switch to other firmware and reboot\r\n"
+      "  reboot               - reboot now\r\n");
+  g_io->flush();
 
   // Show registered module commands
   for (const auto &cmd : g_commands) {
-    g_io->print("  ");
-    g_io->print(cmd.name.c_str());
-    // Pad to align help text
-    for (size_t i = cmd.name.length(); i < 20; i++)
-      g_io->print(" ");
-    g_io->print(" - ");
-    g_io->println(cmd.help.c_str());
+    g_io->printf("  %-20s - %s\r\n", cmd.name.c_str(), cmd.help.c_str());
   }
+  g_io->flush();
 }
 
 void cmdInfo() {
@@ -419,14 +416,14 @@ void handleLine(const std::string &line) {
     return cmdInfo();
   if (cmd == "hwid")
     return cmdHwid();
-  if (cmd == "ledtest") {
-    std::string arg = nextToken(line, i);
-    return cmdLedTest(arg);
-  }
-  if (cmd == "buttontest") {
-    core::hw::buttonTestInteractive(*g_io);
-    return;
-  }
+  //if (cmd == "ledtest") {
+  //  std::string arg = nextToken(line, i);
+  //  return cmdLedTest(arg);
+  //}
+  //if (cmd == "buttontest") {
+  //  core::hw::buttonTestInteractive(*g_io);
+  // return;
+  //}
   if (cmd == "nvstest") {
     std::string arg = (i < line.length()) ? line.substr(i) : "";
     trim(arg);
@@ -446,6 +443,8 @@ void handleLine(const std::string &line) {
     return cmdStatus();
   if (cmd == "clear") {
     g_io->print("\033[2J\033[H");
+    g_io->flush();
+    delay(50);  // give the terminal time to process the clear
     return;
   }
   if (cmd == "reboot")
@@ -530,6 +529,7 @@ void poll() {
         historyAdd(g_line);
         handleLine(g_line);
         g_line.clear();
+        g_io->flush();  // ensure all command output is sent before prompt
       }
       g_historyIdx = -1;  // reset history browsing
       prompt();

@@ -46,7 +46,7 @@ void setup() {
   core::hw::statusLedInit();
   core::hw::rgbInit();
   core::hw::buttonsInit();
-  Serial.println("LEDs initialized");
+  //Serial.println("LEDs initialized");
 
   core::storage::socialNvsInit();
 
@@ -93,16 +93,16 @@ void setup() {
 
   core::heartbeatStart();
 
+  Serial.println("Setup complete!");
+  Serial.println("Type 'help' for commands.");
+  Serial.flush();
+
   ledTask.start();
   controllerTask.start();
   cliTask.start();
   buttonTask.start();
   nfcTask.start();
   dockTask.start();
-
-  Serial.println("Setup complete!");
-  Serial.println("Type 'help' for commands.");
-  Serial.flush();
 }
 
 void loop() {

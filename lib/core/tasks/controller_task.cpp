@@ -136,8 +136,8 @@ void ControllerTask::showCurrentSocial(bool hold) {
   uint8_t value = storage::socialRead(key);
   uint8_t pixels = valueToPixelCount(value);
 
-  Serial.printf("[social] showing %s = %u → %u LEDs%s\r\n", SOCIAL_NAMES[_socialIndex], value, pixels,
-                hold ? " (hold)" : "");
+  //Serial.printf("[social] showing %s = %u → %u LEDs%s\r\n", SOCIAL_NAMES[_socialIndex], value, pixels,
+  //              hold ? " (hold)" : "");
 
   LedCommand cmd{};
   cmd.type = LedCommandType::ProgressFlash;
@@ -177,7 +177,7 @@ void ControllerTask::handle(const ButtonPressEvent &event) {
       _socialIndex = (_socialIndex + 1) % 4;
       _lastButton = hw::Button::Left;
 
-      Serial.printf("[social] switched to: %s\r\n", SOCIAL_NAMES[_socialIndex]);
+      //Serial.printf("[social] switched to: %s\r\n", SOCIAL_NAMES[_socialIndex]);
 
       // If social display was active (UP was pressed), show immediately
       if (_socialActive) {
@@ -198,7 +198,7 @@ void ControllerTask::handle(const ButtonPressEvent &event) {
       uint8_t brightness = static_cast<uint8_t>(25 + (_brightnessLevel - 1) * (230 / 9));
 
       hw::rgbSetBrightness(brightness);
-      Serial.printf("[brightness] level %u/10 (raw=%u)\r\n", _brightnessLevel, brightness);
+      //Serial.printf("[brightness] level %u/10 (raw=%u)\r\n", _brightnessLevel, brightness);
 
       // Re-show the current social display at the new brightness
       if (_socialActive) {

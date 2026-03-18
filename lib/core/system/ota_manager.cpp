@@ -26,9 +26,8 @@ void printBootInfo(Stream &io) {
   io.println("--- Boot info ---");
   io.print("Running partition: ");
   io.println(labelOrUnknown(running));
-  io.print("Boot partition:    ");
-  io.println(labelOrUnknown(boot));
 
+  /*
   if (running) {
     io.print("Running addr/size: 0x");
     io.print((uint32_t)running->address, HEX);
@@ -41,6 +40,7 @@ void printBootInfo(Stream &io) {
     io.print(" / 0x");
     io.println((uint32_t)boot->size, HEX);
   }
+  */
 }
 
 String getRunningPartitionLabel() {
