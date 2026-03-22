@@ -28,7 +28,7 @@ Crystal sub-commands:
   crystal params          - show working params & energy
   crystal run             - evaluate (uses working params)
   crystal sweep <idx> <lo> <hi> <steps>
-                          - sweep one param, auto-saves best
+                          - sweep one param, reports best
   crystal store           - store working params to NVS
   crystal status / reset
 
@@ -167,10 +167,10 @@ The intended approach is **coordinate descent** — optimize one parameter at a
 time while holding the others fixed. This is exactly what `sweep` does:
 
 1. **Sweep each parameter** across a wide range to find its rough optimum
-2. The `sweep` command **auto-saves** the best value to working params
+2. Read the best value from sweep output and **apply it with `set`**
 3. **Re-sweep** all parameters — the optimum of each shifts as others change
 4. After 3–4 rounds, the coarse sweeps saturate. Switch to **narrower sweeps**
-5. Fine-tune with ranges like [-0.3, 0.3] around the current value
+5. Fine-tune with ranges like [−0.3, 0.3] around the current value
 6. Continue until energy drops below the threshold
 
 #### Step-by-step Walkthrough
@@ -183,38 +183,38 @@ quantum crystal info
 quantum crystal run
 #    → Energy ≈ -7.01 (all spins aligned, no transverse field contribution)
 
-# 3. ROUND 1: Coarse sweep all 16 parameters [−π, π]
+# 3. ROUND 1: Sweep each parameter, then apply the best value
 quantum crystal sweep 0 -3.14 3.14 20
+#    → Best: θ[0]=1.5708 E=-7.8845 (use 'set 0 1.5708' to apply)
+quantum crystal set 0 1.5708
+
 quantum crystal sweep 1 -3.14 3.14 20
-# ... continue through 15 ...
-quantum crystal sweep 15 -3.14 3.14 20
+#    → Best: θ[1]=1.2566 ...
+quantum crystal set 1 1.2566
+# ... continue for params 2–15, sweep then set each ...
 #    → Energy after Round 1 ≈ -12.1 (NOT solved)
 
 # 4. ROUND 2: Re-sweep — optima shift as neighbours changed
-quantum crystal sweep 0 -3.14 3.14 20
-quantum crystal sweep 1 -3.14 3.14 20
-# ... all 16 again ...
+#    Sweep + set each of the 16 params again
 #    → Energy after Round 2 ≈ -12.4 (NOT solved, but improving)
 
 # 5. ROUND 3: One more coarse pass
 #    → Energy ≈ -12.5 (still not solved, close to plateau)
 
 # 6. FINE-TUNING: Narrow sweeps around current values
-quantum crystal sweep 0 1.2 1.9 20
-quantum crystal sweep 1 1.0 1.6 20
+quantum crystal sweep 0 1.4 1.8 20
+#    → Best: θ[0]=1.5558 ...
+quantum crystal set 0 1.5558
 # ... fine-tune each param in its neighbourhood ...
 
 # 7. Check current state
 quantum crystal params
 #    → Energy ≈ -12.7 when parameters are precisely tuned
 
-# 8. Manually adjust individual params
-quantum crystal set 4 0.82
-
-# 9. Store the solution
+# 8. Store the solution
 quantum crystal store
 
-# 10. Dock your badge → receive flag
+# 9. Dock your badge → receive flag
 quantum flag
 ```
 
@@ -268,81 +268,52 @@ have smaller angles because they have two ZZ constraints vs one for edges.
 Layer 2 angles (θ₈–θ₁₅) are small corrections (∼±0.3) — the CZ entangler
 after layer 1 creates correlations that the second layer fine-tunes.
 
-Badge CLI commands (copy-paste, 64 sweeps total):
+Badge CLI commands (copy-paste — each sweep must be followed by a `set`):
 ```sh
-# Round 1: coarse sweep (Energy: -7.01 → -12.06)
+# Round 1: coarse sweep + set (Energy: -7.01 → -12.06)
 quantum crystal sweep 0 -3.14 3.14 20
+quantum crystal set 0 1.5708
 quantum crystal sweep 1 -3.14 3.14 20
+quantum crystal set 1 1.2566
 quantum crystal sweep 2 -3.14 3.14 20
+quantum crystal set 2 0.9425
 quantum crystal sweep 3 -3.14 3.14 20
+quantum crystal set 3 0.9425
 quantum crystal sweep 4 -3.14 3.14 20
+quantum crystal set 4 0.6283
 quantum crystal sweep 5 -3.14 3.14 20
+quantum crystal set 5 0.6283
 quantum crystal sweep 6 -3.14 3.14 20
+quantum crystal set 6 0.9425
 quantum crystal sweep 7 -3.14 3.14 20
+quantum crystal set 7 1.5708
 quantum crystal sweep 8 -3.14 3.14 20
+quantum crystal set 8 -0.3142
 quantum crystal sweep 9 -3.14 3.14 20
+quantum crystal set 9 0.0000
 quantum crystal sweep 10 -3.14 3.14 20
+quantum crystal set 10 0.0000
 quantum crystal sweep 11 -3.14 3.14 20
+quantum crystal set 11 -0.3142
 quantum crystal sweep 12 -3.14 3.14 20
+quantum crystal set 12 0.0000
 quantum crystal sweep 13 -3.14 3.14 20
+quantum crystal set 13 0.0000
 quantum crystal sweep 14 -3.14 3.14 20
+quantum crystal set 14 0.0000
 quantum crystal sweep 15 -3.14 3.14 20
+quantum crystal set 15 -0.3142
 
-# Round 2: re-sweep (Energy: -12.06 → -12.43)
-quantum crystal sweep 0 -3.14 3.14 20
-quantum crystal sweep 1 -3.14 3.14 20
-quantum crystal sweep 2 -3.14 3.14 20
-quantum crystal sweep 3 -3.14 3.14 20
-quantum crystal sweep 4 -3.14 3.14 20
-quantum crystal sweep 5 -3.14 3.14 20
-quantum crystal sweep 6 -3.14 3.14 20
-quantum crystal sweep 7 -3.14 3.14 20
-quantum crystal sweep 8 -3.14 3.14 20
-quantum crystal sweep 9 -3.14 3.14 20
-quantum crystal sweep 10 -3.14 3.14 20
-quantum crystal sweep 11 -3.14 3.14 20
-quantum crystal sweep 12 -3.14 3.14 20
-quantum crystal sweep 13 -3.14 3.14 20
-quantum crystal sweep 14 -3.14 3.14 20
-quantum crystal sweep 15 -3.14 3.14 20
+# Repeat rounds 2 and 3 (same sweep commands, read new best, set each)
+# Values will shift slightly each round as neighbours update
 
-# Round 3: re-sweep (Energy: -12.43 → -12.54, plateaus)
-quantum crystal sweep 0 -3.14 3.14 20
-quantum crystal sweep 1 -3.14 3.14 20
-quantum crystal sweep 2 -3.14 3.14 20
-quantum crystal sweep 3 -3.14 3.14 20
-quantum crystal sweep 4 -3.14 3.14 20
-quantum crystal sweep 5 -3.14 3.14 20
-quantum crystal sweep 6 -3.14 3.14 20
-quantum crystal sweep 7 -3.14 3.14 20
-quantum crystal sweep 8 -3.14 3.14 20
-quantum crystal sweep 9 -3.14 3.14 20
-quantum crystal sweep 10 -3.14 3.14 20
-quantum crystal sweep 11 -3.14 3.14 20
-quantum crystal sweep 12 -3.14 3.14 20
-quantum crystal sweep 13 -3.14 3.14 20
-quantum crystal sweep 14 -3.14 3.14 20
-quantum crystal sweep 15 -3.14 3.14 20
-
-# Fine-tune: narrow sweeps (Energy: -12.54 → -12.71 = SOLVED!)
+# Fine-tune: narrow sweeps + set (Energy: -12.54 → -12.71 = SOLVED!)
 quantum crystal sweep 0 1.42 1.72 20
+quantum crystal set 0 1.5558
 quantum crystal sweep 1 1.11 1.41 20
-quantum crystal sweep 2 0.79 1.09 20
-quantum crystal sweep 3 0.79 1.09 20
-quantum crystal sweep 4 0.48 0.78 20
-quantum crystal sweep 5 0.48 0.78 20
-quantum crystal sweep 6 0.79 1.09 20
-quantum crystal sweep 7 1.42 1.72 20
-quantum crystal sweep 8 -0.46 -0.16 20
-quantum crystal sweep 9 -0.15 0.15 20
-quantum crystal sweep 10 -0.15 0.15 20
-quantum crystal sweep 11 -0.46 -0.16 20
-quantum crystal sweep 12 -0.15 0.15 20
-quantum crystal sweep 13 -0.15 0.15 20
-quantum crystal sweep 14 -0.15 0.15 20
-quantum crystal sweep 15 -0.46 -0.16 20
+quantum crystal set 1 1.2416
+# ... continue for all 16, reading best from each sweep output ...
 
-# Store result
 quantum crystal store
 ```
 </details>

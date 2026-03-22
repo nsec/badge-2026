@@ -133,7 +133,7 @@ void handleQuantumCommand(Stream &stream, const std::string &args) {
                  "  crystal params          - show working params & energy\r\n"
                  "  crystal run             - evaluate (uses working params)\r\n"
                  "  crystal sweep <idx> <lo> <hi> <steps>\r\n"
-                 "                          - sweep one param, auto-saves best\r\n"
+                 "                          - sweep one param, reports best\r\n"
                  "  crystal store           - store working params to NVS\r\n"
                  "  crystal status / reset\r\n"
                  "\r\n"

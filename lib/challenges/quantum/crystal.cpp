@@ -376,12 +376,9 @@ void handleCommand(Stream &stream, const std::string &args) {
         stream.flush();
     }
 
-    // Auto-save best value to working params
-    g_workParams[paramIdx] = bestTheta;
-
+    // Report best — player must manually `set` to apply
     stream.printf("Best: θ[%d]=%.4f  E=%.6f  %s\r\n", paramIdx, bestTheta, bestE,
                   bestE < solveThreshold() ? "SOLVED!" : "not solved");
-    stream.printf("(saved to working params)\r\n");
     stream.flush();
     return;
   }
