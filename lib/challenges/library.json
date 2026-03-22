@@ -6,7 +6,7 @@
   "frameworks": "*",
   "platforms": "*",
   "build": {
-    "srcFilter": ["+<*>", "+<example/>", "+<crypto/>", "+<quantum/>"]
+    "srcFilter": ["+<*>", "+<quantum/>"]
   },
   "dependencies": [
     { "name": "core" }

@@ -62,5 +62,37 @@ void quantumWriteStr(const char *key, const char *value) {
   nvs_close(h);
 }
 
+size_t quantumReadBlob(const char *key, void *buf, size_t bufSize) {
+  nvs_handle_t h;
+  if (nvs_open(NVS_NAMESPACE, NVS_READONLY, &h) != ESP_OK)
+    return 0;
+  size_t len = bufSize;
+  esp_err_t err = nvs_get_blob(h, key, buf, &len);
+  nvs_close(h);
+  return (err == ESP_OK) ? len : 0;
+}
+
+bool quantumWriteBlob(const char *key, const void *data, size_t len) {
+  nvs_handle_t h;
+  if (nvs_open(NVS_NAMESPACE, NVS_READWRITE, &h) != ESP_OK)
+    return false;
+  esp_err_t err = nvs_set_blob(h, key, data, len);
+  if (err == ESP_OK)
+    err = nvs_commit(h);
+  nvs_close(h);
+  return (err == ESP_OK);
+}
+
+bool quantumErase(const char *key) {
+  nvs_handle_t h;
+  if (nvs_open(NVS_NAMESPACE, NVS_READWRITE, &h) != ESP_OK)
+    return false;
+  esp_err_t err = nvs_erase_key(h, key);
+  if (err == ESP_OK)
+    err = nvs_commit(h);
+  nvs_close(h);
+  return (err == ESP_OK);
+}
+
 }  // namespace storage
 }  // namespace core

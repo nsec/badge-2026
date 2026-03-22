@@ -478,7 +478,7 @@ namespace cli {
 
 void init(Stream &io) {
   g_io = &io;
-  g_line.reserve(128);
+  g_line.reserve(256);
   // Don't print prompt here - main.cpp still has boot messages to print.
   // Set flag so poll() prints it once everything is ready.
   g_promptNeeded = true;
@@ -557,7 +557,7 @@ void poll() {
     }
 
     if (isPrintable((unsigned char)c)) {
-      if (g_line.length() < 127) {
+      if (g_line.length() < 255) {
         g_line += c;
         g_io->print(c);
       }
