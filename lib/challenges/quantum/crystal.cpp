@@ -232,7 +232,7 @@ void reset() {
 static float g_workParams[NUM_PARAMS] = {};
 
 /// Cooldown: minimum 2 seconds between evaluations to limit automation.
-static constexpr uint32_t EVAL_COOLDOWN_MS = 2000;
+static constexpr uint32_t EVAL_COOLDOWN_MS = 3000;
 static uint32_t g_lastEvalMs = 0;
 
 static bool checkCooldown(Stream &stream) {

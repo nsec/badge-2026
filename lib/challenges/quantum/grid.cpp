@@ -15,6 +15,7 @@
 #include "grid.h"
 #include "qsim.h"
 #include <../core/storage/nvs_quantum.h>
+#include <../core/hardware/hwid.h>
 #include <Arduino.h>
 #include <cstring>
 #include <cstdlib>
@@ -117,7 +118,64 @@ static void buildHamiltonian() {
 }
 
 // ---------------------------------------------------------------------------
-// QAOA circuit
+// Per-device parameter transform
+//
+// Each badge applies a unique affine transform to input parameters before
+// QAOA evaluation.  The transform is derived from the badge's MAC address.
+// This ensures that optimal parameter values differ between devices,
+// preventing paste-and-solve from shared solutions.
+//
+// The Hamiltonian is identical on all badges — only the input mapping
+// changes.  The optimization landscape shape is preserved.
+// ---------------------------------------------------------------------------
+
+static constexpr float PI_F = 3.14159265358979323846f;
+
+static float g_paramScale[4] = {1, 1, 1, 1};
+static float g_paramOffset[4] = {0, 0, 0, 0};
+static bool g_transformReady = false;
+
+static void buildParamTransform() {
+  if (g_transformReady)
+    return;
+
+  uint8_t mac[6];
+  core::hw::getHwidMac(mac);
+
+  // Derive device-specific seed from MAC
+  uint32_t seed = 0x51414F41;  // "QAOA"
+  for (int i = 0; i < 6; i++)
+    seed = (seed * 31) + mac[i];
+
+  for (int i = 0; i < 4; i++) {
+    // Scale: [0.8, 1.2]
+    coeff_rng(seed);
+    g_paramScale[i] = 0.8f + static_cast<float>(seed & 0xFFFF) / 65535.f * 0.4f;
+    // Offset: [-0.3, 0.3]
+    coeff_rng(seed);
+    g_paramOffset[i] = -0.3f + static_cast<float>(seed & 0xFFFF) / 65535.f * 0.6f;
+  }
+
+  g_transformReady = true;
+}
+
+/// Clamp input to [0, π] then apply per-device affine transform.
+static void transformParams(float &g1, float &g2, float &b1, float &b2) {
+  buildParamTransform();
+
+  // Clamp to [0, pi]
+  auto clamp = [](float v) { return (v < 0.f) ? 0.f : (v > PI_F) ? PI_F : v; };
+  g1 = clamp(g1);
+  g2 = clamp(g2);
+  b1 = clamp(b1);
+  b2 = clamp(b2);
+
+  // Apply per-device affine transform
+  g1 = g1 * g_paramScale[0] + g_paramOffset[0];
+  g2 = g2 * g_paramScale[1] + g_paramOffset[1];
+  b1 = b1 * g_paramScale[2] + g_paramOffset[2];
+  b2 = b2 * g_paramScale[3] + g_paramOffset[3];
+}
 // ---------------------------------------------------------------------------
 
 static void applyQAOA(qsim::StateVec &sv, float gamma1, float gamma2, float beta1, float beta2) {
@@ -138,6 +196,9 @@ static void applyQAOA(qsim::StateVec &sv, float gamma1, float gamma2, float beta
 
 void evaluate(float gamma1, float gamma2, float beta1, float beta2, GridMetrics &out) {
   buildHamiltonian();
+
+  // Apply per-device parameter transform (clamp + affine)
+  transformParams(gamma1, gamma2, beta1, beta2);
 
   // Prepare state |+⟩^n
   qsim::StateVec sv;
@@ -278,8 +339,8 @@ void reset() {
 // CLI:  quantum grid <info|run|hist|store|status|reset>
 // ---------------------------------------------------------------------------
 
-/// Cooldown: minimum 2 seconds between evaluations to limit automation.
-static constexpr uint32_t EVAL_COOLDOWN_MS = 2000;
+/// Cooldown: minimum 3 seconds between evaluations to limit automation.
+static constexpr uint32_t EVAL_COOLDOWN_MS = 3000;
 static uint32_t g_lastEvalMs = 0;
 
 static bool checkCooldown(Stream &stream) {
@@ -326,18 +387,9 @@ void handleCommand(Stream &stream, const std::string &args) {
   if (sub.empty() || sub == "info") {
     stream.printf("=== Grid Optimization (QAOA p=2) ===\r\n");
     stream.printf("Qubits: %d, Depth: %d, Params: 4 (γ₁ γ₂ β₁ β₂)\r\n", NUM_QUBITS, QAOA_DEPTH);
-    stream.printf("Samples: %d (seed=0x%08X)\r\n", NUM_SAMPLES, SAMPLE_SEED);
-    stream.printf("Single-qubit fields h:\r\n");
-    for (uint8_t i = 0; i < NUM_QUBITS; i++)
-      stream.printf("  h[%d] = %.4f\r\n", i, g_h[i]);
-    stream.printf("ZZ couplings J (%d edges):\r\n", g_numEdges);
-    for (uint8_t e = 0; e < g_numEdges; e++)
-      stream.printf("  J[%d,%d] = %.4f\r\n", g_edges[e].i, g_edges[e].j, g_edges[e].w);
-    stream.printf("Optimal energy: %.4f\r\n", optimalEnergy());
-    stream.printf("Solve criteria:\r\n");
-    stream.printf("  best energy  < %.4f\r\n", solveThreshold());
-    stream.printf("  CVaR (20%%)   < %.4f\r\n", solveCvarThreshold());
-    stream.printf("  low hits     >= %d\r\n", solveMinHits());
+    stream.printf("Samples: %d per evaluation\r\n", NUM_SAMPLES);
+    stream.printf("Parameters: range [0, pi]\r\n");
+    stream.printf("Solve: SOLVED! appears when all criteria are met.\r\n");
     stream.printf("\r\nHint: vary one param at a time. Use 'hist' to see the distribution.\r\n");
     return;
   }

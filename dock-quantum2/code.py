@@ -304,6 +304,42 @@ def grid_cvar_threshold(diag):
 
 GRID_MIN_HITS = 20
 
+# ---------------------------------------------------------------------------
+# Per-device parameter transform (must match grid.cpp transformParams)
+# ---------------------------------------------------------------------------
+import math
+
+def compute_grid_transform(hwid_hex):
+    \"\"\"Compute per-device param transform from HWID hex string (e.g. '80B54EE0783C').\"\"\"
+    mac_bytes = bytes.fromhex(hwid_hex)
+    seed = 0x51414F41  # "QAOA"
+    for b in mac_bytes:
+        seed = (seed * 31 + b) & 0xFFFFFFFF
+
+    scales = []
+    offsets = []
+    for _ in range(4):
+        seed = xorshift32(seed)
+        scales.append(0.8 + (seed & 0xFFFF) / 65535.0 * 0.4)
+        seed = xorshift32(seed)
+        offsets.append(-0.3 + (seed & 0xFFFF) / 65535.0 * 0.6)
+    return scales, offsets
+
+def apply_grid_transform(g1, g2, b1, b2, hwid_hex):
+    \"\"\"Clamp params to [0, pi], then apply per-device affine transform.\"\"\"
+    PI = math.pi
+    g1 = max(0.0, min(PI, g1))
+    g2 = max(0.0, min(PI, g2))
+    b1 = max(0.0, min(PI, b1))
+    b2 = max(0.0, min(PI, b2))
+
+    scales, offsets = compute_grid_transform(hwid_hex)
+    g1 = g1 * scales[0] + offsets[0]
+    g2 = g2 * scales[1] + offsets[1]
+    b1 = b1 * scales[2] + offsets[2]
+    b2 = b2 * scales[3] + offsets[3]
+    return g1, g2, b1, b2
+
 # ===========================================================================
 # CRC-32 (matches badge crystal.cpp / grid.cpp)
 # ===========================================================================
@@ -474,7 +510,7 @@ def validate_crystal(blob):
     return True, f"energy={dock_energy:.4f} (threshold={crystal_thresh:.4f})"
 
 
-def validate_grid(blob):
+def validate_grid(blob, hwid_hex):
     """Validate a 24-byte GridState blob. Returns (success, details)."""
     if len(blob) < 24:
         return False, "too short"
@@ -506,6 +542,10 @@ def validate_grid(blob):
     b2 = b2_mr / 1000.0
     badge_best = best_energy_milli / 1000.0
     badge_cvar = cvar_milli / 1000.0
+
+    # Apply per-device parameter transform (must match badge grid.cpp)
+    if hwid_hex:
+        g1, g2, b1, b2 = apply_grid_transform(g1, g2, b1, b2, hwid_hex)
 
     # Recompute QAOA independently
     dock_best, dock_mean, dock_cvar, dock_hits = grid_evaluate(g1, g2, b1, b2, grid_diag)
@@ -598,7 +638,7 @@ while True:
     grid_blob = request_blob(GRID_REQUEST, 24)
     grid_ok = False
     if grid_blob:
-        grid_ok, grid_detail = validate_grid(grid_blob)
+        grid_ok, grid_detail = validate_grid(grid_blob, hwid)
         if grid_ok:
             print(f"  [Grid] PASS: {grid_detail}")
             send_result(GRID_RESULT, True, GRID_FLAG)
