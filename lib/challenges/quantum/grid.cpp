@@ -164,7 +164,9 @@ static void transformParams(float &g1, float &g2, float &b1, float &b2) {
   buildParamTransform();
 
   // Clamp to [0, pi]
-  auto clamp = [](float v) { return (v < 0.f) ? 0.f : (v > PI_F) ? PI_F : v; };
+  auto clamp = [](float v) {
+    return (v < 0.f) ? 0.f : (v > PI_F) ? PI_F : v;
+  };
   g1 = clamp(g1);
   g2 = clamp(g2);
   b1 = clamp(b1);
@@ -176,6 +178,7 @@ static void transformParams(float &g1, float &g2, float &b1, float &b2) {
   b1 = b1 * g_paramScale[2] + g_paramOffset[2];
   b2 = b2 * g_paramScale[3] + g_paramOffset[3];
 }
+
 // ---------------------------------------------------------------------------
 
 static void applyQAOA(qsim::StateVec &sv, float gamma1, float gamma2, float beta1, float beta2) {
