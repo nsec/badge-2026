@@ -85,6 +85,10 @@ Hamiltonians are built from **Pauli operators**:
 
 ## Challenge 1: Crystal Tuning (VQE)
 
+### CFSS Rating
+
+CFSS Score: CFSS:0.3/TS:B/E:M/HSFC:N=3-5
+
 ### The Transverse-Field Ising Model (TFIM)
 
 The Crystal challenge uses the **Transverse-Field Ising Model**, one of the

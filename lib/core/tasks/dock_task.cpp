@@ -1,6 +1,7 @@
 #include "tasks/dock_task.h"
 
 #include <Arduino.h>
+#include "hardware/serial_mutex.h"
 
 #include "hardware/dock.h"
 #include "hardware/rgb_led.h"
@@ -104,9 +105,9 @@ void DockTask::run() {
             sponsorVal = 255;
           storage::socialWrite(storage::SocialKey::Sponsor, (uint8_t)sponsorVal);
 
-          Serial.printf("Dock: NEW dock #%d seen (%d total), sponsor=%d\r\n", dockId, seen, sponsorVal);
+          core::hw::safeSerial().printf("Dock: NEW dock #%d seen (%d total), sponsor=%d\r\n", dockId, seen, sponsorVal);
         } else {
-          Serial.printf("Dock: dock #%d already seen\r\n", dockId);
+          core::hw::safeSerial().printf("Dock: dock #%d already seen\r\n", dockId);
         }
       }
     }
@@ -128,7 +129,7 @@ void DockTask::run() {
         }
       }
       if (!handled) {
-        Serial.printf("Dock: unhandled challenge sub-opcode 0x%02X\r\n", subOp);
+        core::hw::safeSerial().printf("Dock: unhandled challenge sub-opcode 0x%02X\r\n", subOp);
       }
     }
 

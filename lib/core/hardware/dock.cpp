@@ -46,7 +46,8 @@ void onReceive(int numBytes) {
   if (numBytes < 1)
     return;
 
-  Serial.printf("Dock I2C: received %d bytes\r\n", numBytes);
+  // NOTE: Do NOT call Serial from this callback — it runs in
+  // Wire library context (ISR-like) and will corrupt USB-CDC output.
 
   uint8_t cmd = Wire.read();
 

@@ -6,6 +6,7 @@
 #include <cstring>
 #include <../core/tasks/cli.h>
 #include <../core/hardware/dock.h>
+#include <../core/hardware/serial_mutex.h>
 #include <../core/storage/nvs_quantum.h>
 
 namespace challenges {
@@ -26,12 +27,12 @@ static void onCrystalRequest(uint8_t subOpcode, const uint8_t *data, uint8_t dat
   challenges::crystal::CrystalState st;
   if (challenges::crystal::load(st)) {
     core::hw::dockSetResponseBuffer(reinterpret_cast<const uint8_t *>(&st), sizeof(st));
-    Serial.printf("Quantum: serving CrystalState (%d bytes, solved=%d)\r\n", sizeof(st), st.solved);
+    core::hw::safeSerial().printf("Quantum: serving CrystalState (%d bytes, solved=%d)\r\n", sizeof(st), st.solved);
   } else {
     // No valid state — send a zeroed response
     uint8_t empty[1] = {0};
     core::hw::dockSetResponseBuffer(empty, 1);
-    Serial.println("Quantum: no crystal state for dock");
+    core::hw::safeSerial().println("Quantum: no crystal state for dock");
   }
 }
 
@@ -51,9 +52,9 @@ static void onCrystalResult(uint8_t subOpcode, const uint8_t *data, uint8_t data
     flag[flagLen] = '\0';
 
     core::storage::quantumWriteStr("cflag", flag);
-    Serial.println("Crystal: SUCCESS! Flag stored.");
+    core::hw::safeSerial().println("Crystal: SUCCESS! Flag stored.");
   } else {
-    Serial.println("Crystal: dock validation failed");
+    core::hw::safeSerial().println("Crystal: dock validation failed");
   }
 }
 
@@ -62,11 +63,11 @@ static void onGridRequest(uint8_t subOpcode, const uint8_t *data, uint8_t dataLe
   challenges::grid::GridState st;
   if (challenges::grid::load(st)) {
     core::hw::dockSetResponseBuffer(reinterpret_cast<const uint8_t *>(&st), sizeof(st));
-    Serial.printf("Quantum: serving GridState (%d bytes, solved=%d)\r\n", sizeof(st), st.solved);
+    core::hw::safeSerial().printf("Quantum: serving GridState (%d bytes, solved=%d)\r\n", sizeof(st), st.solved);
   } else {
     uint8_t empty[1] = {0};
     core::hw::dockSetResponseBuffer(empty, 1);
-    Serial.println("Quantum: no grid state for dock");
+    core::hw::safeSerial().println("Quantum: no grid state for dock");
   }
 }
 
@@ -84,9 +85,9 @@ static void onGridResult(uint8_t subOpcode, const uint8_t *data, uint8_t dataLen
     memcpy(flag, &data[1], flagLen);
     flag[flagLen] = '\0';
     core::storage::quantumWriteStr("gflag", flag);
-    Serial.println("Grid: SUCCESS! Flag stored.");
+    core::hw::safeSerial().println("Grid: SUCCESS! Flag stored.");
   } else {
-    Serial.println("Grid: dock validation failed");
+    core::hw::safeSerial().println("Grid: dock validation failed");
   }
 }
 

@@ -10,6 +10,7 @@
 #include <badge_config.h>
 #include <core.h>
 #include <hardware/line_buffered_stream.h>
+#include <hardware/serial_mutex.h>
 
 // Conditionally include conference or challenges based on build flags
 #ifdef HAS_CONFERENCE
@@ -63,6 +64,7 @@ void setup() {
   core::ota::printBootInfo(Serial);
 
   static core::hw::LineBufferedStream bufferedSerial(Serial);
+  core::hw::setSafeSerial(&bufferedSerial);
   core::cli::init(bufferedSerial);
 
 #ifdef HAS_CONFERENCE

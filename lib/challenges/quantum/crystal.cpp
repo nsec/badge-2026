@@ -231,6 +231,21 @@ void reset() {
 /// Initialized to zero. Updated by `set`, `sweep` (auto-saves best).
 static float g_workParams[NUM_PARAMS] = {};
 
+/// Cooldown: minimum 2 seconds between evaluations to limit automation.
+static constexpr uint32_t EVAL_COOLDOWN_MS = 2000;
+static uint32_t g_lastEvalMs = 0;
+
+static bool checkCooldown(Stream &stream) {
+  uint32_t now = millis();
+  if (now - g_lastEvalMs < EVAL_COOLDOWN_MS) {
+    stream.printf("Cooldown: wait %d ms\r\n",
+                  EVAL_COOLDOWN_MS - (now - g_lastEvalMs));
+    return false;
+  }
+  g_lastEvalMs = now;
+  return true;
+}
+
 /// Parse a float token from args starting at idx.  Advances idx past it.
 static bool parseFloat(const std::string &args, size_t &idx, float &out) {
   while (idx < args.size() && args[idx] == ' ')
@@ -273,14 +288,11 @@ void handleCommand(Stream &stream, const std::string &args) {
     stream.printf("=== Crystal Tuning (VQE) ===\r\n");
     stream.printf("Qubits: %d, Layers: %d, Params: %d\r\n", NUM_QUBITS, NUM_LAYERS, NUM_PARAMS);
     stream.printf("Hamiltonian: H = -J Σ ZᵢZᵢ₊₁ - h Σ Xᵢ + Σ δᵢZᵢ\r\n");
-    stream.flush();
     stream.printf("  J (ZZ coupling) = %.4f\r\n", g_J_coupling);
     stream.printf("  h (transverse)  = %.4f\r\n", g_h_field);
     stream.printf("  Local fields δ: (hidden — use sweep to probe)\r\n");
-    stream.flush();
     stream.printf("Ansatz: %d-layer variational circuit, %d parameters\r\n", NUM_LAYERS, NUM_PARAMS);
     stream.printf("Solve threshold: %.4f\r\n", solveThreshold());
-    stream.flush();
     return;
   }
 
@@ -300,7 +312,6 @@ void handleCommand(Stream &stream, const std::string &args) {
     stream.printf("Energy: %.6f\r\n", energy);
     stream.printf("Threshold: %.6f\r\n", solveThreshold());
     stream.printf("Result: %s\r\n", solved ? "SOLVED!" : "not solved");
-    stream.flush();
     return;
   }
 
@@ -320,7 +331,6 @@ void handleCommand(Stream &stream, const std::string &args) {
     float energy = evaluate(g_workParams);
     stream.printf("θ[%d] = %.4f  →  Energy: %.6f  %s\r\n", paramIdx, val, energy,
                   energy < solveThreshold() ? "SOLVED!" : "");
-    stream.flush();
     return;
   }
 
@@ -328,15 +338,17 @@ void handleCommand(Stream &stream, const std::string &args) {
   if (sub == "params") {
     float energy = evaluate(g_workParams);
     stream.printf("Working params (Energy: %.6f):\r\n", energy);
-    for (uint8_t i = 0; i < NUM_PARAMS; i++)
-      stream.printf("  θ[%2d] = %.4f\r\n", i, g_workParams[i]);
-    stream.flush();
+    for (uint8_t i = 0; i < NUM_PARAMS; i++) {
+      stream.printf("  \xce\xb8[%2d] = %.4f\r\n", i, g_workParams[i]);
+    }
     return;
   }
 
   // --- sweep <param_index> <start> <end> <steps> ---
   // Uses working params as base. Auto-saves best θ back to working params.
   if (sub == "sweep") {
+    if (!checkCooldown(stream))
+      return;
     int paramIdx, steps;
     float sweepStart, sweepEnd;
     if (!parseInt(args, idx, paramIdx) || !parseFloat(args, idx, sweepStart) || !parseFloat(args, idx, sweepEnd) ||
@@ -358,7 +370,6 @@ void handleCommand(Stream &stream, const std::string &args) {
     memcpy(baseParams, g_workParams, sizeof(baseParams));
 
     stream.printf("Sweeping θ[%d] from %.3f to %.3f (%d steps):\r\n", paramIdx, sweepStart, sweepEnd, steps);
-    stream.flush();
 
     float bestE = 999.f;
     float bestTheta = 0.f;
@@ -372,14 +383,11 @@ void handleCommand(Stream &stream, const std::string &args) {
         bestE = e;
         bestTheta = t;
       }
-      if (s % 10 == 9)
-        stream.flush();
     }
 
     // Report best — player must manually `set` to apply
     stream.printf("Best: θ[%d]=%.4f  E=%.6f  %s\r\n", paramIdx, bestTheta, bestE,
                   bestE < solveThreshold() ? "SOLVED!" : "not solved");
-    stream.flush();
     return;
   }
 
@@ -398,7 +406,6 @@ void handleCommand(Stream &stream, const std::string &args) {
     bool ok = store(params, energy);
     stream.printf("Energy: %.6f  %s\r\n", energy, energy < solveThreshold() ? "SOLVED" : "not solved");
     stream.printf("NVS store: %s\r\n", ok ? "success" : "FAILED");
-    stream.flush();
     return;
   }
 
@@ -413,11 +420,11 @@ void handleCommand(Stream &stream, const std::string &args) {
     stream.printf("  Solved: %s\r\n", st.solved ? "YES" : "no");
     stream.printf("  Energy: %.3f\r\n", st.energy_milli / 1000.f);
     stream.printf("  Params (millirad):");
-    for (uint8_t i = 0; i < NUM_PARAMS; i++)
+    for (uint8_t i = 0; i < NUM_PARAMS; i++) {
       stream.printf(" %d", st.params[i]);
+    }
     stream.println();
     stream.printf("  Checksum: 0x%08X\r\n", st.checksum);
-    stream.flush();
     return;
   }
 

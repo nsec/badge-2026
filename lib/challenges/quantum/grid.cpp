@@ -278,6 +278,21 @@ void reset() {
 // CLI:  quantum grid <info|run|hist|store|status|reset>
 // ---------------------------------------------------------------------------
 
+/// Cooldown: minimum 2 seconds between evaluations to limit automation.
+static constexpr uint32_t EVAL_COOLDOWN_MS = 2000;
+static uint32_t g_lastEvalMs = 0;
+
+static bool checkCooldown(Stream &stream) {
+  uint32_t now = millis();
+  if (now - g_lastEvalMs < EVAL_COOLDOWN_MS) {
+    stream.printf("Cooldown: wait %d ms\r\n",
+                  EVAL_COOLDOWN_MS - (now - g_lastEvalMs));
+    return false;
+  }
+  g_lastEvalMs = now;
+  return true;
+}
+
 static bool parseFloat(const std::string &args, size_t &idx, float &out) {
   while (idx < args.size() && args[idx] == ' ')
     idx++;
@@ -313,26 +328,25 @@ void handleCommand(Stream &stream, const std::string &args) {
     stream.printf("=== Grid Optimization (QAOA p=2) ===\r\n");
     stream.printf("Qubits: %d, Depth: %d, Params: 4 (γ₁ γ₂ β₁ β₂)\r\n", NUM_QUBITS, QAOA_DEPTH);
     stream.printf("Samples: %d (seed=0x%08X)\r\n", NUM_SAMPLES, SAMPLE_SEED);
-    stream.flush();
     stream.printf("Single-qubit fields h:\r\n");
     for (uint8_t i = 0; i < NUM_QUBITS; i++)
       stream.printf("  h[%d] = %.4f\r\n", i, g_h[i]);
-    stream.flush();
     stream.printf("ZZ couplings J (%d edges):\r\n", g_numEdges);
     for (uint8_t e = 0; e < g_numEdges; e++)
       stream.printf("  J[%d,%d] = %.4f\r\n", g_edges[e].i, g_edges[e].j, g_edges[e].w);
-    stream.flush();
     stream.printf("Optimal energy: %.4f\r\n", optimalEnergy());
     stream.printf("Solve criteria:\r\n");
     stream.printf("  best energy  < %.4f\r\n", solveThreshold());
     stream.printf("  CVaR (20%%)   < %.4f\r\n", solveCvarThreshold());
     stream.printf("  low hits     >= %d\r\n", solveMinHits());
-    stream.flush();
+    stream.printf("\r\nHint: vary one param at a time. Use 'hist' to see the distribution.\r\n");
     return;
   }
 
   // --- run <γ₁> <γ₂> <β₁> <β₂> ---
   if (sub == "run") {
+    if (!checkCooldown(stream))
+      return;
     float g1, g2, b1, b2;
     if (!parse4Params(args, idx, g1, g2, b1, b2)) {
       stream.println("Usage: quantum grid run <γ₁> <γ₂> <β₁> <β₂>");
@@ -345,12 +359,13 @@ void handleCommand(Stream &stream, const std::string &args) {
     stream.printf("CVaR (20%%):   %.4f\r\n", m.cvar);
     stream.printf("Low hits:     %d / %d  (threshold: %.4f)\r\n", m.low_hits, NUM_SAMPLES, m.low_threshold);
     stream.printf("Solve: %s\r\n", isSolved(m) ? "SOLVED!" : "not solved");
-    stream.flush();
     return;
   }
 
   // --- hist <γ₁> <γ₂> <β₁> <β₂> --- print energy histogram
   if (sub == "hist") {
+    if (!checkCooldown(stream))
+      return;
     float g1, g2, b1, b2;
     if (!parse4Params(args, idx, g1, g2, b1, b2)) {
       stream.println("Usage: quantum grid hist <γ₁> <γ₂> <β₁> <β₂>");
@@ -402,7 +417,6 @@ void handleCommand(Stream &stream, const std::string &args) {
         stream.print("#");
       stream.println();
     }
-    stream.flush();
     return;
   }
 
@@ -419,7 +433,6 @@ void handleCommand(Stream &stream, const std::string &args) {
     stream.printf("Best: %.4f  CVaR: %.4f  Hits: %d  %s\r\n", m.best_energy, m.cvar, m.low_hits,
                   isSolved(m) ? "SOLVED" : "not solved");
     stream.printf("NVS store: %s\r\n", ok ? "success" : "FAILED");
-    stream.flush();
     return;
   }
 
@@ -437,7 +450,6 @@ void handleCommand(Stream &stream, const std::string &args) {
     stream.printf("  Low hits: %d\r\n", st.low_energy_hits);
     stream.printf("  CVaR: %.3f\r\n", st.cvar_milli / 1000.f);
     stream.printf("  Checksum: 0x%08X\r\n", st.checksum);
-    stream.flush();
     return;
   }
 
