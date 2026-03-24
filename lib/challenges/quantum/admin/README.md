@@ -33,8 +33,8 @@ Crystal sub-commands:
   crystal status / reset
 
 Grid sub-commands:
-  grid info               - show cost Hamiltonian
-  grid run <g1 g2 b1 b2>  - evaluate QAOA
+  grid info               - show challenge overview
+  grid run <g1 g2 b1 b2>  - evaluate QAOA (params in [0, π])
   grid hist <g1 g2 b1 b2> - energy histogram
   grid store <g1 g2 b1 b2> - store result to NVS
   grid status / reset
@@ -328,7 +328,7 @@ quantum crystal store
 
 ### CFSS Rating
 
-CFSS Score: TBD
+CFSS Score: CFSS:0.3/TS:B/E:M/HSFC:N=5-7
 
 ### What is QAOA?
 
@@ -355,31 +355,39 @@ collect in the deepest valleys (lowest energy solutions).
 
 - **10 qubits**, QAOA at depth p=2
 - **4 parameters**: γ₁, γ₂ (cost angles), β₁, β₂ (mixer angles)
+- **Parameter range**: [0, π] (values outside this range are clamped)
 - Circuit: `|+⟩^10 → [cost(γ₁) → mixer(β₁)] → [cost(γ₂) → mixer(β₂)]`
 - Evaluation: **256 deterministic samples** from the output state
 - Metrics reported: best energy, mean energy, CVaR (bottom 20%), low-energy hit count
-- **Three criteria must ALL be met:**
-  - Best sampled energy below the energy threshold
-  - CVaR (bottom 20% average) below the CVaR threshold
-  - At least 20 low-energy samples out of 256
+- **Per-device parameter transform**: Each badge applies a unique affine
+  transform to input parameters before evaluation. Optimal input values
+  differ between badges. Solutions cannot be shared.
+- **Three criteria must ALL be met** to solve (thresholds hidden — watch
+  for “SOLVED!” in the output)
+- **3-second cooldown** between evaluations
+- `grid info` shows challenge structure but **not** instance-specific
+  coefficients or solve thresholds
 
 ### Strategy Hints
 
-- Start with small values (e.g., 0.5 for all 4 params) and observe metrics
+- All parameters must be in [0, π]
+- Start with moderate values (e.g., 0.5 for all 4 params) and observe metrics
 - **γ parameters** control how strongly the cost function shapes the state
 - **β parameters** control how much the mixer explores new solutions
 - Use `grid hist` to visualize — you want a histogram skewed left (low energies)
-- Increasing γ too much can oversaturate; there's a sweet spot
+- Increasing γ too much can oversaturate; there’s a sweet spot
+- The β values often need to be larger than expected
 - Try sweeping one parameter at a time using `grid run` repeatedly
 - The CVaR metric rewards *consistent* low-energy sampling, not just one lucky shot
+- **Solutions are unique per badge** — another player’s optimal values won’t work on yours
 
 ### Step-by-step Walkthrough
 
 ```sh
-# 1. See the cost function and thresholds
+# 1. See the challenge overview
 quantum grid info
 
-# 2. Try a starting point
+# 2. Try a starting point (all params must be in [0, π])
 quantum grid run 0.5 0.5 0.5 0.5
 
 # 3. Look at the energy histogram
@@ -419,7 +427,9 @@ quantum flag
 
 The dock does NOT trust a "solved" bit. It:
 - Reads your stored parameters (milliradians)
+- Reads your badge’s hardware ID (for per-device parameter transform)
 - Verifies the CRC-32 checksum
+- Applies the same per-device transform as your badge
 - Recomputes the quantum simulation using the same Hamiltonian
 - Compares the recomputed energy against your reported energy
 - Checks that the energy meets the solve criteria
@@ -478,8 +488,10 @@ Both badge and dock use identical deterministic PRNG seeds:
 - Crystal Hamiltonian: seed `0x4E534543` ("NSEC")
 - Grid Hamiltonian: seed `0x47524944` ("GRID")
 - Grid sampling: seed `0xDEADBEEF`
+- Grid per-device transform: seed `0x51414F41` ("QAOA") XOR’d with MAC
 
 This ensures the dock can independently verify all badge-side computations.
+The dock reads the badge’s HWID via I2C to apply the same per-device transform.
 
 ### Key Design Decisions
 
@@ -496,3 +508,27 @@ This ensures the dock can independently verify all badge-side computations.
   bound $E_{min} \geq -(N{-}1)J - Nh - \sum|\delta_i|$. Coarse sweeps reach ~63%;
   fine-tuning is needed to push past the threshold. This ensures players spend
   meaningful time iteratively refining their parameters.
+
+### Anti-Bruteforce Hardening (Grid)
+
+- **Per-device parameter transform**: Input params are mapped through a
+  device-specific affine transform (scale ∈ [0.8, 1.2], offset ∈ [-0.3, 0.3])
+  derived from the badge's MAC address before QAOA evaluation. Same Hamiltonian,
+  different input mapping. Prevents solution sharing between badges.
+- **Hidden instance data**: `grid info` does not show h fields, J couplings,
+  optimal energy, or solve thresholds. Players must probe the energy landscape
+  empirically.
+- **Parameter clamping**: All input params clamped to [0, π] before the
+  per-device transform. Clean, documented constraint.
+- **3-second cooldown**: Both challenges rate-limit evaluations to 1 per 3
+  seconds, slowing scripted optimization by ~3×.
+- **Crystal sweep no auto-save**: `sweep` reports the best value but does NOT
+  write it to working params. Player must manually `set` each value.
+
+### Admin Solver
+
+`solve_grid.py` in the repo root takes a badge HWID and computes the
+device-specific optimal parameters using scipy optimization:
+```
+python3 solve_grid.py <HWID>
+```

@@ -310,7 +310,7 @@ GRID_MIN_HITS = 20
 import math
 
 def compute_grid_transform(hwid_hex):
-    \"\"\"Compute per-device param transform from HWID hex string (e.g. '80B54EE0783C').\"\"\"
+    #Compute per-device param transform from HWID hex string (e.g. '80B54EE0783C').#
     mac_bytes = bytes.fromhex(hwid_hex)
     seed = 0x51414F41  # "QAOA"
     for b in mac_bytes:
@@ -326,7 +326,7 @@ def compute_grid_transform(hwid_hex):
     return scales, offsets
 
 def apply_grid_transform(g1, g2, b1, b2, hwid_hex):
-    \"\"\"Clamp params to [0, pi], then apply per-device affine transform.\"\"\"
+    #Clamp params to [0, pi], then apply per-device affine transform.#
     PI = math.pi
     g1 = max(0.0, min(PI, g1))
     g2 = max(0.0, min(PI, g2))
