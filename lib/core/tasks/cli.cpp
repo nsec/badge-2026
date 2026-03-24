@@ -436,6 +436,7 @@ void poll() {
   if (g_promptNeeded) {
     g_promptNeeded = false;
     prompt();
+    g_io->flush();
   }
 
   while (g_io->available() > 0) {
@@ -506,6 +507,10 @@ void poll() {
       }
     }
   }
+
+  // Flush any accumulated output (echo, prompt, backspace, etc.).
+  // Command output is already flushed in bulk after handleLine().
+  g_io->flush();
 }
 
 void registerCommand(const std::string &name, const std::string &help, CommandHandler handler) {
