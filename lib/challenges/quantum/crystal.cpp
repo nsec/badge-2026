@@ -238,8 +238,7 @@ static uint32_t g_lastEvalMs = 0;
 static bool checkCooldown(Stream &stream) {
   uint32_t now = millis();
   if (now - g_lastEvalMs < EVAL_COOLDOWN_MS) {
-    stream.printf("Cooldown: wait %d ms\r\n",
-                  EVAL_COOLDOWN_MS - (now - g_lastEvalMs));
+    stream.printf("Cooldown: wait %d ms\r\n", EVAL_COOLDOWN_MS - (now - g_lastEvalMs));
     return false;
   }
   g_lastEvalMs = now;

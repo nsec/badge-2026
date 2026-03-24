@@ -241,7 +241,8 @@ void ControllerTask::handle(const ButtonPressEvent &event) {
 void ControllerTask::handle(const SocialSetRequest &req) {
   storage::socialWrite(req.key, req.value);
 
-  core::hw::safeSerial().printf("[social] SET %s = %u (stored with HWID XOR)\r\n", storage::socialKeyName(req.key), req.value);
+  core::hw::safeSerial().printf("[social] SET %s = %u (stored with HWID XOR)\r\n", storage::socialKeyName(req.key),
+                                req.value);
 
   _cliQueue.send(CliResponse{CliResponseType::SocialSetComplete});
 }
