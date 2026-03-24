@@ -326,6 +326,10 @@ quantum crystal store
 
 ## Challenge 2: Grid Optimization (QAOA)
 
+### CFSS Rating
+
+CFSS Score: TBD
+
 ### What is QAOA?
 
 The **Quantum Approximate Optimization Algorithm** (QAOA) is a quantum
