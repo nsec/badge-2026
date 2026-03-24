@@ -9,6 +9,7 @@
 
 #include <badge_config.h>
 #include <core.h>
+#include <hardware/line_buffered_stream.h>
 
 // Conditionally include conference or challenges based on build flags
 #ifdef HAS_CONFERENCE
@@ -20,8 +21,9 @@
 #endif
 
 void setup() {
-  // USB CDC serial - wait for connection or timeout after 5 seconds
+  Serial.setTxBufferSize(4096);
   Serial.begin(115200);
+
   unsigned long start = millis();
   while (!Serial && (millis() - start) < 5000) {
     delay(100);
@@ -60,7 +62,8 @@ void setup() {
 
   core::ota::printBootInfo(Serial);
 
-  core::cli::init(Serial);
+  static core::hw::LineBufferedStream bufferedSerial(Serial);
+  core::cli::init(bufferedSerial);
 
 #ifdef HAS_CONFERENCE
   conference::init();
