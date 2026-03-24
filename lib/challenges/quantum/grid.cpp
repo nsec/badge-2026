@@ -339,8 +339,8 @@ void reset() {
 // CLI:  quantum grid <info|run|hist|store|status|reset>
 // ---------------------------------------------------------------------------
 
-/// Cooldown: minimum 3 seconds between evaluations to limit automation.
-static constexpr uint32_t EVAL_COOLDOWN_MS = 3000;
+/// Cooldown: minimum 5 seconds between evaluations to limit automation.
+static constexpr uint32_t EVAL_COOLDOWN_MS = 5000;
 static uint32_t g_lastEvalMs = 0;
 
 static bool checkCooldown(Stream &stream) {
@@ -473,6 +473,8 @@ void handleCommand(Stream &stream, const std::string &args) {
 
   // --- store <γ₁> <γ₂> <β₁> <β₂> ---
   if (sub == "store") {
+    if (!checkCooldown(stream))
+      return;
     float g1, g2, b1, b2;
     if (!parse4Params(args, idx, g1, g2, b1, b2)) {
       stream.println("Usage: quantum grid store <γ₁> <γ₂> <β₁> <β₂>");
