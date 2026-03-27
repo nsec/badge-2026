@@ -248,8 +248,8 @@ def grid_evaluate(g1, g2, b1, b2, diag):
             sv[i] *= phase
 
     def apply_rx_all(sv, beta):
-        co = math.cos(beta)
-        si = math.sin(beta)
+        co = math.cos(beta / 2)
+        si = math.sin(beta / 2)
         for q in range(nq):
             mask = 1 << q
             for i in range(dim):

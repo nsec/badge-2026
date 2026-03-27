@@ -1283,7 +1283,7 @@ void NfcTask::runPair() {
         storage::socialWrite(storage::SocialKey::Social, (uint8_t)newVal);
 
         core::hw::safeSerial().printf(
-            "NFC-DEP pair: NEW partner %02X:%02X:%02X:%02X:%02X:%02X (%s) â€” social=%d (+3)\r\n", partnerMac[0],
+            "NFC-DEP pair: NEW partner %02X:%02X:%02X:%02X:%02X:%02X (%s) - social=%d (+3)\r\n", partnerMac[0],
             partnerMac[1], partnerMac[2], partnerMac[3], partnerMac[4], partnerMac[5], role, newVal);
 
         // Green flash - new partner
@@ -1297,7 +1297,7 @@ void NfcTask::runPair() {
                                       partnerMac[0], partnerMac[1], partnerMac[2], partnerMac[3], partnerMac[4],
                                       partnerMac[5], role);
 
-        // Yellow flash â€” already paired before
+        // Yellow flash - already paired before
         LedCommand sc{};
         sc.type = LedCommandType::ProgressFlash;
         sc.pixelCount = 18;
@@ -1306,7 +1306,7 @@ void NfcTask::runPair() {
         _ledQueue.send(sc, Milliseconds(0));
       }
     } else {
-      core::hw::safeSerial().printf("NFC-DEP pair: HMAC FAILED â€” partner %02X:%02X:%02X:%02X:%02X:%02X\r\n",
+      core::hw::safeSerial().printf("NFC-DEP pair: HMAC FAILED - partner %02X:%02X:%02X:%02X:%02X:%02X\r\n",
                                     partnerMac[0], partnerMac[1], partnerMac[2], partnerMac[3], partnerMac[4],
                                     partnerMac[5]);
       LedCommand sc{};

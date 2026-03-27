@@ -215,7 +215,9 @@ void cmdLedTest(const std::string &arg) {
 }
 
 void cmdStatus() {
-  g_io->println("=== Social Status ===");
+  char buf[256];
+  int pos = 0;
+  pos += snprintf(buf + pos, sizeof(buf) - pos, "=== Social Status ===\r\n");
   const core::storage::SocialKey keys[] = {
       core::storage::SocialKey::Social,
       core::storage::SocialKey::Sponsor,
@@ -224,8 +226,9 @@ void cmdStatus() {
   };
   for (auto k : keys) {
     uint8_t val = core::storage::socialRead(k);
-    g_io->printf("  %-12s = %u\r\n", core::storage::socialKeyName(k), val);
+    pos += snprintf(buf + pos, sizeof(buf) - pos, "  %-12s = %u\r\n", core::storage::socialKeyName(k), val);
   }
+  g_io->write(reinterpret_cast<const uint8_t *>(buf), pos);
 }
 
 void cmdNvsTest(const std::string &args) {
