@@ -400,8 +400,8 @@ textarea:focus {
 </div>
 
 <div class="card">
-  <h2>NFC Profile</h2>
-  <p class="card-hint">When enabled, this info is shared with other badges during NFC pairing. Only people you pair with will see it.</p>
+  <h2>Profile Sharing</h2>
+  <p class="card-hint">When enabled, your profile is shared with nearby badges when you tap. Do not include sensitive information; shared data is not encrypted.</p>
 
   <div class="toggle-row">
     <label class="toggle-label" for="share">Share my profile</label>
@@ -424,7 +424,7 @@ textarea:focus {
     <textarea id="contact" maxlength="60" rows="2" placeholder="Fedi, Matrix, GitHub, email..."></textarea>
   </div>
 
-  <button class="btn" onclick="saveProfile()">Save Profile</button>
+  <button class="btn" onclick="saveProfile()">Save Sharing Settings</button>
   <div class="status" id="profile-status"></div>
 </div>
 
