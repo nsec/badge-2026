@@ -7,6 +7,8 @@
 #include "tasks/cli_task.h"
 #include "tasks/controller.h"
 #include "tasks/controller_task.h"
+#include "tasks/display.h"
+#include "tasks/display_task.h"
 #include "tasks/heartbeat.h"
 #include "tasks/led.h"
 #include "tasks/led_task.h"
