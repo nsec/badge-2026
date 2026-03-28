@@ -66,6 +66,12 @@ void setup() {
 
   core::hw::dockInit();
 
+  if (core::hw::einkInit()) {
+    Serial.println("E-Ink initialized");
+  } else {
+    Serial.println("E-Ink init failed - display features disabled");
+  }
+
   core::ota::printBootInfo(Serial);
 
   static core::hw::LineBufferedStream bufferedSerial(Serial);

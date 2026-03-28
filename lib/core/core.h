@@ -16,6 +16,7 @@
 #include "tasks/dock_task.h"
 #include "hardware/buttons.h"
 #include "hardware/hwid.h"
+#include "hardware/eink.h"
 #include "hardware/nfc.h"
 #include "hardware/dock.h"
 #include "hardware/rgb_led.h"
