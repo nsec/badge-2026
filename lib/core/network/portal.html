@@ -361,6 +361,73 @@ textarea:focus {
   max-height: 400px;
   opacity: 1;
 }
+
+.contact-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #1a2a1a;
+  cursor: pointer;
+}
+
+.contact-row:last-child {
+  border-bottom: none;
+}
+
+.contact-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px rgba(122, 182, 72, 0.2);
+}
+
+.contact-name {
+  flex: 1;
+  font-size: 0.95em;
+  color: #d4e0c8;
+}
+
+.contact-chevron {
+  color: #4a6a3a;
+  font-size: 0.8em;
+  transition: transform 0.3s;
+}
+
+.contact-row.open .contact-chevron {
+  transform: rotate(90deg);
+}
+
+.contact-details {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.2s ease;
+  padding-left: 22px;
+}
+
+.contact-row.open + .contact-details {
+  max-height: 200px;
+  opacity: 1;
+}
+
+.contact-detail {
+  font-size: 0.85em;
+  color: #7a9a6a;
+  padding: 3px 0;
+}
+
+.contact-detail span {
+  color: #d4e0c8;
+}
+
+.contacts-empty {
+  font-size: 0.85em;
+  color: #4a6a3a;
+  text-align: center;
+  padding: 8px 0;
+}
 </style>
 </head>
 <body>
@@ -441,7 +508,12 @@ textarea:focus {
   <div class="bar-wrap"><div class="bar bar-attraction" id="b-attraction" style="width:0%"></div></div>
 </div>
 
-<!-- TODO: List sync'ed contacts with NFC? -->
+<div class="card">
+  <h2>Contacts</h2>
+  <div id="contacts-list">
+    <div class="contacts-empty">No contacts yet. Pair with other badges via NFC!</div>
+  </div>
+</div>
 </div>
 
 <script>
@@ -560,13 +632,51 @@ $('brightness').addEventListener('input', () => {
   $('bright-label').textContent = $('brightness').value;
 });
 
+function renderContacts(contacts) {
+  const list = $('contacts-list');
+  if (!contacts.length) {
+    list.innerHTML = '<div class="contacts-empty">No contacts yet. Pair with other badges via NFC!</div>';
+    return;
+  }
+  list.innerHTML = '';
+  contacts.forEach((c, i) => {
+    const row = document.createElement('div');
+    row.className = 'contact-row';
+    row.innerHTML =
+      `<div class="contact-dot" style="background:${rgbToHex(c.r, c.g, c.b)}"></div>` +
+      `<div class="contact-name">${esc(c.name)}` +
+        (c.pronouns ? ` <span style="color:#5a7a4a;font-size:0.85em">(${esc(c.pronouns)})</span>` : '') +
+      `</div>` +
+      `<div class="contact-chevron">&#9656;</div>`;
+    row.onclick = () => {
+      row.classList.toggle('open');
+    };
+    list.appendChild(row);
+
+    const details = document.createElement('div');
+    details.className = 'contact-details';
+    if (c.affiliation)
+      details.innerHTML += `<div class="contact-detail"><span>${esc(c.affiliation)}</span></div>`;
+    if (c.contact)
+      details.innerHTML += `<div class="contact-detail"><span>${esc(c.contact)}</span></div>`;
+    list.appendChild(details);
+  });
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
 async function load() {
   try {
-    const [cfgRes, socRes] = await Promise.all([
-      fetch('/api/config'), fetch('/api/social')
+    const [cfgRes, socRes, conRes] = await Promise.all([
+      fetch('/api/config'), fetch('/api/social'), fetch('/api/contacts')
     ]);
     const cfg = await cfgRes.json();
     const soc = await socRes.json();
+    const contacts = await conRes.json();
 
     $('color').value = rgbToHex(cfg.r, cfg.g, cfg.b);
     $('brightness').value = cfg.brightness;
@@ -589,6 +699,8 @@ async function load() {
       $('b-' + key).style.width = pct + '%';
       $('v-' + key).textContent = soc[key] + ' / 255';
     }
+
+    renderContacts(contacts);
   } catch (e) {
     $('status').textContent = 'Failed to load config';
   }

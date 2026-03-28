@@ -17,6 +17,18 @@ CONFIG = {
     "contact": "",
 }
 SOCIAL = {"social": 42, "sponsor": 180, "light": 5, "attraction": 255}
+CONTACTS = [
+    {"name": "Alice Tremblay", "pronouns": "she/her", "affiliation": "CorpSec",
+     "contact": "@alice@infosec.exchange", "r": 255, "g": 50, "b": 120},
+    {"name": "Bob Binettte", "pronouns": "", "affiliation": "NorthSec",
+     "contact": "github.com/bob", "r": 50, "g": 200, "b": 255},
+    {"name": "Charlie", "pronouns": "they/them", "affiliation": "",
+     "contact": "@charlie:matrix.org", "r": 255, "g": 180, "b": 0},
+    {"name": "Daniel Boucher", "pronouns": "he/him", "affiliation": "Boucane Bleue",
+     "contact": "", "r": 180, "g": 80, "b": 255},
+    {"name": "Ève 🐠", "pronouns": "she/them", "affiliation": "GoSecure",
+     "contact": "eve@signal.me", "r": 0, "g": 255, "b": 128},
+]
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -30,6 +42,8 @@ class Handler(SimpleHTTPRequestHandler):
             self._json(CONFIG)
         elif self.path == "/api/social":
             self._json(SOCIAL)
+        elif self.path == "/api/contacts":
+            self._json(CONTACTS)
         else:
             self.send_error(404)
 
