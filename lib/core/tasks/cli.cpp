@@ -221,6 +221,10 @@ void cmdLedTest(const std::string &arg) {
 }
 
 void cmdEinkTest() {
+  if (!core::hw::einkAvailable()) {
+    g_io->println("E-Ink: no display detected — test skipped");
+    return;
+  }
   g_io->println("=== E-Ink Display Test ===");
   auto &display = core::hw::einkDisplay();
 
