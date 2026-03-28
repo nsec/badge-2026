@@ -418,7 +418,7 @@ async function load() {
     for (const key of ['social', 'sponsor', 'light', 'attraction']) {
       const pct = Math.round(soc[key] / 255 * 100);
       $('b-' + key).style.width = pct + '%';
-      $('v-' + key).textContent = soc[key];
+      $('v-' + key).textContent = soc[key] + ' / 255';
     }
   } catch (e) {
     $('status').textContent = 'Failed to load config';
