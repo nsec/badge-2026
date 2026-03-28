@@ -4,6 +4,7 @@
 
 #include "hardware/eink.h"
 #include "hardware/nsec_logo.h"
+#include "hardware/nsec_logo_half.h"
 #include "system/ota_manager.h"
 #include "storage/nvs_social.h"
 
@@ -167,7 +168,10 @@ void DisplayTask::renderText(const char *line1, const char *line2, const char *l
   display.setFont(&FreeMonoBold9pt7b);
   display.setTextColor(GxEPD_BLACK);
 
-  // Count how many lines we have.
+  // Layout: half logo (200x105) on top, text in bottom 95px
+  constexpr uint16_t TEXT_TOP = badge::LOGO_HALF_HEIGHT;
+  constexpr uint16_t TEXT_AREA = 200 - badge::LOGO_HALF_HEIGHT;  // 95px
+
   int lineCount = 1;
   if (line2)
     lineCount++;
@@ -176,28 +180,24 @@ void DisplayTask::renderText(const char *line1, const char *line2, const char *l
 
   const char *lines[3] = {line1, line2, line3};
 
-  // Compute vertical positions. Distribute lines evenly across the 200px height.
-  // Each line occupies a zone of height = 200 / lineCount.
-  // Place text baseline at the vertical center of each zone.
   int16_t tbx, tby;
   uint16_t tbw, tbh;
-
-  // Pre-compute positions for each line.
   uint16_t xPos[3] = {};
   uint16_t yPos[3] = {};
-  uint16_t zoneHeight = display.height() / lineCount;
+  uint16_t zoneHeight = TEXT_AREA / lineCount;
 
   for (int i = 0; i < lineCount; i++) {
     display.getTextBounds(lines[i], 0, 0, &tbx, &tby, &tbw, &tbh);
     xPos[i] = ((display.width() - tbw) / 2) - tbx;
-    // Center baseline vertically within its zone.
-    yPos[i] = (zoneHeight * i) + (zoneHeight / 2) + (tbh / 2) - tby - tbh;
+    yPos[i] = TEXT_TOP + (zoneHeight * i) + (zoneHeight / 2) + (tbh / 2) - tby - tbh;
   }
 
   display.setFullWindow();
   display.firstPage();
   do {
     display.fillScreen(GxEPD_WHITE);
+    display.drawInvertedBitmap(0, 0, badge::LOGO_HALF_BITMAP, badge::LOGO_HALF_WIDTH, badge::LOGO_HALF_HEIGHT,
+                               GxEPD_BLACK);
     for (int i = 0; i < lineCount; i++) {
       display.setCursor(xPos[i], yPos[i]);
       display.print(lines[i]);
