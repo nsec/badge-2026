@@ -201,20 +201,6 @@ input[type=color] {
   background: transparent;
 }
 
-.color-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.color-preview {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 2px solid #2a4a2a;
-  box-shadow: 0 0 12px rgba(122, 182, 72, 0.15);
-}
-
 .btn {
   display: block;
   width: 100%;
@@ -482,9 +468,6 @@ function rgbToHex(r, g, b) {
   return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
 }
 
-function updatePreview() {
-  $('preview').style.background = $('color').value;
-}
 
 // Spawn floating spores
 function spawnSpores() {
@@ -511,7 +494,6 @@ function toggleShare() {
   $('profile-fields').classList.toggle('visible', shareEnabled);
 }
 
-$('color').addEventListener('input', updatePreview);
 $('brightness').addEventListener('input', () => {
   $('bright-label').textContent = $('brightness').value;
 });
@@ -527,7 +509,7 @@ async function load() {
     $('color').value = rgbToHex(cfg.r, cfg.g, cfg.b);
     $('brightness').value = cfg.brightness;
     $('bright-label').textContent = cfg.brightness;
-    updatePreview();
+
 
     // Profile fields
     $('name').value = cfg.name || '';
