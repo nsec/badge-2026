@@ -5,14 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0a0f0a">
 <style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
-  margin: 0;
   width: 100%;
   min-height: 100%;
   background: #0a0f0a;
@@ -22,7 +17,6 @@ body {
   font-family: 'Segoe UI', system-ui, sans-serif;
   color: #d4e0c8;
   overflow-x: hidden;
-  position: relative;
 }
 
 .main {
@@ -34,7 +28,8 @@ body {
   padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
 }
 
-/* Animated vine SVG background */
+/* --- Background layers --- */
+
 .vine-bg {
   position: fixed;
   inset: 0;
@@ -42,9 +37,6 @@ body {
   height: 100%;
   pointer-events: none;
   z-index: 0;
-}
-
-.vine-bg {
   opacity: 0.3;
 }
 
@@ -56,7 +48,6 @@ body {
   stroke-dashoffset: 800;
   animation: grow 8s ease-out forwards;
 }
-
 .vine-bg path:nth-child(2) { stroke: #1a4a2a; animation-delay: 1.5s; }
 .vine-bg path:nth-child(3) { stroke: #2a6a1a; animation-delay: 3s; }
 .vine-bg path:nth-child(4) { stroke: #1a5a2a; animation-delay: 4.5s; stroke-width: 1.5; }
@@ -67,15 +58,13 @@ body {
   animation: leaf-appear 1s ease-out forwards;
 }
 
-@keyframes grow {
-  to { stroke-dashoffset: 0; }
-}
-
+@keyframes grow { to { stroke-dashoffset: 0; } }
 @keyframes leaf-appear {
   from { opacity: 0; transform: scale(0); }
-  to { opacity: 0.5; transform: scale(1); }
+  to   { opacity: 0.5; transform: scale(1); }
 }
 
+/* --- Typography --- */
 
 h1 {
   font-size: 1.5em;
@@ -85,10 +74,9 @@ h1 {
   text-shadow: 0 0 20px rgba(122, 182, 72, 0.3);
   animation: pulse-glow 4s ease-in-out infinite;
 }
-
 @keyframes pulse-glow {
   0%, 100% { text-shadow: 0 0 20px rgba(122, 182, 72, 0.2); }
-  50% { text-shadow: 0 0 30px rgba(122, 182, 72, 0.5), 0 0 60px rgba(122, 182, 72, 0.15); }
+  50%      { text-shadow: 0 0 30px rgba(122, 182, 72, 0.5), 0 0 60px rgba(122, 182, 72, 0.15); }
 }
 
 h2 {
@@ -97,6 +85,8 @@ h2 {
   color: #8aa87a;
   font-weight: 400;
 }
+
+/* --- Cards --- */
 
 .card {
   background: linear-gradient(145deg, rgba(17, 26, 17, 0.7), rgba(14, 22, 14, 0.7));
@@ -109,21 +99,14 @@ h2 {
   animation: card-breathe 6s ease-in-out infinite;
   box-shadow: 0 0 20px rgba(42, 90, 26, 0.08);
 }
-
-.card:nth-child(3) {
-  animation-delay: 3s;
-}
+.card:nth-child(3) { animation-delay: 3s; }
 
 @keyframes card-breathe {
-  0%, 100% {
-    border-color: #1e3a1e;
-    box-shadow: 0 0 20px rgba(42, 90, 26, 0.08);
-  }
-  50% {
-    border-color: #2a5a2a;
-    box-shadow: 0 0 30px rgba(42, 90, 26, 0.15);
-  }
+  0%, 100% { border-color: #1e3a1e; box-shadow: 0 0 20px rgba(42, 90, 26, 0.08); }
+  50%      { border-color: #2a5a2a; box-shadow: 0 0 30px rgba(42, 90, 26, 0.15); }
 }
+
+/* --- Form elements --- */
 
 label {
   display: block;
@@ -132,22 +115,23 @@ label {
   margin: 10px 0 4px;
 }
 
-input[type=text] {
+input[type=text], textarea {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid #1e3a1e;
   border-radius: 10px;
   background: #0a140a;
   color: #d4e0c8;
+  font-family: inherit;
   font-size: 1em;
   transition: border-color 0.3s, box-shadow 0.3s;
 }
-
-input[type=text]:focus {
+input[type=text]:focus, textarea:focus {
   outline: none;
   border-color: #4a8a3a;
   box-shadow: 0 0 12px rgba(74, 138, 58, 0.2);
 }
+textarea { resize: none; }
 
 input[type=range] {
   -webkit-appearance: none;
@@ -158,32 +142,25 @@ input[type=range] {
   background: #1a2a1a;
   outline: none;
 }
-
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 20px;
-  height: 20px;
+  width: 20px; height: 20px;
   border-radius: 50%;
   background: radial-gradient(circle at 40% 40%, #8ac85a, #4a8a3a);
   cursor: pointer;
   box-shadow: 0 0 8px rgba(122, 182, 72, 0.4);
 }
-
 input[type=range]::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
-  border: none;
-  border-radius: 50%;
+  width: 20px; height: 20px;
+  border: none; border-radius: 50%;
   background: radial-gradient(circle at 40% 40%, #8ac85a, #4a8a3a);
   cursor: pointer;
   box-shadow: 0 0 8px rgba(122, 182, 72, 0.4);
 }
 
 input[type=color] {
-  width: 60px;
-  height: 40px;
-  border: none;
-  border-radius: 10px;
+  width: 60px; height: 40px;
+  border: none; border-radius: 10px;
   cursor: pointer;
   background: transparent;
 }
@@ -203,11 +180,23 @@ input[type=color] {
   transition: all 0.3s;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
-
 .btn:active {
   background: linear-gradient(135deg, #1a4a0a, #2a6a1a);
   box-shadow: 0 0 20px rgba(74, 138, 58, 0.3);
 }
+
+/* --- Small text --- */
+
+.val, .status, .bright-val, .card-hint, .contacts-empty {
+  font-size: 0.85em;
+}
+.val        { color: #4a6a3a; float: right; }
+.status     { color: #5a8a4a; text-align: center; margin: 8px 0; }
+.bright-val { color: #6a8a5a; text-align: right; }
+.card-hint  { color: #5a7a4a; line-height: 1.4; margin: 4px 0 12px; font-size: 0.82em; }
+.contacts-empty { color: #4a6a3a; text-align: center; padding: 8px 0; }
+
+/* --- Progress bars --- */
 
 .bar-wrap {
   background: #0e1a0e;
@@ -217,7 +206,6 @@ input[type=color] {
   overflow: hidden;
   border: 1px solid #1a2a1a;
 }
-
 .bar {
   height: 100%;
   border-radius: 5px;
@@ -225,84 +213,22 @@ input[type=color] {
   position: relative;
   overflow: hidden;
 }
-
-/* Shimmer effect on progress bars */
 .bar::after {
   content: '';
   position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
   animation: shimmer 3s ease-in-out infinite;
 }
+@keyframes shimmer { 0% { left: -100%; } 100% { left: 100%; } }
 
-@keyframes shimmer {
-  0% { left: -100%; }
-  100% { left: 100%; }
-}
+.bar-social     { background: linear-gradient(90deg, #2a5a1a, #5a9a3a); }
+.bar-sponsor    { background: linear-gradient(90deg, #8a7a1a, #c8b030); }
+.bar-light      { background: linear-gradient(90deg, #1a5a5a, #30a8a0); }
+.bar-attraction { background: linear-gradient(90deg, #6a4a1a, #c87830); }
 
-.bar-social {
-  background: linear-gradient(90deg, #2a5a1a, #5a9a3a);
-}
-
-.bar-sponsor {
-  background: linear-gradient(90deg, #8a7a1a, #c8b030);
-}
-
-.bar-light {
-  background: linear-gradient(90deg, #1a5a5a, #30a8a0);
-}
-
-.bar-attraction {
-  background: linear-gradient(90deg, #6a4a1a, #c87830);
-}
-
-.val {
-  font-size: 0.85em;
-  color: #4a6a3a;
-  float: right;
-}
-
-.status {
-  text-align: center;
-  font-size: 0.85em;
-  color: #5a8a4a;
-  margin: 8px 0;
-}
-
-.bright-val {
-  font-size: 0.85em;
-  color: #6a8a5a;
-  text-align: right;
-}
-
-.card-hint {
-  font-size: 0.82em;
-  color: #5a7a4a;
-  line-height: 1.4;
-  margin: 4px 0 12px;
-}
-
-textarea {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #1e3a1e;
-  border-radius: 10px;
-  background: #0a140a;
-  color: #d4e0c8;
-  font-family: inherit;
-  font-size: 1em;
-  resize: none;
-  transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-textarea:focus {
-  outline: none;
-  border-color: #4a8a3a;
-  box-shadow: 0 0 12px rgba(74, 138, 58, 0.2);
-}
+/* --- Toggle switch --- */
 
 .toggle-row {
   display: flex;
@@ -310,16 +236,10 @@ textarea:focus {
   justify-content: space-between;
   margin: 8px 0 4px;
 }
-
-.toggle-label {
-  font-size: 0.95em;
-  color: #8aa87a;
-  margin: 0;
-}
+.toggle-label { font-size: 0.95em; color: #8aa87a; margin: 0; }
 
 .toggle {
-  width: 48px;
-  height: 26px;
+  width: 48px; height: 26px;
   border-radius: 13px;
   background: #1a2a1a;
   border: 1px solid #2a3a2a;
@@ -328,39 +248,28 @@ textarea:focus {
   transition: background 0.3s, border-color 0.3s;
   flex-shrink: 0;
 }
-
-.toggle.active {
-  background: #2a5a1a;
-  border-color: #4a8a3a;
-}
+.toggle.active { background: #2a5a1a; border-color: #4a8a3a; }
 
 .toggle-knob {
-  width: 20px;
-  height: 20px;
+  width: 20px; height: 20px;
   border-radius: 50%;
   background: #4a6a3a;
   position: absolute;
-  top: 2px;
-  left: 2px;
+  top: 2px; left: 2px;
   transition: transform 0.3s, background 0.3s;
 }
+.toggle.active .toggle-knob { transform: translateX(22px); background: #7ab648; }
 
-.toggle.active .toggle-knob {
-  transform: translateX(22px);
-  background: #7ab648;
-}
+/* --- Collapsible sections --- */
 
 #profile-fields {
   overflow: hidden;
-  max-height: 0;
-  opacity: 0;
+  max-height: 0; opacity: 0;
   transition: max-height 0.4s ease, opacity 0.3s ease;
 }
+#profile-fields.visible { max-height: 400px; opacity: 1; }
 
-#profile-fields.visible {
-  max-height: 400px;
-  opacity: 1;
-}
+/* --- Contacts --- */
 
 .contact-row {
   display: flex;
@@ -370,75 +279,41 @@ textarea:focus {
   border-bottom: 1px solid #1a2a1a;
   cursor: pointer;
 }
-
-.contact-row:last-child {
-  border-bottom: none;
-}
+.contact-row:last-child { border-bottom: none; }
 
 .contact-dot {
-  width: 12px;
-  height: 12px;
+  width: 12px; height: 12px;
   border-radius: 50%;
   flex-shrink: 0;
   box-shadow: 0 0 6px rgba(122, 182, 72, 0.2);
 }
-
-.contact-name {
-  flex: 1;
-  font-size: 0.95em;
-  color: #d4e0c8;
-}
-
+.contact-name { flex: 1; font-size: 0.95em; }
 .contact-chevron {
   color: #4a6a3a;
   font-size: 0.8em;
   transition: transform 0.3s;
 }
-
-.contact-row.open .contact-chevron {
-  transform: rotate(90deg);
-}
+.contact-row.open .contact-chevron { transform: rotate(90deg); }
 
 .contact-details {
   overflow: hidden;
-  max-height: 0;
-  opacity: 0;
+  max-height: 0; opacity: 0;
   transition: max-height 0.3s ease, opacity 0.2s ease;
   padding-left: 22px;
 }
+.contact-row.open + .contact-details { max-height: 200px; opacity: 1; }
 
-.contact-row.open + .contact-details {
-  max-height: 200px;
-  opacity: 1;
-}
-
-.contact-detail {
-  font-size: 0.85em;
-  color: #7a9a6a;
-  padding: 3px 0;
-}
-
-.contact-detail span {
-  color: #d4e0c8;
-}
-
-.contacts-empty {
-  font-size: 0.85em;
-  color: #4a6a3a;
-  text-align: center;
-  padding: 8px 0;
-}
+.contact-detail { font-size: 0.85em; color: #7a9a6a; padding: 3px 0; }
+.contact-detail span { color: #d4e0c8; }
 </style>
 </head>
 <body>
 
-<!-- Animated vine background -->
 <svg class="vine-bg" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice">
   <path d="M-10 800 Q30 650 20 500 Q10 400 50 300 Q80 200 40 100 Q20 50 60 -10"/>
   <path d="M410 800 Q370 680 380 550 Q390 420 350 320 Q320 240 360 140 Q380 60 340 -10"/>
   <path d="M200 810 Q160 700 180 580 Q200 460 160 360 Q130 280 170 180 Q200 100 160 -10"/>
   <path d="M50 810 Q100 720 80 620 Q60 530 110 430 Q140 350 100 250 Q70 170 120 60"/>
-  <!-- Growths at vine intersections -->
   <circle cx="20" cy="500" r="5" style="animation-delay:4s"/>
   <circle cx="50" cy="300" r="4" style="animation-delay:5s"/>
   <circle cx="380" cy="550" r="5" style="animation-delay:5.5s"/>
@@ -454,14 +329,11 @@ textarea:focus {
 
 <div class="card">
   <h2>Badge Settings</h2>
-
   <label>Favorite Color</label>
   <input type="color" id="color" value="#8000ff">
-
   <label for="brightness">Badge Brightness</label>
   <input type="range" id="brightness" min="0" max="255" value="255">
   <div class="bright-val" id="bright-label">255</div>
-
   <button class="btn" onclick="save()">Save</button>
   <div class="status" id="status"></div>
 </div>
@@ -469,33 +341,26 @@ textarea:focus {
 <div class="card">
   <h2>Profile Sharing</h2>
   <p class="card-hint">When enabled, your profile is shared with nearby badges when you tap. Do not include sensitive information; shared data is not encrypted.</p>
-
   <div class="toggle-row">
     <label class="toggle-label" for="share">Share my profile</label>
     <div class="toggle" id="share-toggle" onclick="toggleShare()">
       <div class="toggle-knob"></div>
     </div>
   </div>
-
   <div id="profile-fields">
     <label for="name">Name</label>
     <input type="text" id="name" maxlength="20" placeholder="How you'd like to be known">
-
     <label for="pronouns">Pronouns</label>
     <input type="text" id="pronouns" maxlength="10" placeholder="e.g. they/them">
-
     <label for="affiliation">Affiliation</label>
     <input type="text" id="affiliation" maxlength="30" placeholder="Organization or team">
-
     <label for="contact">How to reach me</label>
     <textarea id="contact" maxlength="60" rows="2" placeholder="Fedi, Matrix, GitHub, email..."></textarea>
   </div>
-
   <button class="btn" onclick="saveProfile()">Save Sharing Settings</button>
   <div class="status" id="profile-status"></div>
 </div>
 
-<!-- Not sure how many levels we'll have for each category, so it's a percentage of 255 for the moment. -->
 <div class="card">
   <h2>Social Progress</h2>
   <label>Social <span class="val" id="v-social">0</span></label>
@@ -517,7 +382,6 @@ textarea:focus {
 </div>
 
 <script>
-
 const $ = id => document.getElementById(id);
 
 function hexToRgb(hex) {
@@ -529,18 +393,21 @@ function rgbToHex(r, g, b) {
   return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
 }
 
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
 
-// Floating spores
+// --- Floating spores (canvas) ---
+
 (function initSpores() {
   const canvas = document.createElement('canvas');
   canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0';
   document.body.prepend(canvas);
   const ctx = canvas.getContext('2d');
 
-  // Pre-render a glow sprite once (a radial gradient) on a tiny offscreen canvas.
-  // Rendering gradients is expensive (on iOS at least), so this lets us just
-  // stamp the sprite for each spore each frame.
-  // Each frame we just drawImage() this sprite per spore instead of creating gradients.
+  // Pre-render glow sprite once to avoid per-frame gradient creation
   const spriteSize = 16;
   const sprite = document.createElement('canvas');
   sprite.width = sprite.height = spriteSize * 2;
@@ -583,9 +450,11 @@ function rgbToHex(r, g, b) {
   resize();
   window.addEventListener('resize', resize);
 
+  // Frame-rate-independent animation loop.
+  // dtSec = elapsed seconds since last frame, used to scale movement
+  // so spores travel at the same speed regardless of display refresh rate.
   let lastTime = performance.now();
   (function draw(now) {
-    // elapsed seconds since last frame, used to scale movement
     const dtSec = (now - lastTime) / 1000;
     lastTime = now;
     // Use CSS pixel dimensions (not canvas.width/height which are device pixels)
@@ -594,7 +463,7 @@ function rgbToHex(r, g, b) {
     const h = rect.height;
     ctx.clearRect(0, 0, w, h);
     for (const s of spores) {
-      // Move upward and sway horizontally with a sine wave
+      // Move upward; sway horizontally with a sine wave
       s.y -= s.speed * dtSec;
       s.phase += s.swayFreq * dtSec;
       s.x = s.baseX + Math.sin(s.phase) * s.swayAmp;
@@ -602,7 +471,7 @@ function rgbToHex(r, g, b) {
       // Wrap around when leaving the top; respawn below visible area
       if (s.y < -0.05) { s.y = 1.15; s.baseX = Math.random(); }
 
-      // Don't draw while fully offscreen
+      // Don't draw while offscreen
       if (s.y > 1.0 || s.y < 0.0) continue;
 
       // Fade in over bottom 10%, fade out over top 10%, steady in between
@@ -620,6 +489,8 @@ function rgbToHex(r, g, b) {
   })(performance.now());
 })();
 
+// --- UI interactions ---
+
 let shareEnabled = false;
 
 function toggleShare() {
@@ -632,6 +503,8 @@ $('brightness').addEventListener('input', () => {
   $('bright-label').textContent = $('brightness').value;
 });
 
+// --- Contacts rendering ---
+
 function renderContacts(contacts) {
   const list = $('contacts-list');
   if (!contacts.length) {
@@ -639,7 +512,7 @@ function renderContacts(contacts) {
     return;
   }
   list.innerHTML = '';
-  contacts.forEach((c, i) => {
+  contacts.forEach(c => {
     const row = document.createElement('div');
     row.className = 'contact-row';
     row.innerHTML =
@@ -648,9 +521,7 @@ function renderContacts(contacts) {
         (c.pronouns ? ` <span style="color:#5a7a4a;font-size:0.85em">(${esc(c.pronouns)})</span>` : '') +
       `</div>` +
       `<div class="contact-chevron">&#9656;</div>`;
-    row.onclick = () => {
-      row.classList.toggle('open');
-    };
+    row.onclick = () => row.classList.toggle('open');
     list.appendChild(row);
 
     const details = document.createElement('div');
@@ -663,11 +534,7 @@ function renderContacts(contacts) {
   });
 }
 
-function esc(s) {
-  const d = document.createElement('div');
-  d.textContent = s;
-  return d.innerHTML;
-}
+// --- API ---
 
 async function load() {
   try {
@@ -682,8 +549,6 @@ async function load() {
     $('brightness').value = cfg.brightness;
     $('bright-label').textContent = cfg.brightness;
 
-
-    // Profile fields
     $('name').value = cfg.name || '';
     $('pronouns').value = cfg.pronouns || '';
     $('affiliation').value = cfg.affiliation || '';
@@ -754,9 +619,7 @@ async function saveProfile() {
   }
 }
 
-// Load initial config on page load
 load();
-
 </script>
 </body>
 </html>
