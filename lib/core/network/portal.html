@@ -304,6 +304,90 @@ input[type=color] {
   color: #6a8a5a;
   text-align: right;
 }
+
+.card-hint {
+  font-size: 0.82em;
+  color: #5a7a4a;
+  line-height: 1.4;
+  margin: 4px 0 12px;
+}
+
+textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #1e3a1e;
+  border-radius: 10px;
+  background: #0a140a;
+  color: #d4e0c8;
+  font-family: inherit;
+  font-size: 1em;
+  resize: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: #4a8a3a;
+  box-shadow: 0 0 12px rgba(74, 138, 58, 0.2);
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8px 0 4px;
+}
+
+.toggle-label {
+  font-size: 0.95em;
+  color: #8aa87a;
+  margin: 0;
+}
+
+.toggle {
+  width: 48px;
+  height: 26px;
+  border-radius: 13px;
+  background: #1a2a1a;
+  border: 1px solid #2a3a2a;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.3s, border-color 0.3s;
+  flex-shrink: 0;
+}
+
+.toggle.active {
+  background: #2a5a1a;
+  border-color: #4a8a3a;
+}
+
+.toggle-knob {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #4a6a3a;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s, background 0.3s;
+}
+
+.toggle.active .toggle-knob {
+  transform: translateX(22px);
+  background: #7ab648;
+}
+
+#profile-fields {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+}
+
+#profile-fields.visible {
+  max-height: 400px;
+  opacity: 1;
+}
 </style>
 </head>
 <body>
@@ -327,11 +411,8 @@ input[type=color] {
 
 <h1>NSEC</h1>
 
-<!-- I'd like to make it clear which info will be shared via NFC -->
 <div class="card">
-  <h2>Preferences</h2>
-  <label for="name">Your Name</label>
-  <input type="text" id="name" maxlength="20" placeholder="Participant">
+  <h2>Badge Settings</h2>
 
   <label>Favorite Color</label>
   <input type="color" id="color" value="#8000ff">
@@ -342,6 +423,35 @@ input[type=color] {
 
   <button class="btn" onclick="save()">Save</button>
   <div class="status" id="status"></div>
+</div>
+
+<div class="card">
+  <h2>NFC Profile</h2>
+  <p class="card-hint">When enabled, this info is shared with other badges during NFC pairing. Only people you pair with will see it.</p>
+
+  <div class="toggle-row">
+    <label class="toggle-label" for="share">Share my profile</label>
+    <div class="toggle" id="share-toggle" onclick="toggleShare()">
+      <div class="toggle-knob"></div>
+    </div>
+  </div>
+
+  <div id="profile-fields">
+    <label for="name">Name</label>
+    <input type="text" id="name" maxlength="20" placeholder="How you'd like to be known">
+
+    <label for="pronouns">Pronouns</label>
+    <input type="text" id="pronouns" maxlength="10" placeholder="e.g. they/them">
+
+    <label for="affiliation">Affiliation</label>
+    <input type="text" id="affiliation" maxlength="30" placeholder="Organization or team">
+
+    <label for="contact">How to reach me</label>
+    <textarea id="contact" maxlength="60" rows="2" placeholder="Fedi, Matrix, GitHub, email..."></textarea>
+  </div>
+
+  <button class="btn" onclick="saveProfile()">Save Profile</button>
+  <div class="status" id="profile-status"></div>
 </div>
 
 <!-- Not sure how many levels we'll have for each category, so it's a percentage of 255 for the moment. -->
@@ -393,6 +503,14 @@ function spawnSpores() {
 
 spawnSpores();
 
+let shareEnabled = false;
+
+function toggleShare() {
+  shareEnabled = !shareEnabled;
+  $('share-toggle').classList.toggle('active', shareEnabled);
+  $('profile-fields').classList.toggle('visible', shareEnabled);
+}
+
 $('color').addEventListener('input', updatePreview);
 $('brightness').addEventListener('input', () => {
   $('bright-label').textContent = $('brightness').value;
@@ -406,11 +524,21 @@ async function load() {
     const cfg = await cfgRes.json();
     const soc = await socRes.json();
 
-    $('name').value = cfg.name || '';
     $('color').value = rgbToHex(cfg.r, cfg.g, cfg.b);
     $('brightness').value = cfg.brightness;
     $('bright-label').textContent = cfg.brightness;
     updatePreview();
+
+    // Profile fields
+    $('name').value = cfg.name || '';
+    $('pronouns').value = cfg.pronouns || '';
+    $('affiliation').value = cfg.affiliation || '';
+    $('contact').value = cfg.contact || '';
+    if (cfg.share) {
+      shareEnabled = true;
+      $('share-toggle').classList.add('active');
+      $('profile-fields').classList.add('visible');
+    }
 
     for (const key of ['social', 'sponsor', 'light', 'attraction']) {
       const pct = Math.round(soc[key] / 255 * 100);
@@ -425,7 +553,6 @@ async function load() {
 async function save() {
   const rgb = hexToRgb($('color').value);
   const body = {
-    name: $('name').value,
     r: rgb.r, g: rgb.g, b: rgb.b,
     brightness: parseInt($('brightness').value)
   };
@@ -443,6 +570,31 @@ async function save() {
     }
   } catch (e) {
     $('status').textContent = 'Connection error';
+  }
+}
+
+async function saveProfile() {
+  const body = {
+    share: shareEnabled,
+    name: $('name').value,
+    pronouns: $('pronouns').value,
+    affiliation: $('affiliation').value,
+    contact: $('contact').value
+  };
+  try {
+    const res = await fetch('/api/config', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    if (res.ok) {
+      $('profile-status').textContent = 'Saved!';
+      setTimeout(() => $('profile-status').textContent = '', 2000);
+    } else {
+      $('profile-status').textContent = 'Save failed';
+    }
+  } catch (e) {
+    $('profile-status').textContent = 'Connection error';
   }
 }
 
