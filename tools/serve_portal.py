@@ -12,9 +12,9 @@ from pathlib import Path
 PORTAL_HTML = Path(__file__).resolve().parent.parent / "lib" / "core" / "network" / "portal.html"
 
 CONFIG = {
-    "name": "JG", "r": 128, "g": 0, "b": 255, "brightness": 200,
-    "share": True, "pronouns": "he/him", "affiliation": "NSEC",
-    "contact": "@jg@infosec.exchange",
+    "name": "", "r": 128, "g": 0, "b": 255, "brightness": 200,
+    "share": False, "pronouns": "", "affiliation": "",
+    "contact": "",
 }
 SOCIAL = {"social": 42, "sponsor": 180, "light": 5, "attraction": 255}
 

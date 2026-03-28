@@ -2,7 +2,8 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a0f0a">
 <style>
 * {
   box-sizing: border-box;
@@ -10,29 +11,40 @@
   padding: 0;
 }
 
+html, body {
+  margin: 0;
+  width: 100%;
+  min-height: 100%;
+  background: #0a0f0a;
+}
+
 body {
   font-family: 'Segoe UI', system-ui, sans-serif;
-  background: #0a0f0a;
   color: #d4e0c8;
-  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+.main {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16px;
-  overflow-x: hidden;
-  overflow-y: auto;
-  position: relative;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
 }
 
 /* Animated vine SVG background */
 .vine-bg {
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
   z-index: 0;
+}
+
+.vine-bg {
   opacity: 0.3;
 }
 
@@ -64,31 +76,6 @@ body {
   to { opacity: 0.5; transform: scale(1); }
 }
 
-/* Floating spores */
-.spore {
-  position: fixed;
-  width: 4px;
-  height: 4px;
-  background: radial-gradient(circle, #7ab648, transparent);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 0;
-  animation: float-up linear infinite;
-  opacity: 0;
-}
-
-@keyframes float-up {
-  0% { opacity: 0; transform: translateY(0) translateX(0); }
-  10% { opacity: 0.6; }
-  90% { opacity: 0.3; }
-  100% { opacity: 0; transform: translateY(-100vh) translateX(40px); }
-}
-
-/* Content sits above background */
-h1, .card, .status {
-  position: relative;
-  z-index: 1;
-}
 
 h1 {
   font-size: 1.5em;
@@ -395,6 +382,7 @@ textarea:focus {
   <circle cx="110" cy="430" r="4" style="animation-delay:8s"/>
 </svg>
 
+<div class="main">
 <h1>NSEC</h1>
 
 <div class="card">
@@ -454,6 +442,7 @@ textarea:focus {
 </div>
 
 <!-- TODO: List sync'ed contacts with NFC? -->
+</div>
 
 <script>
 
@@ -469,22 +458,95 @@ function rgbToHex(r, g, b) {
 }
 
 
-// Spawn floating spores
-function spawnSpores() {
-  const body = document.body;
-  for (let i = 0; i < 1000; i++) {
-    const spore = document.createElement('div');
-    spore.className = 'spore';
-    spore.style.left = Math.random() * 100 + 'vw';
-    spore.style.bottom = '-10px';
-    spore.style.animationDuration = (8 + Math.random() * 12) + 's';
-    spore.style.animationDelay = (Math.random() * 10) + 's';
-    spore.style.width = spore.style.height = (2 + Math.random() * 4) + 'px';
-    body.appendChild(spore);
-  }
-}
+// Floating spores
+(function initSpores() {
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0';
+  document.body.prepend(canvas);
+  const ctx = canvas.getContext('2d');
 
-spawnSpores();
+  // Pre-render a glow sprite once (a radial gradient) on a tiny offscreen canvas.
+  // Rendering gradients is expensive (on iOS at least), so this lets us just
+  // stamp the sprite for each spore each frame.
+  // Each frame we just drawImage() this sprite per spore instead of creating gradients.
+  const spriteSize = 16;
+  const sprite = document.createElement('canvas');
+  sprite.width = sprite.height = spriteSize * 2;
+  const sctx = sprite.getContext('2d');
+  const grad = sctx.createRadialGradient(spriteSize, spriteSize, 0, spriteSize, spriteSize, spriteSize);
+  grad.addColorStop(0, 'rgba(122, 182, 72, 1)');
+  grad.addColorStop(1, 'rgba(122, 182, 72, 0)');
+  sctx.fillStyle = grad;
+  sctx.fillRect(0, 0, spriteSize * 2, spriteSize * 2);
+
+  // ~1 spore per 3 CSS pixels of viewport width, clamped to [50, 600]
+  const count = Math.max(50, Math.min(600, Math.round(window.innerWidth / 3)));
+
+  // x, y are in [0..1] screen fractions (0 = top/left, 1 = bottom/right)
+  // speed is in screen-fractions per second
+  // swayAmp/swayFreq drive a sine-wave horizontal sway (avoids sub-pixel snapping)
+  const spores = Array.from({length: count}, () => ({
+    x: Math.random(),
+    y: Math.random(),
+    speed: 0.018 + Math.random() * 0.048,
+    size: 1 + Math.random() * 2,
+    baseX: Math.random(),
+    swayAmp: 0.01 + Math.random() * 0.03,
+    swayFreq: 0.3 + Math.random() * 0.7,
+    phase: Math.random() * Math.PI * 2
+  }));
+
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = Math.round(rect.width * dpr);
+    const h = Math.round(rect.height * dpr);
+    // Only resize if width changed; ignore height-only changes from Safari's
+    // dynamic toolbar to avoid clearing the canvas buffer mid-animation.
+    if (canvas.width === w) return;
+    canvas.width = w;
+    canvas.height = h;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  let lastTime = performance.now();
+  (function draw(now) {
+    // elapsed seconds since last frame, used to scale movement
+    const dtSec = (now - lastTime) / 1000;
+    lastTime = now;
+    // Use CSS pixel dimensions (not canvas.width/height which are device pixels)
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+    ctx.clearRect(0, 0, w, h);
+    for (const s of spores) {
+      // Move upward and sway horizontally with a sine wave
+      s.y -= s.speed * dtSec;
+      s.phase += s.swayFreq * dtSec;
+      s.x = s.baseX + Math.sin(s.phase) * s.swayAmp;
+
+      // Wrap around when leaving the top; respawn below visible area
+      if (s.y < -0.05) { s.y = 1.15; s.baseX = Math.random(); }
+
+      // Don't draw while fully offscreen
+      if (s.y > 1.0 || s.y < 0.0) continue;
+
+      // Fade in over bottom 10%, fade out over top 10%, steady in between
+      let opacity = 0.6;
+      if (s.y > 0.9) opacity = 0.6 * (1.0 - s.y) / 0.1;
+      else if (s.y < 0.1) opacity = 0.6 * s.y / 0.1;
+
+      // Stamp the pre-rendered glow sprite, scaled by spore size
+      const r = s.size * 2;
+      ctx.globalAlpha = opacity;
+      ctx.drawImage(sprite, s.x * w - r, s.y * h - r, r * 2, r * 2);
+    }
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(draw);
+  })(performance.now());
+})();
 
 let shareEnabled = false;
 
