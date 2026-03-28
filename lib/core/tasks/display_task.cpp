@@ -12,7 +12,6 @@
 namespace {
 
 // Timeout durations in milliseconds for each command type.
-constexpr TickType_t TIMEOUT_MODE_CHANGE_MS = 5000;
 constexpr TickType_t TIMEOUT_NFC_SCAN_MS = 15000;
 constexpr TickType_t TIMEOUT_PAIR_RESULT_MS = 5000;
 constexpr TickType_t TIMEOUT_SOCIAL_PROGRESS_MS = 10000;
@@ -52,7 +51,7 @@ void DisplayTask::run() {
         break;
       case DisplayCommand::Type::ModeChange:
         showModeChange(cmd);
-        timeout = TIMEOUT_MODE_CHANGE_MS;
+        // No timer — mode screen stays until replaced by a scan result, pair result, or logo.
         break;
       case DisplayCommand::Type::NfcScan:
         showNfcScan(cmd);

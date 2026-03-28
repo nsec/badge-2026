@@ -5,6 +5,7 @@
 #include "rtos/task.hpp"
 #include "rtos/queue.hpp"
 #include "tasks/controller.h"
+#include "tasks/display.h"
 #include "tasks/led.h"
 #include "tasks/cli_queue.h"
 #include "tasks/nfc.h"
@@ -14,9 +15,9 @@ namespace core {
 class ControllerTask : public Task {
 public:
   ControllerTask(Queue<ControllerEvent> &inQueue, Queue<LedCommand> &ledQueue, Queue<CliResponse> &cliQueue,
-                 Queue<NfcCommand> &nfcQueue)
+                 Queue<NfcCommand> &nfcQueue, Queue<DisplayCommand> &displayQueue)
       : Task("controller", badge::config::tasks::priority_controller), _inQueue(inQueue), _ledQueue(ledQueue),
-        _cliQueue(cliQueue), _nfcQueue(nfcQueue) {}
+        _cliQueue(cliQueue), _nfcQueue(nfcQueue), _displayQueue(displayQueue) {}
 
 protected:
   void run() override;
@@ -42,6 +43,7 @@ private:
   Queue<LedCommand> &_ledQueue;
   Queue<CliResponse> &_cliQueue;
   Queue<NfcCommand> &_nfcQueue;
+  Queue<DisplayCommand> &_displayQueue;
 
   // Social display state
   uint8_t _socialIndex = 0;    // current category index (0-3)
@@ -51,6 +53,9 @@ private:
 
   // Brightness state (1-10, default 5)
   uint8_t _brightnessLevel = 5;
+
+  // NFC mode tracking for toggle behavior
+  NfcMode _nfcMode = NfcMode::Off;
 };
 
 }  // namespace core

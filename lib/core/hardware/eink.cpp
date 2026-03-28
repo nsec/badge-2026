@@ -1,7 +1,6 @@
 #include "hardware/eink.h"
 #include "hardware/board_pins.h"
 #include "hardware/nfc.h"
-#include "hardware/nsec_logo.h"
 
 #include <Arduino.h>
 
@@ -13,35 +12,35 @@ core::hw::EinkDisplay g_display(GxEPD2_154_D67(badge::pins::EINK_CS, badge::pins
 bool g_initialized = false;
 bool g_available = false;
 
-/// Detect whether the SSD1681 display controller is present by checking the BUSY pin.
-/// After hardware reset (performed by g_display.init()), the SSD1681 drives BUSY HIGH
-/// briefly while it initializes. With INPUT_PULLDOWN and no display attached, the pin
-/// stays LOW.
+/// Detect whether the SSD1681 display controller is present.
+/// After g_display.init() the controller is idle (BUSY=LOW), indistinguishable from
+/// "no display" via pulldown. So we send a soft-reset (0x12) via SPI and check whether
+/// BUSY goes HIGH in response — only a real SSD1681 drives that pin.
 bool detectDisplay() {
   pinMode(badge::pins::EINK_BUSY, INPUT_PULLDOWN);
 
-  // After init(), the SSD1681 should have completed its power-on sequence.
-  // If the controller is present, BUSY will be LOW (idle) but will have been
-  // driven HIGH during reset. We can verify presence by triggering a soft reset
-  // command and watching for BUSY to go HIGH.
+  // Send SSD1681 soft-reset command (0x12) via SPI
+  SPISettings spiSettings(4000000, MSBFIRST, SPI_MODE0);
+  core::hw::nfcSPI().beginTransaction(spiSettings);
+  digitalWrite(badge::pins::EINK_CS, LOW);
+  digitalWrite(badge::pins::EINK_DC, LOW);  // command mode
+  core::hw::nfcSPI().transfer(0x12);        // SW_RESET
+  digitalWrite(badge::pins::EINK_CS, HIGH);
+  core::hw::nfcSPI().endTransaction();
 
-  // Quick check: if BUSY is already HIGH right after init, the display is present
-  // (it may still be finishing initialization).
-  if (digitalRead(badge::pins::EINK_BUSY) == HIGH) {
-    return true;
-  }
-
-  // Wait briefly to see if BUSY goes HIGH during post-init activity.
-  // The SSD1681 typically asserts BUSY for ~40ms after reset.
+  // If display is present, BUSY goes HIGH within ~1ms after soft reset
   unsigned long start = millis();
   while (millis() - start < 100) {
     if (digitalRead(badge::pins::EINK_BUSY) == HIGH) {
+      // Wait for reset to complete (BUSY returns LOW)
+      while (digitalRead(badge::pins::EINK_BUSY) == HIGH && millis() - start < 500) {
+        delay(1);
+      }
       return true;
     }
     delay(1);
   }
 
-  // BUSY never went HIGH with pulldown enabled — no display connected.
   return false;
 }
 
@@ -67,15 +66,6 @@ bool einkInit() {
     Serial.println("E-Ink: no display detected (BUSY pin inactive) — display features disabled");
     return false;
   }
-
-  // Draw NorthSec logo on boot
-  g_display.setRotation(1);
-  g_display.setFullWindow();
-  g_display.firstPage();
-  do {
-    g_display.fillScreen(GxEPD_WHITE);
-    g_display.drawInvertedBitmap(0, 0, badge::LOGO_BITMAP, badge::LOGO_WIDTH, badge::LOGO_HEIGHT, GxEPD_BLACK);
-  } while (g_display.nextPage());
 
   Serial.println("E-Ink: GDEH0154D67 200x200 initialized (shared SPI)");
   return true;
