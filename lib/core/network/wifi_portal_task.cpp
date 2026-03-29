@@ -11,6 +11,7 @@
   #include "hardware/hwid.h"
   #include "network/web_page.h"
   #include "storage/nvs_config.h"
+  #include "storage/nvs_contacts.h"
 
 namespace {
 
@@ -117,6 +118,32 @@ void PortalTask::startPortal() {
     };
 
     request->send(200, "application/json", progress.dump().c_str());
+  });
+
+  // GET contacts
+  webServer.on("/api/contacts", HTTP_GET, [](AsyncWebServerRequest *request) {
+    json contacts = json::array();
+    uint16_t count = storage::contactCount();
+    for (uint16_t i = 0; i < count; i++) {
+      storage::ContactProfile profile;
+
+      if (!storage::contactGet(i, profile)) {
+        continue;
+      }
+
+      // clang-format off
+      contacts.push_back({
+          {"name", profile.name},
+          {"pronouns", profile.pronouns},
+          {"affiliation", profile.affiliation},
+          {"contact", profile.contact},
+          {"r", profile.r},
+          {"g", profile.g},
+          {"b", profile.b},
+      });
+      // clang-format on
+    }
+    request->send(200, "application/json", contacts.dump().c_str());
   });
 
   // POST config — parse body, write NVS, notify controller
