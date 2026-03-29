@@ -2,22 +2,21 @@
 
 #include <cstdint>
 
+#include "storage/nvs_contacts.h"
+
 namespace core {
 namespace storage {
 
-static constexpr uint8_t CONFIG_NAME_MAX_LEN = 64;
-
 struct UserConfig {
-  char name[CONFIG_NAME_MAX_LEN + 1] = {0};
-
-  struct {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-  } favoriteColor{0, 128, 0};  // default: green
-
+  ContactProfile profile;
   uint8_t brightness = 128;  // default: 50%
+  bool share = false;
 };
+
+// Default color applied when no color has been saved to NVS yet.
+inline constexpr uint8_t DEFAULT_COLOR_R = 0;
+inline constexpr uint8_t DEFAULT_COLOR_G = 128;
+inline constexpr uint8_t DEFAULT_COLOR_B = 0;
 
 /**
  * Initialize NVS namespace for user config.

@@ -287,13 +287,13 @@ void ControllerTask::handle(const ConfigChangedEvent &event) {
 
   LedCommand cmd{};
   cmd.type = LedCommandType::SolidColor;
-  cmd.r = cfg.favoriteColor.r;
-  cmd.g = cfg.favoriteColor.g;
-  cmd.b = cfg.favoriteColor.b;
+  cmd.r = cfg.profile.r;
+  cmd.g = cfg.profile.g;
+  cmd.b = cfg.profile.b;
   _ledQueue.send(cmd);
 
-  Serial.printf("[controller] Config updated: name=%s bright=%u color=(%u,%u,%u)\r\n", cfg.name, cfg.brightness,
-                cfg.favoriteColor.r, cfg.favoriteColor.g, cfg.favoriteColor.b);
+  Serial.printf("[controller] Config updated: name=%s bright=%u color=(%u,%u,%u)\r\n", cfg.profile.name, cfg.brightness,
+                cfg.profile.r, cfg.profile.g, cfg.profile.b);
 }
 
 }  // namespace core

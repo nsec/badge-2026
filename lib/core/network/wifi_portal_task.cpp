@@ -23,32 +23,35 @@ using json = nlohmann::json;
 core::storage::UserConfig parseConfigJson(const uint8_t *data, size_t len) {
   core::storage::UserConfig cfg = core::storage::configRead();
   auto reply = json::parse(data, data + len, nullptr, false);
-  if (reply.is_discarded()) {
+  if (reply.is_discarded())
     return cfg;
-  }
 
-  if (reply.contains("name") && reply["name"].is_string()) {
-    std::string name = reply["name"].get<std::string>();
-    if (name.size() > core::storage::CONFIG_NAME_MAX_LEN)
-      name.resize(core::storage::CONFIG_NAME_MAX_LEN);
-    strlcpy(cfg.name, name.c_str(), sizeof(cfg.name));
-  }
+  auto &p = cfg.profile;
 
-  if (reply.contains("r") && reply["r"].is_number_unsigned()) {
-    cfg.favoriteColor.r = reply["r"].get<uint8_t>();
-  }
+  auto copyStr = [&](const char *key, char *dst, size_t maxLen) {
+    if (reply.contains(key) && reply[key].is_string()) {
+      std::string val = reply[key].get<std::string>();
+      if (val.size() > maxLen)
+        val.resize(maxLen);
+      strlcpy(dst, val.c_str(), maxLen + 1);
+    }
+  };
 
-  if (reply.contains("g") && reply["g"].is_number_unsigned()) {
-    cfg.favoriteColor.g = reply["g"].get<uint8_t>();
-  }
+  copyStr("name", p.name, badge::config::profile::name_max_len);
+  copyStr("pronouns", p.pronouns, badge::config::profile::pronouns_max_len);
+  copyStr("affiliation", p.affiliation, badge::config::profile::affiliation_max_len);
+  copyStr("contact", p.contact, badge::config::profile::contact_max_len);
 
-  if (reply.contains("b") && reply["b"].is_number_unsigned()) {
-    cfg.favoriteColor.b = reply["b"].get<uint8_t>();
-  }
-
-  if (reply.contains("brightness") && reply["brightness"].is_number_unsigned()) {
+  if (reply.contains("r") && reply["r"].is_number_unsigned())
+    p.r = reply["r"].get<uint8_t>();
+  if (reply.contains("g") && reply["g"].is_number_unsigned())
+    p.g = reply["g"].get<uint8_t>();
+  if (reply.contains("b") && reply["b"].is_number_unsigned())
+    p.b = reply["b"].get<uint8_t>();
+  if (reply.contains("brightness") && reply["brightness"].is_number_unsigned())
     cfg.brightness = reply["brightness"].get<uint8_t>();
-  }
+  if (reply.contains("share") && reply["share"].is_boolean())
+    cfg.share = reply["share"].get<bool>();
 
   return cfg;
 }
@@ -95,13 +98,18 @@ void PortalTask::startPortal() {
   // GET config
   webServer.on("/api/config", HTTP_GET, [](AsyncWebServerRequest *request) {
     storage::UserConfig cfg = storage::configRead();
+    const auto &p = cfg.profile;
     // clang-format off
     json prefs = {
-        {"name", cfg.name},
-        {"r", cfg.favoriteColor.r},
-        {"g", cfg.favoriteColor.g},
-        {"b", cfg.favoriteColor.b},
+        {"name", p.name},
+        {"pronouns", p.pronouns},
+        {"affiliation", p.affiliation},
+        {"contact", p.contact},
+        {"r", p.r},
+        {"g", p.g},
+        {"b", p.b},
         {"brightness", cfg.brightness},
+        {"share", cfg.share},
     };
     // clang-format on
 
@@ -156,8 +164,8 @@ void PortalTask::startPortal() {
       [ctrlQueue](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
         storage::UserConfig cfg = parseConfigJson(data, len);
         storage::configWrite(cfg);
-        Serial.printf("[portal] Config saved: name=%s color=(%u,%u,%u) bright=%u\r\n", cfg.name, cfg.favoriteColor.r,
-                      cfg.favoriteColor.g, cfg.favoriteColor.b, cfg.brightness);
+        Serial.printf("[portal] Config saved: name=%s color=(%u,%u,%u) bright=%u share=%d\r\n", cfg.profile.name,
+                      cfg.profile.r, cfg.profile.g, cfg.profile.b, cfg.brightness, cfg.share);
 
         // Notify the controller
         ConfigChangedEvent evt;
