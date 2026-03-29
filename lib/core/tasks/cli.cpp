@@ -14,6 +14,9 @@
 #include "tasks/controller.h"
 #include "tasks/cli_queue.h"
 #include "storage/nvs_social.h"
+
+#include <nvs_flash.h>
+#include <nvs.h>
 #include "tasks/nfc.h"
 
 namespace {
@@ -128,29 +131,24 @@ std::string nextToken(const std::string &s, size_t &idx) {
 }
 
 void cmdHelp() {
-  g_io->println("Commands:");
-  g_io->println("  help                 - show this help");
-  g_io->println("  info                 - print current boot/partition info");
-  g_io->println("  hwid                 - print unique hardware ID");
-  g_io->println("  ledtest [N]          - run RGB LED test suite (N=test# or all)");
-  g_io->println("  buttontest           - interactive button test (press all 6)");
-  g_io->println("  nvstest <key> <val>  - set social NVS");
-  g_io->println("  pairtest [reset]     - show/reset paired partners");
-  g_io->println("  status               - show social NVS values");
-  g_io->println("  clear                - clear the screen");
-  g_io->println("  swapboot             - switch to other firmware and reboot");
-  g_io->println("  reboot               - reboot now");
+  g_io->print("Commands:\r\n"
+              "  help                 - show this help\r\n"
+              "  hwid                 - print unique hardware ID\r\n"
+              "  nvstest <key> <val>  - set social NVS\r\n"
+              "  pairtest [reset]     - show/reset paired partners\r\n");
+  g_io->flush();
+  g_io->print("  docktest [reset]     - show/reset seen dock stations\r\n"
+              "  status               - show social NVS values\r\n"
+              "  clear                - clear the screen\r\n"
+              "  swapboot             - switch to other firmware and reboot\r\n"
+              "  reboot               - reboot now\r\n");
+  g_io->flush();
 
   // Show registered module commands
   for (const auto &cmd : g_commands) {
-    g_io->print("  ");
-    g_io->print(cmd.name.c_str());
-    // Pad to align help text
-    for (size_t i = cmd.name.length(); i < 20; i++)
-      g_io->print(" ");
-    g_io->print(" - ");
-    g_io->println(cmd.help.c_str());
+    g_io->printf("  %-20s - %s\r\n", cmd.name.c_str(), cmd.help.c_str());
   }
+  g_io->flush();
 }
 
 void cmdInfo() {
@@ -217,7 +215,9 @@ void cmdLedTest(const std::string &arg) {
 }
 
 void cmdStatus() {
-  g_io->println("=== Social Status ===");
+  char buf[256];
+  int pos = 0;
+  pos += snprintf(buf + pos, sizeof(buf) - pos, "=== Social Status ===\r\n");
   const core::storage::SocialKey keys[] = {
       core::storage::SocialKey::Social,
       core::storage::SocialKey::Sponsor,
@@ -226,8 +226,9 @@ void cmdStatus() {
   };
   for (auto k : keys) {
     uint8_t val = core::storage::socialRead(k);
-    g_io->printf("  %-12s = %u\r\n", core::storage::socialKeyName(k), val);
+    pos += snprintf(buf + pos, sizeof(buf) - pos, "  %-12s = %u\r\n", core::storage::socialKeyName(k), val);
   }
+  g_io->write(reinterpret_cast<const uint8_t *>(buf), pos);
 }
 
 void cmdNvsTest(const std::string &args) {
@@ -328,6 +329,57 @@ void cmdReboot() {
   ESP.restart();
 }
 
+void cmdDockTest(const std::string &args) {
+  nvs_handle_t handle;
+  if (nvs_open("docks", NVS_READWRITE, &handle) != ESP_OK) {
+    g_io->println("Failed to open docks NVS");
+    return;
+  }
+
+  std::string arg = args;
+  toLower(arg);
+  trim(arg);
+
+  if (arg == "reset") {
+    nvs_set_u32(handle, "seen", 0);
+    nvs_commit(handle);
+    nvs_close(handle);
+    // Also reset sponsor value
+    core::storage::socialWrite(core::storage::SocialKey::Sponsor, 0);
+    g_io->println("Dock seen bitmask and sponsor value reset to 0");
+    return;
+  }
+
+  uint32_t mask = 0;
+  nvs_get_u32(handle, "seen", &mask);
+  nvs_close(handle);
+
+  // Count set bits
+  uint8_t count = 0;
+  uint32_t v = mask;
+  while (v) {
+    count += v & 1;
+    v >>= 1;
+  }
+
+  g_io->printf("Seen docks: %d/16\r\n", count);
+  g_io->printf("Bitmask: 0x%08X\r\n", mask);
+  g_io->print("Dock IDs: ");
+  bool first = true;
+  for (int i = 0; i < 32; i++) {
+    if (mask & (1u << i)) {
+      if (!first)
+        g_io->print(", ");
+      g_io->printf("%d", i + 1);
+      first = false;
+    }
+  }
+  if (first)
+    g_io->print("(none)");
+  g_io->println();
+  g_io->printf("Sponsor value: %d\r\n", core::storage::socialRead(core::storage::SocialKey::Sponsor));
+}
+
 void cmdBoot() {
   std::string current(core::ota::getRunningPartitionLabel().c_str());
   core::ota::BootTarget target;
@@ -365,22 +417,27 @@ void handleLine(const std::string &line) {
   // Built-in commands
   if (cmd == "help" || cmd == "?")
     return cmdHelp();
-  if (cmd == "info")
-    return cmdInfo();
+  // if (cmd == "info")
+  //   return cmdInfo();
   if (cmd == "hwid")
     return cmdHwid();
-  if (cmd == "ledtest") {
-    std::string arg = nextToken(line, i);
-    return cmdLedTest(arg);
-  }
-  if (cmd == "buttontest") {
-    core::hw::buttonTestInteractive(*g_io);
-    return;
-  }
+  // if (cmd == "ledtest") {
+  //   std::string arg = nextToken(line, i);
+  //   return cmdLedTest(arg);
+  // }
+  // if (cmd == "buttontest") {
+  //   core::hw::buttonTestInteractive(*g_io);
+  //  return;
+  // }
   if (cmd == "nvstest") {
     std::string arg = (i < line.length()) ? line.substr(i) : "";
     trim(arg);
     return cmdNvsTest(arg);
+  }
+  if (cmd == "docktest") {
+    std::string arg = (i < line.length()) ? line.substr(i) : "";
+    trim(arg);
+    return cmdDockTest(arg);
   }
   if (cmd == "pairtest") {
     std::string arg = (i < line.length()) ? line.substr(i) : "";
@@ -391,6 +448,8 @@ void handleLine(const std::string &line) {
     return cmdStatus();
   if (cmd == "clear") {
     g_io->print("\033[2J\033[H");
+    g_io->flush();
+    delay(50);  // give the terminal time to process the clear
     return;
   }
   if (cmd == "reboot")
@@ -422,7 +481,7 @@ namespace cli {
 
 void init(Stream &io) {
   g_io = &io;
-  g_line.reserve(128);
+  g_line.reserve(256);
   // Don't print prompt here - main.cpp still has boot messages to print.
   // Set flag so poll() prints it once everything is ready.
   g_promptNeeded = true;
@@ -476,6 +535,7 @@ void poll() {
         historyAdd(g_line);
         handleLine(g_line);
         g_line.clear();
+        g_io->flush();  // ensure all command output is sent before prompt
       }
       g_historyIdx = -1;  // reset history browsing
       prompt();
@@ -501,7 +561,7 @@ void poll() {
     }
 
     if (isPrintable((unsigned char)c)) {
-      if (g_line.length() < 127) {
+      if (g_line.length() < 255) {
         g_line += c;
         g_io->print(c);
       }

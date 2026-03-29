@@ -139,6 +139,7 @@ private:
   void drain() {
     if (_pos > 0) {
       _inner.write(_buf, _pos);
+      _inner.flush();  // block until HWCDC TX ring is fully sent to USB host
       _pos = 0;
       _lastDrainMs = millis();
     }

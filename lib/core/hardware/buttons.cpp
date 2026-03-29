@@ -22,7 +22,7 @@ void buttonsInit() {
   for (const auto &b : g_buttons) {
     pinMode(b.pin, INPUT_PULLUP);
   }
-  Serial.println("Buttons initialized (6 buttons, active-low with pull-up)");
+  // Serial.println("Buttons initialized (6 buttons, active-low with pull-up)");
 }
 
 bool buttonPressed(Button btn) {

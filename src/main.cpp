@@ -10,6 +10,7 @@
 #include <badge_config.h>
 #include <core.h>
 #include <hardware/line_buffered_stream.h>
+#include <hardware/serial_mutex.h>
 
 // Conditionally include conference or challenges based on build flags
 #ifdef HAS_CONFERENCE
@@ -48,7 +49,7 @@ void setup() {
   core::hw::statusLedInit();
   core::hw::rgbInit();
   core::hw::buttonsInit();
-  Serial.println("LEDs initialized");
+  // Serial.println("LEDs initialized");
 
   core::storage::socialNvsInit();
 
@@ -58,9 +59,17 @@ void setup() {
     Serial.println("NFC init failed - NFC features disabled");
   }
 
+  // Create dock event queue BEFORE dockInit so the I2C ISR has
+  // a valid queue handle from the moment callbacks are registered.
+  static core::Queue<core::DockEvent> dockEventQueue(badge::config::queues::dock_depth);
+  core::hw::dockSetEventQueue(dockEventQueue.handle());
+
+  core::hw::dockInit();
+
   core::ota::printBootInfo(Serial);
 
   static core::hw::LineBufferedStream bufferedSerial(Serial);
+  core::hw::setSafeSerial(&bufferedSerial);
   core::cli::init(bufferedSerial);
 
 #ifdef HAS_CONFERENCE
@@ -90,18 +99,20 @@ void setup() {
   static core::CliTask cliTask;
   static core::ButtonTask buttonTask(controllerQueue);
   static core::NfcTask nfcTask(nfcQueue, ledQueue);
+  static core::DockTask dockTask(dockEventQueue, ledQueue);
 
   core::heartbeatStart();
+
+  Serial.println("Setup complete!");
+  Serial.println("Type 'help' for commands.");
+  Serial.flush();
 
   ledTask.start();
   controllerTask.start();
   cliTask.start();
   buttonTask.start();
   nfcTask.start();
-
-  Serial.println("Setup complete!");
-  Serial.println("Type 'help' for commands.");
-  Serial.flush();
+  dockTask.start();
 }
 
 void loop() {

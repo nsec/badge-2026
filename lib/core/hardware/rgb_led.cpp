@@ -18,7 +18,7 @@ void rgbInit() {
   g_strip.setBrightness(128);  // safe default
   g_strip.clear();
   g_strip.show();
-  Serial.println("RGB LEDs initialized (18 LEDs on IO8)");
+  // Serial.println("RGB LEDs initialized (18 LEDs on IO8)");
 }
 
 void rgbSetPixel(uint8_t index, uint8_t r, uint8_t g, uint8_t b) {

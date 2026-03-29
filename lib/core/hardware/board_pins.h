@@ -26,5 +26,9 @@ static constexpr int NFC_CS = 12;
 static constexpr int NFC_INT = 21;
 static constexpr int NFC_LED = 40;
 
+// I2C bus (shared: dock PCI connector, SAO headers, light sensor)
+static constexpr int I2C_SDA = 5;
+static constexpr int I2C_SCL = 6;
+
 }  // namespace pins
 }  // namespace badge
