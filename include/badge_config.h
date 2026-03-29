@@ -49,4 +49,15 @@ inline constexpr UBaseType_t priority_light = 1;
 inline constexpr UBaseType_t priority_button = 5;
 }  // namespace tasks
 
+// NFC profile sharing field limits.
+// The full profile (name + pronouns + affiliation + contact + length prefixes + RGB)
+// must fit in a single NFC-DEP frame alongside the 38-byte auth payload (MAC + HMAC).
+// Max DEP payload is 254 bytes, leaving ~210 bytes for the profile.
+namespace profile {
+inline constexpr uint8_t name_max_len = 20;
+inline constexpr uint8_t pronouns_max_len = 10;
+inline constexpr uint8_t affiliation_max_len = 30;
+inline constexpr uint8_t contact_max_len = 60;
+}  // namespace profile
+
 }  // namespace badge::config
