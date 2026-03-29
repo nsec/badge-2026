@@ -273,6 +273,11 @@ void ControllerTask::handle(const SocialSetRequest &req) {
 void ControllerTask::handle(const PortalToggleRequest &) {
   _portalActive = !_portalActive;
   _portalQueue.send(_portalActive ? PortalCommand::Start : PortalCommand::Stop);
+
+  // Start/stop NFC WiFi emulation alongside the portal so phones can
+  // tap the badge to get a "Connect to Wi-Fi?" prompt.
+  _nfcQueue.send(NfcCommand{_portalActive ? NfcMode::WifiEmulator : NfcMode::Off}, Milliseconds(0));
+
   Serial.printf("[controller] Portal %s\r\n", _portalActive ? "starting" : "stopping");
 }
 

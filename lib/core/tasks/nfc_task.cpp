@@ -47,7 +47,7 @@ static const uint8_t NTAG213_VERSION[] = {
 };
 
 // NDEF message is built dynamically in initTagMemory() with the badge's MAC
-static uint8_t g_ndefBuf[64];
+static uint8_t g_ndefBuf[128];
 static uint8_t g_ndefLen = 0;
 
 // UID is derived from the badge's MAC: 0x04 + 6 MAC bytes = 7-byte NTAG UID
@@ -282,6 +282,94 @@ void initTagMemory() {
   // core::hw::safeSerial().printf("NFC emu: UID = %02X:%02X:%02X:%02X:%02X:%02X:%02X\r\n", g_tagUid[0], g_tagUid[1],
   // g_tagUid[2],
   //               g_tagUid[3], g_tagUid[4], g_tagUid[5], g_tagUid[6]);
+}
+
+// Wi-Fi Simple Configuration attribute helper: writes type(2) + length(2) + value
+static uint8_t *wscAttr(uint8_t *p, uint16_t attrType, const void *val, uint16_t valLen) {
+  p[0] = (attrType >> 8) & 0xFF;
+  p[1] = attrType & 0xFF;
+  p[2] = (valLen >> 8) & 0xFF;
+  p[3] = valLen & 0xFF;
+  if (valLen > 0)
+    memcpy(p + 4, val, valLen);
+  return p + 4 + valLen;
+}
+
+void initTagMemoryWifi() {
+  // Rebuild tag memory with a WiFi Simple Configuration NDEF record
+  // so phones prompt "Connect to Wi-Fi network?" on tap.
+  uint8_t mac[core::hw::MAC_LEN];
+  core::hw::getHwidMac(mac);
+
+  char ssid[32];
+  snprintf(ssid, sizeof(ssid), "NSEC-%02X%02X", mac[4], mac[5]);
+  uint8_t ssidLen = static_cast<uint8_t>(strlen(ssid));
+
+  // Build the WSC Credential inner attributes
+  uint8_t credInner[64];
+  uint8_t *p = credInner;
+
+  // Network Index
+  uint8_t netIdx = 0x01;
+  p = wscAttr(p, 0x1026, &netIdx, 1);
+
+  // SSID
+  p = wscAttr(p, 0x1045, ssid, ssidLen);
+
+  // Authentication Type: Open (0x0001)
+  uint8_t authType[2] = {0x00, 0x01};
+  p = wscAttr(p, 0x1003, authType, 2);
+
+  // Encryption Type: None (0x0001)
+  uint8_t encType[2] = {0x00, 0x01};
+  p = wscAttr(p, 0x100F, encType, 2);
+
+  // Network Key: empty (open network)
+  p = wscAttr(p, 0x1027, nullptr, 0);
+
+  // MAC Address
+  p = wscAttr(p, 0x1020, mac, core::hw::MAC_LEN);
+
+  uint16_t credInnerLen = static_cast<uint16_t>(p - credInner);
+
+  // Build full WSC payload: Credential attribute wrapping the inner attrs
+  uint8_t wscPayload[72];
+  uint8_t *wp = wscPayload;
+  wp[0] = 0x10;
+  wp[1] = 0x0E;  // Credential type
+  wp[2] = (credInnerLen >> 8) & 0xFF;
+  wp[3] = credInnerLen & 0xFF;
+  memcpy(wp + 4, credInner, credInnerLen);
+  uint16_t wscLen = 4 + credInnerLen;
+
+  // Build NDEF record: TNF=0x02 (media-type), type="application/vnd.wfa.wsc"
+  static const char wscType[] = "application/vnd.wfa.wsc";
+  uint8_t typeLen = sizeof(wscType) - 1;  // 23
+
+  uint8_t ndefRecord[100];
+  uint8_t pos = 0;
+  ndefRecord[pos++] = 0xD2;                    // MB|ME|SR, TNF=0x02 (media-type)
+  ndefRecord[pos++] = typeLen;                 // type length
+  ndefRecord[pos++] = (uint8_t)(wscLen);       // payload length (SR)
+  memcpy(&ndefRecord[pos], wscType, typeLen);  // type
+  pos += typeLen;
+  memcpy(&ndefRecord[pos], wscPayload, wscLen);  // payload
+  pos += wscLen;
+
+  // Build TLV: 0x03 <len> <record> 0xFE and write to tag memory
+  g_ndefLen = 0;
+  g_ndefBuf[g_ndefLen++] = 0x03;
+  g_ndefBuf[g_ndefLen++] = pos;
+  memcpy(&g_ndefBuf[g_ndefLen], ndefRecord, pos);
+  g_ndefLen += pos;
+  g_ndefBuf[g_ndefLen++] = 0xFE;
+
+  // Clear user data area and write new NDEF
+  memset(&tagMemory[NTAG213_USER_START * NTAG213_PAGE_SIZE], 0x00,
+         (NTAG213_PAGES - NTAG213_USER_START) * NTAG213_PAGE_SIZE);
+  memcpy(&tagMemory[NTAG213_USER_START * NTAG213_PAGE_SIZE], g_ndefBuf, g_ndefLen);
+
+  Serial.printf("NFC emu: WiFi NDEF for SSID \"%s\" (%u bytes)\r\n", ssid, g_ndefLen);
 }
 
 uint16_t handleNtagCommand(const uint8_t *cmd, uint16_t cmdLen, uint8_t *resp) {
@@ -886,6 +974,11 @@ void NfcTask::run() {
     } else if (cmd.mode == NfcMode::Emulator) {
       core::hw::safeSerial().println("NFC: === EMULATOR ===");
       runEmulator();
+    } else if (cmd.mode == NfcMode::WifiEmulator) {
+      Serial.println("NFC: === WIFI EMULATOR ===");
+      initTagMemoryWifi();
+      runEmulator();
+      initTagMemory();  // restore normal NDEF after WiFi emulation ends
     } else if (cmd.mode == NfcMode::Pair) {
       core::hw::safeSerial().println("NFC: === PAIR ===");
       runPair();
@@ -1047,7 +1140,7 @@ void NfcTask::runEmulator() {
       hw.rfalListenStop();
       digitalWrite(badge::pins::NFC_LED, LOW);
       _ledQueue.send(LedCommand(LedCommandType::Off), Milliseconds(0));
-      if (cmd.mode != NfcMode::Off && cmd.mode != NfcMode::Emulator)
+      if (cmd.mode != NfcMode::Off && cmd.mode != NfcMode::Emulator && cmd.mode != NfcMode::WifiEmulator)
         _nfcQueue.send(cmd, Milliseconds(0));
       core::hw::safeSerial().println("NFC emu: stopped");
       core::hw::safeSerial().print("> ");
