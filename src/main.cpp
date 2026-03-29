@@ -59,6 +59,11 @@ void setup() {
     Serial.println("NFC init failed - NFC features disabled");
   }
 
+  // Create dock event queue BEFORE dockInit so the I2C ISR has
+  // a valid queue handle from the moment callbacks are registered.
+  static core::Queue<core::DockEvent> dockEventQueue(badge::config::queues::dock_depth);
+  core::hw::dockSetEventQueue(dockEventQueue.handle());
+
   core::hw::dockInit();
 
   core::ota::printBootInfo(Serial);
@@ -94,7 +99,7 @@ void setup() {
   static core::CliTask cliTask;
   static core::ButtonTask buttonTask(controllerQueue);
   static core::NfcTask nfcTask(nfcQueue, ledQueue);
-  static core::DockTask dockTask(ledQueue);
+  static core::DockTask dockTask(dockEventQueue, ledQueue);
 
   core::heartbeatStart();
 

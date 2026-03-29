@@ -27,6 +27,7 @@ inline constexpr UBaseType_t controller_depth = 16;
 inline constexpr UBaseType_t led_depth = 8;
 inline constexpr UBaseType_t cli_depth = 4;
 inline constexpr UBaseType_t nfc_depth = 4;
+inline constexpr UBaseType_t dock_depth = 8;
 }  // namespace queues
 
 namespace tasks {

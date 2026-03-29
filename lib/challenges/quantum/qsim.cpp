@@ -202,9 +202,10 @@ uint32_t sample_once(const StateVec &sv, uint32_t &seed) {
 static constexpr float PI_F = 3.14159265358979323846f;
 
 float wrap_angle(float theta) {
-  while (theta > PI_F)
+  theta = fmodf(theta, 2.f * PI_F);
+  if (theta > PI_F)
     theta -= 2.f * PI_F;
-  while (theta < -PI_F)
+  if (theta < -PI_F)
     theta += 2.f * PI_F;
   return theta;
 }

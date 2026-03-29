@@ -28,6 +28,18 @@ enum class DockLedColor : uint8_t {
 /// Called from the dock task context (not ISR) with the sub-opcode and payload.
 typedef void (*DockChallengeHandler)(uint8_t subOpcode, const uint8_t *data, uint8_t dataLen);
 
+// ---------------------------------------------------------------------------
+// Challenge handler registry (shared between dock.cpp and dock_task.cpp)
+// ---------------------------------------------------------------------------
+
+static constexpr uint8_t MAX_CHALLENGE_HANDLERS = 8;
+static constexpr uint8_t CHALLENGE_DATA_MAX = 32;
+
+struct ChallengeHandlerEntry {
+  uint8_t subOpcode;
+  DockChallengeHandler handler;
+};
+
 /// Initialize the I2C slave for dock communication.
 void dockInit();
 
@@ -39,8 +51,39 @@ void dockRegisterChallengeHandler(uint8_t subOpcode, DockChallengeHandler handle
 /// If set, the next onRequest sends this instead of the HWID. Cleared after one read.
 void dockSetResponseBuffer(const uint8_t *data, uint8_t len);
 
+/// Set the dock event queue (called from main.cpp before tasks start).
+void dockSetEventQueue(void *queueHandle);
+
 /// Maximum number of unique docks that fill the sponsor bar.
 static constexpr uint8_t MAX_SPONSOR_DOCKS = 16;
 
 }  // namespace hw
+
+// ---------------------------------------------------------------------------
+// Dock event — sent from I2C ISR to DockTask via FreeRTOS queue.
+// Lives in core:: namespace alongside other task event types
+// (ControllerEvent, LedCommand, NfcCommand, etc.)
+// ---------------------------------------------------------------------------
+
+enum class DockEventType : uint8_t {
+  LedColor,
+  DockId,
+  ChallengeData,
+};
+
+struct DockEvent {
+  DockEventType type;
+
+  union {
+    hw::DockLedColor ledColor;
+    uint8_t dockId;
+
+    struct {
+      uint8_t subOpcode;
+      uint8_t data[hw::CHALLENGE_DATA_MAX];
+      uint8_t dataLen;
+    } challenge;
+  };
+};
+
 }  // namespace core
