@@ -25,6 +25,8 @@
 #include <nvs.h>
 
 #include "storage/nvs_social.h"
+#include "storage/nvs_config.h"
+#include "storage/nvs_contacts.h"
 
 namespace core {
 
@@ -82,6 +84,12 @@ static const uint8_t BADGE_SECRET[32] = {
 #define PAIR_HMAC_LEN  32
 // DEP payload: MAC(6) + HMAC(32) = 38 bytes
 #define PAIR_DEP_LEN (core::hw::MAC_LEN + PAIR_HMAC_LEN)
+// Max profile payload (without MAC): 4 length-prefixed strings + RGB
+#define PAIR_PROFILE_MAX_LEN                                                                                           \
+  (1 + badge::config::profile::name_max_len + 1 + badge::config::profile::pronouns_max_len + 1 +                       \
+   badge::config::profile::affiliation_max_len + 1 + badge::config::profile::contact_max_len + 3)
+// Max DEP payload: base + optional profile
+#define PAIR_DEP_MAX_LEN (PAIR_DEP_LEN + PAIR_PROFILE_MAX_LEN)
 
 /// Derive a per-badge key: HMAC-SHA256(BADGE_SECRET, mac)
 static void deriveKey(const uint8_t mac[core::hw::MAC_LEN], uint8_t keyOut[32]) {
@@ -96,6 +104,68 @@ static void computeProof(const uint8_t key[32], const uint8_t nonce[PAIR_NONCE_L
   memcpy(msg, nonce, PAIR_NONCE_LEN);
   memcpy(msg + PAIR_NONCE_LEN, mac, core::hw::MAC_LEN);
   mbedtls_md_hmac(mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), key, 32, msg, sizeof(msg), hmacOut);
+}
+
+/// Pack profile fields (without MAC) into buf. Returns bytes written.
+static size_t packProfileFields(const storage::ContactProfile &p, uint8_t *buf) {
+  size_t pos = 0;
+  auto writeField = [&](const char *src, uint8_t maxLen) {
+    const uint8_t len = static_cast<uint8_t>(strnlen(src, maxLen));
+    buf[pos++] = len;
+    memcpy(buf + pos, src, len);
+    pos += len;
+  };
+  writeField(p.name, badge::config::profile::name_max_len);
+  writeField(p.pronouns, badge::config::profile::pronouns_max_len);
+  writeField(p.affiliation, badge::config::profile::affiliation_max_len);
+  writeField(p.contact, badge::config::profile::contact_max_len);
+  buf[pos++] = p.r;
+  buf[pos++] = p.g;
+  buf[pos++] = p.b;
+  return pos;
+}
+
+/// Unpack profile fields (without MAC) from buf into out. Returns true on success.
+static bool unpackProfileFields(const uint8_t *buf, size_t available, storage::ContactProfile &out) {
+  size_t pos = 0;
+
+  auto readField = [&](char *dst, uint8_t maxLen) -> bool {
+    if (pos >= available) {
+      return false;
+    }
+
+    const uint8_t len = buf[pos++];
+    if (pos + len > available || len > maxLen) {
+      return false;
+    }
+
+    memcpy(dst, buf + pos, len);
+    dst[len] = '\0';
+    pos += len;
+    return true;
+  };
+
+  if (!readField(out.name, badge::config::profile::name_max_len)) {
+    return false;
+  }
+  if (!readField(out.pronouns, badge::config::profile::pronouns_max_len)) {
+    return false;
+  }
+  if (!readField(out.affiliation, badge::config::profile::affiliation_max_len)) {
+    return false;
+  }
+  if (!readField(out.contact, badge::config::profile::contact_max_len)) {
+    return false;
+  }
+
+  if (pos + 3 > available) {
+    return false;
+  }
+
+  out.r = buf[pos++];
+  out.g = buf[pos++];
+  out.b = buf[pos++];
+  return true;
 }
 
 // ===========================================================================
@@ -1215,6 +1285,9 @@ void NfcTask::runPair() {
   uint8_t myNonce[PAIR_NONCE_LEN];
   fillRandom(myNonce, sizeof(myNonce));
 
+  // Check if we should share our profile
+  const storage::UserConfig myCfg = storage::configRead();
+
   core::hw::safeSerial().println("NFC-DEP pair: searching... (press A/B to stop)");
   _ledQueue.send(LedCommand(LedCommandType::SolidOrange), Milliseconds(0));
 
@@ -1341,12 +1414,17 @@ void NfcTask::runPair() {
     core::hw::safeSerial().printf("NFC-DEP pair: activated as %s\r\n", role);
     digitalWrite(badge::pins::NFC_LED, HIGH);
 
-    // Build our DEP payload: MAC(6) + HMAC(32)
+    // Build our DEP payload: MAC(6) + HMAC(32) [+ profile if sharing]
     // Proof = HMAC-SHA256(myKey, partnerNonce || myMac)
     // This proves we know the firmware secret + our identity
-    uint8_t txPayload[PAIR_DEP_LEN];
+    uint8_t txPayload[PAIR_DEP_MAX_LEN];
     memcpy(txPayload, myMac, core::hw::MAC_LEN);
     computeProof(myKey, partnerNonce, myMac, txPayload + core::hw::MAC_LEN);
+
+    uint16_t txLen = PAIR_DEP_LEN;
+    if (myCfg.share) {
+      txLen += packProfileFields(myCfg.profile, txPayload + PAIR_DEP_LEN);
+    }
 
     // NFC-DEP data exchange (asymmetric: initiator sends first, target receives first)
     rfalNfcDepBufFormat txBuf;
@@ -1355,11 +1433,11 @@ void NfcTask::runPair() {
     bool depDone = false;
     uint32_t depStart;
 
-    memcpy(txBuf.inf, txPayload, PAIR_DEP_LEN);
+    memcpy(txBuf.inf, txPayload, txLen);
 
     if (weAreInitiator) {
       // Initiator: send our payload in DEP_REQ, receive partner's in DEP_RES
-      err = nfc.rfalNfcDataExchangeStart(txBuf.inf, PAIR_DEP_LEN, &rxData, &rvdLen, RFAL_FWT_NONE);
+      err = nfc.rfalNfcDataExchangeStart(txBuf.inf, txLen, &rxData, &rvdLen, RFAL_FWT_NONE);
     } else {
       // Target: must receive first (txLen=0), then respond
       err = nfc.rfalNfcDataExchangeStart(nullptr, 0, &rxData, &rvdLen, RFAL_FWT_NONE);
@@ -1394,12 +1472,15 @@ void NfcTask::runPair() {
     }
 
     // If target: we received initiator's data, now send our response
+    uint16_t savedRxLen = 0;
+    uint8_t rxCopy[PAIR_DEP_MAX_LEN];
     if (!weAreInitiator) {
       // Save received data before starting response (buffer may be reused)
-      uint16_t rxLen = (rvdLen != nullptr) ? *rvdLen : 0;
-      uint8_t rxCopy[PAIR_DEP_LEN];
+      const uint16_t rxLen = (rvdLen != nullptr) ? *rvdLen : 0;
       if (rxLen >= PAIR_DEP_LEN && rxData != nullptr) {
-        memcpy(rxCopy, rxData, PAIR_DEP_LEN);
+        const uint16_t copyLen = (rxLen <= PAIR_DEP_MAX_LEN) ? rxLen : PAIR_DEP_MAX_LEN;
+        memcpy(rxCopy, rxData, copyLen);
+        savedRxLen = copyLen;
       } else {
         core::hw::safeSerial().printf("NFC-DEP pair: initiator payload too short (%d)\r\n", rxLen);
         stopAndFlush(nfc);
@@ -1409,7 +1490,7 @@ void NfcTask::runPair() {
       // Send our response
       rxData = nullptr;
       rvdLen = nullptr;
-      err = nfc.rfalNfcDataExchangeStart(txBuf.inf, PAIR_DEP_LEN, &rxData, &rvdLen, RFAL_FWT_NONE);
+      err = nfc.rfalNfcDataExchangeStart(txBuf.inf, txLen, &rxData, &rvdLen, RFAL_FWT_NONE);
       if (err != ERR_NONE) {
         core::hw::safeSerial().printf("NFC-DEP pair: target response start failed (%d)\r\n", err);
         stopAndFlush(nfc);
@@ -1443,7 +1524,7 @@ void NfcTask::runPair() {
       rxData = rxCopy;
     }
 
-    uint16_t finalRxLen = (weAreInitiator && rvdLen != nullptr) ? *rvdLen : PAIR_DEP_LEN;
+    const uint16_t finalRxLen = weAreInitiator ? ((rvdLen != nullptr) ? *rvdLen : 0) : savedRxLen;
     if (finalRxLen < PAIR_DEP_LEN) {
       core::hw::safeSerial().printf("NFC-DEP pair: partner payload too short (%d)\r\n", finalRxLen);
       stopAndFlush(nfc);
@@ -1470,6 +1551,21 @@ void NfcTask::runPair() {
     digitalWrite(badge::pins::NFC_LED, LOW);
 
     if (verified) {
+      // Store partner's contact profile if they shared it
+      if (finalRxLen > PAIR_DEP_LEN) {
+        storage::ContactProfile contact{};
+        memcpy(contact.mac.data(), partnerMac, core::hw::MAC_LEN);
+        if (unpackProfileFields(rxData + PAIR_DEP_LEN, finalRxLen - PAIR_DEP_LEN, contact)) {
+          storage::contactWrite(contact);
+          Serial.printf("NFC-DEP pair: saved contact name='%s' pronouns='%s' affil='%s' contact='%s' "
+                        "color=(%u,%u,%u)\r\n",
+                        contact.name, contact.pronouns, contact.affiliation, contact.contact, contact.r, contact.g,
+                        contact.b);
+        } else {
+          Serial.println("NFC-DEP pair: partner profile data malformed, skipping");
+        }
+      }
+
       bool isNew = isNewPartner(partnerMac);
 
       if (isNew) {
@@ -1477,8 +1573,9 @@ void NfcTask::runPair() {
         // Increment social NVS by 3 (capped at 255)
         uint8_t current = storage::socialRead(storage::SocialKey::Social);
         uint16_t newVal = (uint16_t)current + 3;
-        if (newVal > 255)
+        if (newVal > 255) {
           newVal = 255;
+        }
         storage::socialWrite(storage::SocialKey::Social, (uint8_t)newVal);
 
         core::hw::safeSerial().printf(
