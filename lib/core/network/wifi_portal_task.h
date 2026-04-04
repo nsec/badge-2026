@@ -19,7 +19,7 @@ protected:
   void run() override;
 
 private:
-  void startPortal();
+  void startPortal(const PortalCommand &cmd);
   void stopPortal();
 
   Queue<PortalCommand> &_cmdQueue;

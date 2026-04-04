@@ -295,18 +295,35 @@ static uint8_t *wscAttr(uint8_t *p, uint16_t attrType, const void *val, uint16_t
   return p + 4 + valLen;
 }
 
-void initTagMemoryWifi() {
+// Maximum WiFi NDEF TLV size, derived from config constants.
+// Each WSC attribute has a 4-byte header (type + length).
+static constexpr size_t WSC_ATTR_HDR = 4;
+static constexpr size_t CRED_INNER_MAX = WSC_ATTR_HDR + 1                                      // Network Index
+                                         + WSC_ATTR_HDR + badge::config::wifi::ssid_max_len    // SSID
+                                         + WSC_ATTR_HDR + 2                                    // Auth Type
+                                         + WSC_ATTR_HDR + 2                                    // Encryption Type
+                                         + WSC_ATTR_HDR + badge::config::wifi::passphrase_len  // Network Key
+                                         + WSC_ATTR_HDR + core::hw::MAC_LEN;                   // MAC Address
+static constexpr size_t WSC_PAYLOAD_MAX = 4 + CRED_INNER_MAX;                  // Credential attribute header + inner
+static constexpr size_t WSC_TYPE_LEN = 23;                                     // strlen("application/vnd.wfa.wsc")
+static constexpr size_t NDEF_RECORD_MAX = 3 + WSC_TYPE_LEN + WSC_PAYLOAD_MAX;  // NDEF header + type + payload
+static constexpr size_t WIFI_NDEF_TLV_MAX = 3 + NDEF_RECORD_MAX;               // TLV header + record + terminator
+
+static_assert(WIFI_NDEF_TLV_MAX <= 128, "WiFi NDEF too large for g_ndefBuf — reduce ssid_max_len or passphrase_len");
+static_assert(WIFI_NDEF_TLV_MAX <= (NTAG213_PAGES - NTAG213_USER_START) * NTAG213_PAGE_SIZE,
+              "WiFi NDEF too large for NTAG213 user memory — reduce ssid_max_len or passphrase_len");
+
+void initTagMemoryWifi(const char *ssid, const char *passphrase) {
   // Rebuild tag memory with a WiFi Simple Configuration NDEF record
   // so phones prompt "Connect to Wi-Fi network?" on tap.
   uint8_t mac[core::hw::MAC_LEN];
   core::hw::getHwidMac(mac);
 
-  char ssid[32];
-  snprintf(ssid, sizeof(ssid), "NSEC-%02X%02X", mac[4], mac[5]);
   uint8_t ssidLen = static_cast<uint8_t>(strlen(ssid));
+  uint8_t passLen = static_cast<uint8_t>(strlen(passphrase));
 
   // Build the WSC Credential inner attributes
-  uint8_t credInner[64];
+  uint8_t credInner[CRED_INNER_MAX];
   uint8_t *p = credInner;
 
   // Network Index
@@ -316,16 +333,16 @@ void initTagMemoryWifi() {
   // SSID
   p = wscAttr(p, 0x1045, ssid, ssidLen);
 
-  // Authentication Type: Open (0x0001)
-  uint8_t authType[2] = {0x00, 0x01};
+  // Authentication Type: WPA2-Personal (0x0020)
+  uint8_t authType[2] = {0x00, 0x20};
   p = wscAttr(p, 0x1003, authType, 2);
 
-  // Encryption Type: None (0x0001)
-  uint8_t encType[2] = {0x00, 0x01};
+  // Encryption Type: AES (0x0008)
+  uint8_t encType[2] = {0x00, 0x08};
   p = wscAttr(p, 0x100F, encType, 2);
 
-  // Network Key: empty (open network)
-  p = wscAttr(p, 0x1027, nullptr, 0);
+  // Network Key: WPA2 passphrase
+  p = wscAttr(p, 0x1027, passphrase, passLen);
 
   // MAC Address
   p = wscAttr(p, 0x1020, mac, core::hw::MAC_LEN);
@@ -333,7 +350,7 @@ void initTagMemoryWifi() {
   uint16_t credInnerLen = static_cast<uint16_t>(p - credInner);
 
   // Build full WSC payload: Credential attribute wrapping the inner attrs
-  uint8_t wscPayload[72];
+  uint8_t wscPayload[WSC_PAYLOAD_MAX];
   uint8_t *wp = wscPayload;
   wp[0] = 0x10;
   wp[1] = 0x0E;  // Credential type
@@ -346,7 +363,7 @@ void initTagMemoryWifi() {
   static const char wscType[] = "application/vnd.wfa.wsc";
   uint8_t typeLen = sizeof(wscType) - 1;  // 23
 
-  uint8_t ndefRecord[100];
+  uint8_t ndefRecord[NDEF_RECORD_MAX];
   uint8_t pos = 0;
   ndefRecord[pos++] = 0xD2;                    // MB|ME|SR, TNF=0x02 (media-type)
   ndefRecord[pos++] = typeLen;                 // type length
@@ -369,7 +386,7 @@ void initTagMemoryWifi() {
          (NTAG213_PAGES - NTAG213_USER_START) * NTAG213_PAGE_SIZE);
   memcpy(&tagMemory[NTAG213_USER_START * NTAG213_PAGE_SIZE], g_ndefBuf, g_ndefLen);
 
-  Serial.printf("NFC emu: WiFi NDEF for SSID \"%s\" (%u bytes)\r\n", ssid, g_ndefLen);
+  Serial.printf("NFC emu: WiFi NDEF for SSID \"%s\" (WPA2, %u bytes)\r\n", ssid, g_ndefLen);
 }
 
 uint16_t handleNtagCommand(const uint8_t *cmd, uint16_t cmdLen, uint8_t *resp) {
@@ -976,7 +993,7 @@ void NfcTask::run() {
       runEmulator();
     } else if (cmd.mode == NfcMode::WifiEmulator) {
       Serial.println("NFC: === WIFI EMULATOR ===");
-      initTagMemoryWifi();
+      initTagMemoryWifi(cmd.wifi.ssid, cmd.wifi.passphrase);
       runEmulator();
       initTagMemory();  // restore normal NDEF after WiFi emulation ends
     } else if (cmd.mode == NfcMode::Pair) {

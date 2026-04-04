@@ -60,4 +60,9 @@ inline constexpr uint8_t affiliation_max_len = 30;
 inline constexpr uint8_t contact_max_len = 60;
 }  // namespace profile
 
+namespace wifi {
+inline constexpr uint8_t ssid_max_len = 15;    // "NSEC-XXYYZZ" (11 chars) fits; +1 for null in buffers
+inline constexpr uint8_t passphrase_len = 10;  // alphanumeric chars (~59.5 bits entropy); WPA2 range: 8-63
+}  // namespace wifi
+
 }  // namespace badge::config

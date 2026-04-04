@@ -8,7 +8,6 @@
   #include <ESPAsyncWebServer.h>
   #include <nlohmann/json.hpp>
 
-  #include "hardware/hwid.h"
   #include "network/web_page.h"
   #include "storage/nvs_config.h"
   #include "storage/nvs_contacts.h"
@@ -60,21 +59,16 @@ core::storage::UserConfig parseConfigJson(const uint8_t *data, size_t len) {
 
 namespace core {
 
-void PortalTask::startPortal() {
+void PortalTask::startPortal(const PortalCommand &cmd) {
   if (_running)
     return;
 
-  // Build unique SSID from last 2 bytes of MAC
-  uint8_t mac[hw::MAC_LEN];
-  hw::getHwidMac(mac);
-  char ssid[32];
-  snprintf(ssid, sizeof(ssid), "NSEC-%02X%02X", mac[4], mac[5]);
-
   WiFi.mode(WIFI_AP);
-  WiFi.softAP(ssid);
+  WiFi.softAP(cmd.start.ssid, cmd.start.passphrase);
 
   IPAddress apIP = WiFi.softAPIP();
-  Serial.printf("[portal] AP started: %s @ %s\r\n", ssid, apIP.toString().c_str());
+  Serial.printf("[portal] AP started: SSID=\"%s\" pass=\"%s\" @ %s\r\n", cmd.start.ssid, cmd.start.passphrase,
+                apIP.toString().c_str());
 
   // Captive portal DNS: resolve everything to our IP
   dnsServer.start(53, "*", apIP);
@@ -213,14 +207,14 @@ void PortalTask::run() {
        */
       dnsServer.processNextRequest();
       if (_cmdQueue.receive(cmd, Milliseconds(50))) {
-        if (cmd == PortalCommand::Stop)
+        if (cmd.type == PortalCommand::Type::Stop)
           stopPortal();
       }
     } else {
       // While stopped, block on the command queue
       if (_cmdQueue.receive(cmd)) {
-        if (cmd == PortalCommand::Start)
-          startPortal();
+        if (cmd.type == PortalCommand::Type::Start)
+          startPortal(cmd);
       }
     }
   }

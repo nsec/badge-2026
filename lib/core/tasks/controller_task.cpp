@@ -2,9 +2,11 @@
 
 #include <Arduino.h>
 #include "hardware/serial_mutex.h"
+#include <cstring>
 
 #include "tasks/display.h"
 #include "storage/nvs_social.h"
+#include "storage/nvs_wifi_creds.h"
 #include "hardware/rgb_led.h"
 
 namespace core {
@@ -272,11 +274,30 @@ void ControllerTask::handle(const SocialSetRequest &req) {
 
 void ControllerTask::handle(const PortalToggleRequest &) {
   _portalActive = !_portalActive;
-  _portalQueue.send(_portalActive ? PortalCommand::Start : PortalCommand::Stop);
 
-  // Start/stop NFC WiFi emulation alongside the portal so phones can
-  // tap the badge to get a "Connect to Wi-Fi?" prompt.
-  _nfcQueue.send(NfcCommand{_portalActive ? NfcMode::WifiEmulator : NfcMode::Off}, Milliseconds(0));
+  if (_portalActive) {
+    auto creds = storage::wifiCredsGet();
+
+    PortalCommand pcmd{};
+    pcmd.type = PortalCommand::Type::Start;
+    strlcpy(pcmd.start.ssid, creds.ssid, sizeof(pcmd.start.ssid));
+    strlcpy(pcmd.start.passphrase, creds.passphrase, sizeof(pcmd.start.passphrase));
+    _portalQueue.send(pcmd);
+
+    // Start NFC WiFi emulation so phones can tap the badge to get a
+    // "Connect to Wi-Fi?" prompt.
+    NfcCommand ncmd{};
+    ncmd.mode = NfcMode::WifiEmulator;
+    strlcpy(ncmd.wifi.ssid, creds.ssid, sizeof(ncmd.wifi.ssid));
+    strlcpy(ncmd.wifi.passphrase, creds.passphrase, sizeof(ncmd.wifi.passphrase));
+    _nfcQueue.send(ncmd, Milliseconds(0));
+  } else {
+    PortalCommand pcmd{};
+    pcmd.type = PortalCommand::Type::Stop;
+    _portalQueue.send(pcmd);
+
+    _nfcQueue.send(NfcCommand{NfcMode::Off}, Milliseconds(0));
+  }
 
   Serial.printf("[controller] Portal %s\r\n", _portalActive ? "starting" : "stopping");
 }
