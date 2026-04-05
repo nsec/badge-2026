@@ -6,7 +6,7 @@
   "frameworks": "*",
   "platforms": "*",
   "build": {
-    "srcFilter": ["+<*>", "+<quantum/>"]
+    "srcFilter": ["+<*>", "+<quantum/>", "+<serialmystery/>"]
   },
   "dependencies": [
     { "name": "core" }
