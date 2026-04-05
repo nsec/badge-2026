@@ -7,10 +7,9 @@ namespace storage {
 
 /// The four social progress categories.
 enum class SocialKey : uint8_t {
-  Social,      // citizens/players — Down button
-  Sponsor,     // vendors — Up button
-  Light,       // light collection — Left button
-  Attraction,  // attractions — Right button
+  Social,   // citizens/players
+  Sponsor,  // vendors
+  Light,    // light collection
   COUNT
 };
 

@@ -18,6 +18,7 @@
 #include <nvs_flash.h>
 #include <nvs.h>
 #include "tasks/nfc.h"
+#include "tasks/light_task.h"
 
 namespace {
 
@@ -138,6 +139,8 @@ void cmdHelp() {
               "  pairtest [reset]     - show/reset paired partners\r\n");
   g_io->flush();
   g_io->print("  docktest [reset]     - show/reset seen dock stations\r\n"
+              "  lighttest [reset]    - show light sensor / reset NVS\r\n"
+              "  ndef [text|reset]    - show/set/reset NFC emulator text\r\n"
               "  status               - show social NVS values\r\n"
               "  clear                - clear the screen\r\n"
               "  swapboot             - switch to other firmware and reboot\r\n"
@@ -222,7 +225,6 @@ void cmdStatus() {
       core::storage::SocialKey::Social,
       core::storage::SocialKey::Sponsor,
       core::storage::SocialKey::Light,
-      core::storage::SocialKey::Attraction,
   };
   for (auto k : keys) {
     uint8_t val = core::storage::socialRead(k);
@@ -232,7 +234,7 @@ void cmdStatus() {
 }
 
 void cmdNvsTest(const std::string &args) {
-  // Parse: nvstest <social|sponsor|light|attraction> <0-255>
+  // Parse: nvstest <social|sponsor|light> <0-255>
   size_t idx = 0;
   std::string keyStr = nextToken(args, idx);
   std::string valStr = nextToken(args, idx);
@@ -251,12 +253,10 @@ void cmdNvsTest(const std::string &args) {
     key = core::storage::SocialKey::Sponsor;
   else if (keyStr == "light")
     key = core::storage::SocialKey::Light;
-  else if (keyStr == "attraction")
-    key = core::storage::SocialKey::Attraction;
   else if (keyStr == "all")
     setAll = true;
   else {
-    g_io->println("Unknown key. Use: social, sponsor, light, attraction, all");
+    g_io->println("Unknown key. Use: social, sponsor, light, all");
     return;
   }
 
@@ -273,7 +273,6 @@ void cmdNvsTest(const std::string &args) {
         core::storage::SocialKey::Social,
         core::storage::SocialKey::Sponsor,
         core::storage::SocialKey::Light,
-        core::storage::SocialKey::Attraction,
     };
     for (auto k : allKeys) {
       core::SocialSetRequest req{k, value};
@@ -446,6 +445,38 @@ void handleLine(const std::string &line) {
   }
   if (cmd == "status")
     return cmdStatus();
+  if (cmd == "lighttest") {
+    std::string arg = (i < line.length()) ? line.substr(i) : "";
+    trim(arg);
+    toLower(arg);
+    if (arg == "reset") {
+      core::storage::socialWrite(core::storage::SocialKey::Light, 0);
+      g_io->println("Light NVS value reset to 0");
+      return;
+    }
+    core::hw::LightReading lr;
+    if (core::lightLastReading(lr)) {
+      char buf[256];
+      int pos = 0;
+      pos += snprintf(buf + pos, sizeof(buf) - pos,
+                      "=== Light Sensor ===\r\n");
+      pos += snprintf(buf + pos, sizeof(buf) - pos,
+                      "  R:%5u G:%5u B:%5u W:%5u\r\n", lr.r, lr.g, lr.b, lr.w);
+      pos += snprintf(buf + pos, sizeof(buf) - pos,
+                      "  Lux: %.1f  CCT: %.0fK\r\n", lr.lux, lr.cct);
+      pos += snprintf(buf + pos, sizeof(buf) - pos,
+                      "  Threshold: %.0f lux  Above: %s\r\n",
+                      core::hw::LIGHT_LUX_THRESHOLD,
+                      lr.lux >= core::hw::LIGHT_LUX_THRESHOLD ? "YES" : "no");
+      pos += snprintf(buf + pos, sizeof(buf) - pos,
+                      "  NVS light = %u\r\n",
+                      core::storage::socialRead(core::storage::SocialKey::Light));
+      g_io->write(reinterpret_cast<const uint8_t *>(buf), pos);
+    } else {
+      g_io->println("Light sensor: no reading yet (wait 5s)");
+    }
+    return;
+  }
   if (cmd == "clear") {
     g_io->print("\033[2J\033[H");
     g_io->flush();
@@ -454,6 +485,37 @@ void handleLine(const std::string &line) {
   }
   if (cmd == "reboot")
     return cmdReboot();
+
+  if (cmd == "ndef") {
+    std::string arg = (i < line.length()) ? line.substr(i) : "";
+    trim(arg);
+    if (arg.empty()) {
+      const char *custom = core::ndefGetText();
+      if (custom) {
+        g_io->printf("NDEF text: %s\r\n", custom);
+      } else {
+        g_io->println("NDEF text: (default - NSEC Badge <HWID>)");
+      }
+      return;
+    }
+    std::string lower = arg;
+    toLower(lower);
+    if (lower == "reset") {
+      core::ndefReset();
+      g_io->println("NDEF text reset to default");
+      return;
+    }
+    if (arg.length() > 100) {
+      g_io->println("Error: text too long (max 100 chars)");
+      return;
+    }
+    if (core::ndefSetText(arg.c_str())) {
+      g_io->printf("NDEF text set: %s\r\n", arg.c_str());
+    } else {
+      g_io->println("Error: failed to set NDEF text");
+    }
+    return;
+  }
 
   if (cmd == "swapboot") {
     return cmdBoot();

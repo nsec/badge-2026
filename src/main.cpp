@@ -100,6 +100,7 @@ void setup() {
   static core::ButtonTask buttonTask(controllerQueue);
   static core::NfcTask nfcTask(nfcQueue, ledQueue);
   static core::DockTask dockTask(dockEventQueue, ledQueue);
+  static core::LightTask lightTask;
 
   core::heartbeatStart();
 
@@ -113,6 +114,7 @@ void setup() {
   buttonTask.start();
   nfcTask.start();
   dockTask.start();
+  lightTask.start();
 }
 
 void loop() {
