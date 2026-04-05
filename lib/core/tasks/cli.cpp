@@ -458,18 +458,12 @@ void handleLine(const std::string &line) {
     if (core::lightLastReading(lr)) {
       char buf[256];
       int pos = 0;
-      pos += snprintf(buf + pos, sizeof(buf) - pos,
-                      "=== Light Sensor ===\r\n");
-      pos += snprintf(buf + pos, sizeof(buf) - pos,
-                      "  R:%5u G:%5u B:%5u W:%5u\r\n", lr.r, lr.g, lr.b, lr.w);
-      pos += snprintf(buf + pos, sizeof(buf) - pos,
-                      "  Lux: %.1f  CCT: %.0fK\r\n", lr.lux, lr.cct);
-      pos += snprintf(buf + pos, sizeof(buf) - pos,
-                      "  Threshold: %.0f lux  Above: %s\r\n",
-                      core::hw::LIGHT_LUX_THRESHOLD,
-                      lr.lux >= core::hw::LIGHT_LUX_THRESHOLD ? "YES" : "no");
-      pos += snprintf(buf + pos, sizeof(buf) - pos,
-                      "  NVS light = %u\r\n",
+      pos += snprintf(buf + pos, sizeof(buf) - pos, "=== Light Sensor ===\r\n");
+      pos += snprintf(buf + pos, sizeof(buf) - pos, "  R:%5u G:%5u B:%5u W:%5u\r\n", lr.r, lr.g, lr.b, lr.w);
+      pos += snprintf(buf + pos, sizeof(buf) - pos, "  Lux: %.1f  CCT: %.0fK\r\n", lr.lux, lr.cct);
+      pos += snprintf(buf + pos, sizeof(buf) - pos, "  Threshold: %.0f lux  Above: %s\r\n",
+                      core::hw::LIGHT_LUX_THRESHOLD, lr.lux >= core::hw::LIGHT_LUX_THRESHOLD ? "YES" : "no");
+      pos += snprintf(buf + pos, sizeof(buf) - pos, "  NVS light = %u\r\n",
                       core::storage::socialRead(core::storage::SocialKey::Light));
       g_io->write(reinterpret_cast<const uint8_t *>(buf), pos);
     } else {

@@ -67,8 +67,7 @@ struct SocialData {
 };
 
 int toJson(const SocialData &d, char *buf, size_t bufSize) {
-  return snprintf(buf, bufSize, "{\"social\":%u,\"sponsor\":%u,\"light\":%u}", d.social, d.sponsor,
-                  d.light);
+  return snprintf(buf, bufSize, "{\"social\":%u,\"sponsor\":%u,\"light\":%u}", d.social, d.sponsor, d.light);
 }
 
 SocialData fromJson(std::string_view json) {

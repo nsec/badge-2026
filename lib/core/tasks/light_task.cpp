@@ -34,8 +34,8 @@ void LightTask::run() {
   // Fractional accumulator for smooth NVS updates.
   float lightAccum = static_cast<float>(storage::socialRead(storage::SocialKey::Light));
 
-  static constexpr uint32_t POLL_MS = 5000;       // 5 second sensor poll
-  static constexpr uint32_t NVS_WRITE_POLLS = 6;  // write NVS every 6 polls (30s)
+  static constexpr uint32_t POLL_MS = 5000;        // 5 second sensor poll
+  static constexpr uint32_t NVS_WRITE_POLLS = 6;   // write NVS every 6 polls (30s)
   static constexpr uint32_t MAX_HOLD_POLLS = 360;  // hold at 255 for 360 polls (30 min) before decay
   uint32_t pollsSinceWrite = 0;
   uint32_t maxHoldCounter = 0;  // counts down while holding at 255
@@ -57,7 +57,8 @@ void LightTask::run() {
     // Scaled increment/decrement based on distance from threshold.
     if (reading.lux >= hw::LIGHT_LUX_THRESHOLD) {
       float ratio = reading.lux / hw::LIGHT_LUX_THRESHOLD;
-      if (ratio > 5.f) ratio = 5.f;
+      if (ratio > 5.f)
+        ratio = 5.f;
       lightAccum += 0.2f * ratio;
 
       // If we hit max, start/refresh the hold timer
@@ -71,7 +72,8 @@ void LightTask::run() {
         maxHoldCounter--;
       } else {
         float darkRatio = 1.f - reading.lux / hw::LIGHT_LUX_THRESHOLD;
-        if (darkRatio > 1.f) darkRatio = 1.f;
+        if (darkRatio > 1.f)
+          darkRatio = 1.f;
         lightAccum -= 0.02f + 0.04f * darkRatio;
       }
     }

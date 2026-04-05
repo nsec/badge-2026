@@ -246,7 +246,8 @@ void initTagMemory() {
     snprintf(ndefText, sizeof(ndefText), "NSEC Badge %s", macHex);
   }
   uint8_t textLen = static_cast<uint8_t>(strlen(ndefText));
-  if (textLen > 100) textLen = 100;  // keep within NTAG213 capacity
+  if (textLen > 100)
+    textLen = 100;                           // keep within NTAG213 capacity
   uint8_t textPayloadLen = 1 + 2 + textLen;  // status + "en" + text
 
   // NDEF record header (SR=1, MB=1, ME=1, TNF=0x01 well-known, type='T')
