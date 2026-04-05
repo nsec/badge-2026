@@ -1,0 +1,288 @@
+#==============================================================================#
+#=============================# Code de conduite #=============================#
+#==============================================================================#
+
+Où possible, nous incluons les appellations des personnes  au  féminin  dans  ce
+texte pour souligner leur inclusion  dans  l'industrie  du  logiciel  et  de  la
+sécurité de l'information (infosec).  Nous voulons également souligner que  nous
+accueillons également à NorthSec les personnes non binaires ou  qui  ne  tombent
+pas dans les deux catégories de genre traditionnelles.
+
+============================= Directives générales =============================
+
+Nous  nous  attendons  à  ce  que  tou(te)s  les  participant(e)s   à   NorthSec
+reconnaissent et adhérent à ce code de  conduite.   Le  terme  "participant(e)s”
+inclut  chaque  personne  présente,  ainsi   que   les   organisateurs(-trices),
+conférenciers(-ières),   commanditaires,   bénévoles,   et   autres   invité(e)s
+présent(e)s pendant  l'évènement.   Nous  demandons  la  coopération  de  chaque
+participant(e) afin de nous aider à assurer un  environnement  sécuritaire  pour
+chacun(e). 
+
+Ce code de conduite n'est pas un document légal,  mais  plutôt  une  déclaration
+d'intention  concernant  le  genre  d'espace  que  nous  souhaitons  créer  chez
+NorthSec.  Les  exemples  énumérés  ci-dessous  ne  sont  pas  exhaustifs,  mais
+illustrent bien certains comportements que  nous  jugeons  désalignés  avec  les
+valeurs de NorthSec.
+
+============== Les valeurs de NorthSec et le comportement attendu ==============
+
+NorthSec se dévoue à fournir un espace positif et sécuritaire pour tou(te)s,  et
+ce, peu importe  leur  identité  de  genre,  orientation  sexuelle,  invalidité,
+apparence physique, taille corporelle, race, religion, âge,  statut  économique,
+niveau d'éducation, ou bien leur choix de logiciel d'exploitation, d'éditeur  de
+texte, ou préférence de langage script.  En particulier,  NorthSec  priorise  la
+diversité, et s'efforce  de  devenir  un  endroit  où  les  membres  de  groupes
+démographiques historiquement sous-représentés dans la  communauté  de  sécurité
+de l'information peuvent s'épanouir. 
+
+---------------------- Soyez amical(e) et accueillant(e) -----------------------
+
+NorthSec est géré par des bénévoles  et  animé  par  des  professionnel(le)s  en
+infosec qui dépensent un nombre incalculable d'heures de leur temps  libre  afin
+de créer une expérience amusante et unique pour tou(te)s.  Nous voulons tou(te)s
+passer  un  bon  moment  ensemble  et  profiter  d'une   ambiance   amicale   et
+accueillante.
+
+-------------------- Soyez patient(e) et constructif(-ive) ---------------------
+
+Veuillez garder en tête que nous nous réunissons pour apprendre et partager  nos
+connaissances dans une atmosphère agréable.  Toutefois, nous ne  partageons  pas
+tous les mêmes compétences, parcours, ou langue  maternelle.   La  communication
+efficace nécessite un effort: réfléchissez  sur  la  manière  dont  vos  paroles
+seront reçues, et évitez de présumer les expériences des autres.  (Pour lire  un
+bon guide (en anglais) sur la communication  dans  un  contexte  d'apprentissage
+technique, regardez les "social rules" du Recurse Centre.
+
+---------------- Soyez respectueux(-euse) et collaboratif(-ive) ----------------
+
+En particulier, respectez que les opinions divergent ainsi que  les  différences
+personnelles.  Les organisateurs(-trices), concepteurs(-trices)  des  défis,  et
+les conférenciers(-ières) de  NorthSec  sont  tou(te)s  des  bénévoles  qui  ont
+investi beaucoup de temps et d'énergie afin de préparer  l'évènement.   Si  vous
+pensez trouver des erreurs dans les défis ou dans  une  présentation,  n'oubliez
+pas la bonne foi de nos bénévoles.
+
+------------------------------ Soyez responsable -------------------------------
+
+Il est possible que de l'alcool soit servi à NorthSec,  donc  nous  demandons  à
+tou(te)s les participant(e)s de consommer de manière  responsable  et  de  juger
+adéquatement  leurs  limites  de  consommation  personnelles.    Les   organisa-
+teurs(-trices)  ont  le   droit   de   refuser   de   servir   de   l'alcool   à
+n'importe qui, pour n'importe  quelle  raison,  à  leur  seule  discrétion.   Si
+vous  rencontrez  une  personne  intoxiquée  qui  a   besoin   de   soutien   ou
+d'intervention,   nous   vous   invitons   à   chercher   l'aide   d'un(e)   des
+organisateurs(-trices) sur place.  NorthSec vous rappelle que conduire  en  état
+d'ébriété  est  une  offense  criminelle  au  Canada.   Si  vous   avez   besoin
+d'arranger un transport sûr, nos  bénévoles  peuvent  vous  assister  à  trouver
+un   taxi   ou   vous   aider   à   naviguer    le    transport    en    commun.
+
+==================== Politique de comportement inacceptable ====================
+
+------------------------------ Envers les humains ------------------------------
+
+NorthSec s'attend que les  participant(e)s  s'abstiennent  de  se  comporter  de
+manière irrespectueuse, perturbatrice, et illégale pendant la conférence,  ainsi
+que se comportent avec respect les un(e)s  envers  les  autres  en  tout  temps.
+
+La  liste  qui  suit  est  une  liste  non  exhaustive  de  comportements  jugés
+inacceptables à NorthSec: 
+
+* Publier des informations sensibles, personnelles, ou privées concernant
+  n'importe quel(le) participant(e) sans son consentement explicite.
+* Publier des matériels intimidants, harcelants, abusifs, discriminatoires,
+  dérogatoires, ou humiliants concernant n'importe quel(le) participant(e).
+* Se comporter de manière intimidante, harcelante, abusive, discriminatoire,
+  dérogatoire, ou humiliante envers n'importe quel(le) participant(e).
+* Chahuter ou perturber les présentations, conférences, ateliers, ou FAQ.
+* Des commentaires offensifs, discriminatoires, ou inappropriés concernant
+  l'identité et l'expression du genre, l'orientation sexuelle, l'invalidité, la
+  santé mentale, la neuroatypicité, l'apparence physique, la taille corporelle,
+  la race, l'origine ethnique, ou la religion.
+* Des commentaires offensifs, discriminatoires, ou inappropriés concernant les
+  choix de vie, incluant ceux relatifs à la nourriture, la santé, le style
+  parental, les médicaments, et l'emploi. 
+* Imagerie ou comportement sexuel gratuit, indésirable et hors sujet. Nous vous
+  rappelons que les enfants sont parfois présents aux évènements NorthSec. 
+* L'attention, remarques, gestes, ou contact physique de nature sexuelle dans
+  l'absence du consentement affirmatif et explicite de chaque participant(e).
+  Les participant(e)s sont tenu(e)s de se souvenir qu'en vertu des lois
+  canadiennes, n'importe quel contact sexuel (incluant le toucher et
+  s'embrasser) sans le consentement exprès de la personne concernée — que ça
+  soit par des mots ou des actes sans ambiguïté — est considéré comme une
+  agression sexuelle. Ni le silence ni la passivité n'est suffisant pour
+  démontrer le consentement exprès et affirmatif de la personne concernée selon
+  le droit canadien. Autrement dit, seul le "oui" veut dire "oui".
+* Le harcèlement, la traque furtive, les menaces de violence ou l'incitation à
+  la violence contre n'importe quelle personne ou groupe.
+* Porter ou présenter des slogans ou symboles offensifs ou discriminatoires. 
+* Le contact social inapproprié. Par exemple: si vous persistez de parler avec
+  quelqu'un(e) qui a indiqué qu'il ou elle ne veut pas parler avec vous.  
+* Posséder une arme, ou un objet qui, si utilisé d'une certaine manière, peut
+  être dangereux vers autrui. 
+* N'importe quel comportement qui met en danger la sécurité physique ou
+  l'intégrité corporelle d'autrui. 
+
+Nos conférenciers(-ières), bénévoles et commanditaires sont  soumis  à  la  même
+politique que les participant(e)s.  En particulier, nos conférenciers(-ières) et
+commanditaires ne doivent pas utiliser ou faire référence aux images,  matériels
+ou   activités    sexuelles    dans    leurs    présentations    et    ateliers.
+
+------------------------------ Envers le matériel ------------------------------
+
+NorthSec exploite une infrastructure extensive.  Appart de l'infrastructure mise
+en place pour la  compétition  CTF,  toute  usage  des  installations  en  place
+(physique et informatique)  pour  pirater  ou  commettre  un  acte  illégal  est
+strictement défendu. 
+
+--------------- Quelques exemples de comportement inacceptable: ----------------
+
+* Cyberattaquer ou détruire physiquement l'infrastructure NorthSec;
+* Cyberattaquer ou détruire physiquement un appareil ou outil appartenant à
+  un(e) autre participant(e) de NorthSec;
+* Cyberattaquer ou détruire physiquement les logiciels, services ou
+  infrastructure tiers sur lesquels dépend NorthSec (incluant la propriété de
+  l'établissement, de l'hôtel, ou des bars où se tiendront les réceptions après
+  la conférence) ;
+* Enfreindre les règles établies pendant la compétition (CTF). Par exemple: ne
+  pas respecter le temps limite de certains défis CTF et refuser de se
+  conformer immédiatement aux demandes des organisateurs(-trices) d'arrêter.
+
+-------------------- Signaler un comportement inacceptable ---------------------
+
+Si vous subissez un comportement inacceptable ou le  harcèlement,  ou  que  vous
+remarquez que quelqu'un(e) est l'objet  d'un  comportement  inacceptable  ou  du
+harcèlement, ou que vous avez d'autres préoccupations,  veuillez  alerter  un(e)
+organisateur(-trice) NorthSec aussitôt que  possible.   Tout  compte  rendu  est
+considéré comme confidentiel par défaut.  Si la personne qui donne  son  rapport
+veut participer dans  la  résolution  de  la  situation,  l'équipe  NorthSec  ne
+prendra  aucune  décision  sur  la   situation   sans   leur   connaissance   et
+consentement. 
+
+Si la personne qui s'est comportée de manière  inacceptable  ou  harcelante  est
+membre de l'équipe organisatrice NorthSec, cette  personne  sera  tenue  par  la
+politique de NorthSec de se retirer de  participer  dans  le  traitement  de  la
+plainte. 
+
+Les membres du conseil d'administration  de  NorthSec  seront  disponibles  pour
+aider les participant(e)s s'ils ou elles veulent contacter l'équipe de  sécurité
+des lieux ou la police, pour fournir un accompagnement, ou pour  assister  d'une
+autre  manière  les  personnes  ciblées  par  un  comportement  inacceptable  ou
+harcelant  pour  qu'elles  se   sentent   en   sécurité   pendant   l'évènement.
+
+Vous pouvez  signaler  en  personne  pendant  la  conférence  tout  comportement
+indésirable à n'importe quel(le) organisateur(-trice), ou envoyer un courriel  à
+l'adresse fournie au bas de cette page, qui est vérifiée  régulièrement  pendant
+la conférence. 
+
+Une ligne téléphonique est disponible pendant l'événement: +1-438-476-0835
+
+Advenant le cas qu’il est perçu que le comité organisateur ou le comité du  code
+de conduite ne puisse gérer une situation adéquatement, tout témoin  ou  victime
+peut  se  référer  à  l’ombudsperson   de   NorthSec   à   l’adresse   suivante:
+ombudsperson@nsec.io
+
+---------------- Les conséquences du comportement inacceptable -----------------
+
+Vous êtes tenu(e)s de vous conformer immédiatement à toute demande  de  la  part
+de  l'équipe  NorthSec.   Si  un(e)  participant(e)  est  reconnu(e)  de  s'être
+comporté(e) de manière inacceptable, l'équipe NorthSec  prendra  toutes  mesures
+estimées appropriées, qui peut aller jusqu'à l'expulsion  de  la  conférence  et
+tous évènements  NorthSec  futurs  sans  avertissement  ou  remboursement.   Les
+mesures appropriées ont pour objectif d'atténuer le tort qui s'est  produit,  de
+résoudre le  conflit  le  cas  échéant,  et  de  protéger  les  participants  et
+participantes  de  la  répétition  du  préjudice.   Par  exemple,  une   réponse
+appropriée  pourrait  exiger  qu'une  personne  demande  pardon,  rembourse   le
+matériel endommagé, ou quitte un évènement social. 
+
+S'il y a un désaccord regardant la définition d'un comportement inacceptable  ou
+regardant l'interprétation  de  cette  politique,  contactez-nous  en  utilisant
+l'information au bas de cette page.
+
+=== Politique sur la publication responsable des vulnérabilités sécuritaires ===
+
+NorthSec accorde une grande priorité aux questions de sécurité et est  conscient
+de l'importance de la  protection  de  la  confidentialité  de  l'information  à
+travers une politique sur la  publication  responsable.   Conformément  à  cette
+politique, toute vulnérabilité sécuritaire  trouvée  relative  à  la  conférence
+doit être divulguée.
+
+--------------------------- Information à signaler: ----------------------------
+
+Pour que nous puissions analyser la vulnérabilité  correctement,  veuillez  nous
+fournir  un  rapport  de  vulnérabilité  complet   incluant   les   informations
+suivantes:
+
+Système ou programme vulnérable: décrire où est  survenue  la  vulnérabilité  et
+tous les paramètres/informations reliés;
+
+* Le type de vulnérabilité;
+* Étapes pour le reproduire: la démarche à suivre pour reproduire le problème;
+* Des captures d'écran qui montrent l'attaque;
+* Scénario d'attaque: un exemple de scénario peut aider à prouver le risque et
+  encourager une plus rapide résolution du problème. 
+
+Une fois que nous avons reçu un rapport de vulnérabilité complet, nous  suivrons
+la démarche suivante: 
+
+- Nous vous demanderons de garder confidentielles toutes les communications
+  relatives à la vulnérabilité pendant au moins 30 jours. 
+- Nous mènerons une enquête et vérifierons la vulnérabilité. 
+- Nous remédierons au problème le cas échéant et publierons une mise à jour
+  pour corriger le logiciel. 
+- Les normes de publication responsable indiquent qu'après avoir signalé le
+  problème en privé, nous aurons 30 jours pour résoudre la vulnérabilité avant
+  d'en aviser le public, dans le cas où aviser le public est nécessaire. 
+
+================== Règlement concernant les prises de photos ===================
+
+Les photographes officiels de NorthSec seront présent(e)s pendant la  conférence
+et feront de leur mieux pour respecter les souhaits des participant(e)s  qui  ne
+voudront pas être photographié(e)s. 
+
+NorthSec  se  réserve  le  droit  de  publier  des  photos  prises  pendant  les
+évènements   passés    et    présents    sur    les    plateformes    suivantes:
+
+- Sur nos réseaux sociaux (Twitter, Facebook, YouTube).
+- Sur notre site web (nsec.io)
+- Dans les matériaux promotionnels de l'évènement (par exemple: les
+  présentations, trousses de commanditaire).
+- Dans les grandes foules, il n'est pas toujours possible de distinguer
+  correctement les individus. Cependant, si quelqu'un(e) se retrouve dans une
+  photo publiée par NorthSec et ne veut pas être personnellement identifiable,
+  il ou elle peut faire une requête pour être anonymisé(e) en écrivant à
+  report@nsec.io.
+
+Chaque  participant(e),   organisateur(-trice),   bénévole,   commanditaire   ou
+conférencier(-ière) qui prend des  photos  de  l'évènement  est  tenu(e)  de  se
+conformer à cette politique. 
+
+========================= Politique sur l'intoxication =========================
+
+Dans le contexte de certains évènements, de l'alcool  sera  peut-être  vendu  ou
+offert aux participant(e)s.  NorthSec respectera la loi locale pour  réguler  la
+consommation de l'alcool et du cannabis. 
+
+Dans le cas des boissons alcoolisées, NorthSec fera de son mieux  pour  prévenir
+les participant(e)s pour qu'ils  ou  elles  puissent  arranger  leur  transport,
+ainsi   que   d'offrir    des    boissons    non    alcoolisées    au    besoin.
+
+Les boissons  alcoolisées  gratuites  seront  offertes  en  quantité  limitée  à
+travers un système de billets de consommation.  Nous  vous  invitons  d'apporter
+avec  vous  votre  propre  tasse  réutilisable  pour  minimiser   l'impact   sur
+l'environnement. 
+
+Posséder une substance illégale, incluant les stupéfiants et  la  drogue,  ainsi
+que fumer (ou vapoter avec une cigarette électronique) à l'extérieur  des  zones
+désignées, est strictement interdit et entre dans la définition de  comportement
+inacceptable selon cette politique.
+
+======================= Politique sur le droit d'auteur ========================
+
+Tous les participants doivent respecter la loi Canadienne sur le droit  d'auteur
+qui protège les artistes, conférenciers, donneurs d'ateliers  et  formateurs  de
+NorthSec,  ainsi  que  les  propriétaires  de  logiciels   &   leurs   éditeurs.
+L'utilisation des resources mises en place par NorthSec pour enfreindre  la  loi
+sur le droit  d'auteur  (de  manière  imprimée  ou  numérique)  est  strictement
+interdite.  Ceci s'applique à toute forme de média électronique,  incluant  sans
+s'y limiter l'ensemble du contenu des  formations,  conférences  &  ateliers  en
+format textuel, images, vidéos ou sonore.
