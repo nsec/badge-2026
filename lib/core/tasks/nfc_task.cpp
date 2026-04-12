@@ -80,16 +80,16 @@ static const uint8_t BADGE_SECRET[32] = {
     0x49, 0x52, 0x5F, 0x53, 0x45, 0x43, 0x52, 0x45, 0x54, 0x5F, 0x4B, 0x45, 0x59, 0x21, 0x21, 0x21,
 };
 
-  #define PAIR_NONCE_LEN 16
-  #define PAIR_HMAC_LEN  32
-  // DEP payload: MAC(6) + HMAC(32) = 38 bytes
-  #define PAIR_DEP_LEN   (core::hw::MAC_LEN + PAIR_HMAC_LEN)
-  // Max profile payload (without MAC): 4 length-prefixed strings + RGB
-  #define PAIR_PROFILE_MAX_LEN                                                                                         \
-    (1 + badge::config::profile::name_max_len + 1 + badge::config::profile::pronouns_max_len + 1 +                     \
-     badge::config::profile::affiliation_max_len + 1 + badge::config::profile::contact_max_len + 3)
-  // Max DEP payload: base + optional profile
-  #define PAIR_DEP_MAX_LEN    (PAIR_DEP_LEN + PAIR_PROFILE_MAX_LEN)
+#define PAIR_NONCE_LEN 16
+#define PAIR_HMAC_LEN  32
+// DEP payload: MAC(6) + HMAC(32) = 38 bytes
+#define PAIR_DEP_LEN (core::hw::MAC_LEN + PAIR_HMAC_LEN)
+// Max profile payload (without MAC): 4 length-prefixed strings + RGB
+#define PAIR_PROFILE_MAX_LEN                                                                                           \
+  (1 + badge::config::profile::name_max_len + 1 + badge::config::profile::pronouns_max_len + 1 +                       \
+   badge::config::profile::affiliation_max_len + 1 + badge::config::profile::contact_max_len + 3)
+// Max DEP payload: base + optional profile
+#define PAIR_DEP_MAX_LEN (PAIR_DEP_LEN + PAIR_PROFILE_MAX_LEN)
 
 /// Derive a per-badge key: HMAC-SHA256(BADGE_SECRET, mac)
 static void deriveKey(const uint8_t mac[core::hw::MAC_LEN], uint8_t keyOut[32]) {
