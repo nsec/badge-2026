@@ -20,16 +20,11 @@ bool lightLastReading(hw::LightReading &out) {
 }
 
 void LightTask::run() {
-  // Wait for I2C bus to settle after dock init
-  vTaskDelay(pdMS_TO_TICKS(2000));
-
-  if (!hw::lightSensorInit()) {
-    hw::safeSerial().println("Light sensor: init failed — task stopping");
+  // Sensor is initialized in main.cpp setup(); if it failed, stop this task.
+  if (!hw::lightSensorReady()) {
     vTaskDelete(nullptr);
     return;
   }
-
-  hw::safeSerial().println("Light sensor: VEML6040 initialized");
 
   // Fractional accumulator for smooth NVS updates.
   float lightAccum = static_cast<float>(storage::socialRead(storage::SocialKey::Light));

@@ -10,6 +10,7 @@
 #include <badge_config.h>
 #include <core.h>
 #include <hardware/line_buffered_stream.h>
+#include <hardware/light_sensor.h>
 #include <hardware/serial_mutex.h>
 
 // Conditionally include conference or challenges based on build flags
@@ -65,6 +66,12 @@ void setup() {
   core::hw::dockSetEventQueue(dockEventQueue.handle());
 
   core::hw::dockInit();
+
+  if (core::hw::lightSensorInit()) {
+    Serial.println("Light sensor initialized");
+  } else {
+    Serial.println("Light sensor init failed");
+  }
 
   core::ota::printBootInfo(Serial);
 

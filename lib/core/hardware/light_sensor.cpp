@@ -70,6 +70,10 @@ bool lightSensorInit() {
   return true;
 }
 
+bool lightSensorReady() {
+  return g_lightReady;
+}
+
 bool lightSensorRead(LightReading &out) {
   if (!g_lightReady)
     return false;

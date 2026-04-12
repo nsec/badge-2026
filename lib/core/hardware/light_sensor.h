@@ -14,6 +14,9 @@ namespace hw {
 /// Initialize the VEML6040 sensor (must be called after Wire.begin or dockInit).
 bool lightSensorInit();
 
+/// Returns true if lightSensorInit() succeeded.
+bool lightSensorReady();
+
 /// Raw channel readings from a single poll.
 struct LightReading {
   uint16_t r, g, b, w;
