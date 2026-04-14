@@ -27,7 +27,7 @@ bool nfcInit() {
   pinMode(badge::pins::NFC_CS, OUTPUT);
   digitalWrite(badge::pins::NFC_CS, HIGH);
 
-  g_nfcSPI.begin(badge::pins::NFC_SCK, badge::pins::NFC_MISO, badge::pins::NFC_MOSI);
+  g_nfcSPI.begin(badge::pins::SPI_SCK, badge::pins::SPI_MISO, badge::pins::SPI_MOSI);
   delay(100);
 
   // Debug: read the ST25R3916 IC Identity register (0x3F) via direct SPI

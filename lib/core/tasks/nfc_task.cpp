@@ -19,6 +19,7 @@
 #include "hardware/board_pins.h"
 #include "hardware/crypto1.h"
 #include "hardware/hwid.h"
+#include "tasks/display.h"
 
 #include <nvs_flash.h>
 #include <nvs.h>
@@ -899,6 +900,28 @@ void NfcTask::runReader() {
       core::hw::safeSerial().println();
     }
 
+    // Send scan result to display
+    {
+      DisplayCommand dc{};
+      dc.type = DisplayCommand::Type::NfcScan;
+      char *p = dc.uid;
+      uint8_t *uidBytes;
+      uint8_t uidLen;
+      if (dev->type == RFAL_NFC_LISTEN_TYPE_NFCA) {
+        uidBytes = dev->dev.nfca.nfcId1;
+        uidLen = dev->dev.nfca.nfcId1Len;
+      } else {
+        uidBytes = dev->nfcid;
+        uidLen = dev->nfcidLen;
+      }
+      for (uint8_t i = 0; i < uidLen && (p - dc.uid) < 30; i++) {
+        if (i > 0)
+          *p++ = ':';
+        p += snprintf(p, 4, "%02X", uidBytes[i]);
+      }
+      _displayQueue.send(dc, Milliseconds(0));
+    }
+
     LedCommand lc{};
     lc.type = LedCommandType::ProgressFlash;
     lc.pixelCount = 18;
@@ -1292,6 +1315,11 @@ void NfcTask::runPair() {
         sc.pixelCount = 18;
         sc.g = 255;
         _ledQueue.send(sc, Milliseconds(0));
+
+        DisplayCommand dc{};
+        dc.type = DisplayCommand::Type::PairResult;
+        dc.pairOutcome = 0;  // new partner
+        _displayQueue.send(dc, Milliseconds(0));
       } else {
         core::hw::safeSerial().printf("NFC-DEP pair: ALREADY SEEN partner %02X:%02X:%02X:%02X:%02X:%02X (%s)\r\n",
                                       partnerMac[0], partnerMac[1], partnerMac[2], partnerMac[3], partnerMac[4],
@@ -1304,6 +1332,11 @@ void NfcTask::runPair() {
         sc.r = 255;
         sc.g = 255;
         _ledQueue.send(sc, Milliseconds(0));
+
+        DisplayCommand dc{};
+        dc.type = DisplayCommand::Type::PairResult;
+        dc.pairOutcome = 1;  // duplicate
+        _displayQueue.send(dc, Milliseconds(0));
       }
     } else {
       core::hw::safeSerial().printf("NFC-DEP pair: HMAC FAILED - partner %02X:%02X:%02X:%02X:%02X:%02X\r\n",
@@ -1314,6 +1347,11 @@ void NfcTask::runPair() {
       sc.pixelCount = 18;
       sc.r = 255;
       _ledQueue.send(sc, Milliseconds(0));
+
+      DisplayCommand dc{};
+      dc.type = DisplayCommand::Type::PairResult;
+      dc.pairOutcome = 2;  // failed
+      _displayQueue.send(dc, Milliseconds(0));
     }
 
     // Regenerate nonce for next session

@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include "hardware/serial_mutex.h"
 
+#include "tasks/display.h"
 #include "storage/nvs_social.h"
 #include "hardware/rgb_led.h"
 
@@ -155,6 +156,7 @@ void ControllerTask::handle(const ButtonPressEvent &event) {
 
     // --- UP: show current social category ---
     case hw::Button::Up: {
+      _nfcMode = NfcMode::Off;
       _nfcQueue.send(NfcCommand{NfcMode::Off}, Milliseconds(0));
       _socialActive = true;
 
@@ -169,26 +171,44 @@ void ControllerTask::handle(const ButtonPressEvent &event) {
       _lastButton = hw::Button::Up;
 
       showCurrentSocial(hold);
+
+      DisplayCommand dc{};
+      dc.type = DisplayCommand::Type::SocialProgress;
+      dc.socialKey = static_cast<uint8_t>(SOCIAL_ORDER[_socialIndex]);
+      dc.socialValue = storage::socialRead(SOCIAL_ORDER[_socialIndex]);
+      _displayQueue.send(dc, Milliseconds(0));
       break;
     }
 
     // --- LEFT: cycle through social categories ---
     case hw::Button::Left: {
+      _nfcMode = NfcMode::Off;
       _nfcQueue.send(NfcCommand{NfcMode::Off}, Milliseconds(0));
       _socialIndex = (_socialIndex + 1) % 4;
       _lastButton = hw::Button::Left;
 
       // Serial.printf("[social] switched to: %s\r\n", SOCIAL_NAMES[_socialIndex]);
 
-      // If social display was active (UP was pressed), show immediately
       if (_socialActive) {
         showCurrentSocial(_holdActive);
       }
+
+      // Always update display (clears stale NFC mode screen)
+      DisplayCommand dc{};
+      if (_socialActive) {
+        dc.type = DisplayCommand::Type::SocialProgress;
+        dc.socialKey = static_cast<uint8_t>(SOCIAL_ORDER[_socialIndex]);
+        dc.socialValue = storage::socialRead(SOCIAL_ORDER[_socialIndex]);
+      } else {
+        dc.type = DisplayCommand::Type::ShowLogo;
+      }
+      _displayQueue.send(dc, Milliseconds(0));
       break;
     }
 
     // --- RIGHT: cycle brightness (10 levels) ---
     case hw::Button::Right: {
+      _nfcMode = NfcMode::Off;
       _nfcQueue.send(NfcCommand{NfcMode::Off}, Milliseconds(0));
       _brightnessLevel++;
       if (_brightnessLevel > 10)
@@ -201,31 +221,71 @@ void ControllerTask::handle(const ButtonPressEvent &event) {
       hw::rgbSetBrightness(brightness);
       // Serial.printf("[brightness] level %u/10 (raw=%u)\r\n", _brightnessLevel, brightness);
 
-      // Re-show the current social display at the new brightness
       if (_socialActive) {
         showCurrentSocial(_holdActive);
       }
+
+      // Always update display (clears stale NFC mode screen)
+      DisplayCommand dc{};
+      if (_socialActive) {
+        dc.type = DisplayCommand::Type::SocialProgress;
+        dc.socialKey = static_cast<uint8_t>(SOCIAL_ORDER[_socialIndex]);
+        dc.socialValue = storage::socialRead(SOCIAL_ORDER[_socialIndex]);
+      } else {
+        dc.type = DisplayCommand::Type::ShowLogo;
+      }
+      _displayQueue.send(dc, Milliseconds(0));
       break;
     }
 
-    // --- DOWN: NFC emulate ---
+    // --- DOWN: NFC emulate (toggle) ---
     case hw::Button::Down: {
       _lastButton = hw::Button::Down;
-      _nfcQueue.send(NfcCommand{NfcMode::Emulator}, Milliseconds(0));
+      NfcMode target = (_nfcMode == NfcMode::Emulator) ? NfcMode::Off : NfcMode::Emulator;
+      _nfcMode = target;
+      _nfcQueue.send(NfcCommand{target}, Milliseconds(0));
+      DisplayCommand dc{};
+      if (target == NfcMode::Off) {
+        dc.type = DisplayCommand::Type::ShowLogo;
+      } else {
+        dc.type = DisplayCommand::Type::ModeChange;
+        dc.nfcMode = static_cast<uint8_t>(target);
+      }
+      _displayQueue.send(dc, Milliseconds(0));
       break;
     }
 
-    // --- A: NFC read ---
+    // --- A: NFC read (toggle) ---
     case hw::Button::A: {
       _lastButton = hw::Button::A;
-      _nfcQueue.send(NfcCommand{NfcMode::Reader}, Milliseconds(0));
+      NfcMode target = (_nfcMode == NfcMode::Reader) ? NfcMode::Off : NfcMode::Reader;
+      _nfcMode = target;
+      _nfcQueue.send(NfcCommand{target}, Milliseconds(0));
+      DisplayCommand dc{};
+      if (target == NfcMode::Off) {
+        dc.type = DisplayCommand::Type::ShowLogo;
+      } else {
+        dc.type = DisplayCommand::Type::ModeChange;
+        dc.nfcMode = static_cast<uint8_t>(target);
+      }
+      _displayQueue.send(dc, Milliseconds(0));
       break;
     }
 
-    // --- B: NFC P2P pair ---
+    // --- B: NFC P2P pair (toggle) ---
     case hw::Button::B: {
       _lastButton = hw::Button::B;
-      _nfcQueue.send(NfcCommand{NfcMode::Pair}, Milliseconds(0));
+      NfcMode target = (_nfcMode == NfcMode::Pair) ? NfcMode::Off : NfcMode::Pair;
+      _nfcMode = target;
+      _nfcQueue.send(NfcCommand{target}, Milliseconds(0));
+      DisplayCommand dc{};
+      if (target == NfcMode::Off) {
+        dc.type = DisplayCommand::Type::ShowLogo;
+      } else {
+        dc.type = DisplayCommand::Type::ModeChange;
+        dc.nfcMode = static_cast<uint8_t>(target);
+      }
+      _displayQueue.send(dc, Milliseconds(0));
       break;
     }
 

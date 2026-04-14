@@ -18,6 +18,8 @@
 #include <nvs_flash.h>
 #include <nvs.h>
 #include "tasks/nfc.h"
+#include "hardware/eink.h"
+#include <Fonts/FreeMonoBold9pt7b.h>
 
 namespace {
 
@@ -133,7 +135,11 @@ std::string nextToken(const std::string &s, size_t &idx) {
 void cmdHelp() {
   g_io->print("Commands:\r\n"
               "  help                 - show this help\r\n"
+              "  info                 - print current boot/partition info\r\n"
               "  hwid                 - print unique hardware ID\r\n"
+              "  ledtest [N]          - run RGB LED test suite (N=test# or all)\r\n"
+              "  einktest             - e-ink display test pattern\r\n"
+              "  buttontest           - interactive button test (press all 6)\r\n"
               "  nvstest <key> <val>  - set social NVS\r\n"
               "  pairtest [reset]     - show/reset paired partners\r\n");
   g_io->flush();
@@ -212,6 +218,44 @@ void cmdLedTest(const std::string &arg) {
 
   g_io->println();
   g_io->println("LED test complete.");
+}
+
+void cmdEinkTest() {
+  if (!core::hw::einkAvailable()) {
+    g_io->println("E-Ink: no display detected — test skipped");
+    return;
+  }
+  g_io->println("=== E-Ink Display Test ===");
+  auto &display = core::hw::einkDisplay();
+
+  display.setRotation(1);
+  display.setFont(&FreeMonoBold9pt7b);
+  display.setTextColor(GxEPD_BLACK);
+
+  const char *line1 = "NorthSec 2026";
+  const char *line2 = "Badge OK!";
+
+  int16_t tbx, tby;
+  uint16_t tbw, tbh;
+  display.getTextBounds(line1, 0, 0, &tbx, &tby, &tbw, &tbh);
+  uint16_t x1 = ((display.width() - tbw) / 2) - tbx;
+  uint16_t y1 = ((display.height() - tbh) / 2) - tby - tbh;
+
+  display.getTextBounds(line2, 0, 0, &tbx, &tby, &tbw, &tbh);
+  uint16_t x2 = ((display.width() - tbw) / 2) - tbx;
+  uint16_t y2 = ((display.height() - tbh) / 2) - tby + tbh;
+
+  display.setFullWindow();
+  display.firstPage();
+  do {
+    display.fillScreen(GxEPD_WHITE);
+    display.setCursor(x1, y1);
+    display.print(line1);
+    display.setCursor(x2, y2);
+    display.print(line2);
+  } while (display.nextPage());
+
+  g_io->println("Display updated.");
 }
 
 void cmdStatus() {
@@ -421,14 +465,16 @@ void handleLine(const std::string &line) {
   //   return cmdInfo();
   if (cmd == "hwid")
     return cmdHwid();
-  // if (cmd == "ledtest") {
-  //   std::string arg = nextToken(line, i);
-  //   return cmdLedTest(arg);
-  // }
-  // if (cmd == "buttontest") {
-  //   core::hw::buttonTestInteractive(*g_io);
-  //  return;
-  // }
+  if (cmd == "ledtest") {
+    std::string arg = nextToken(line, i);
+    return cmdLedTest(arg);
+  }
+  if (cmd == "einktest")
+    return cmdEinkTest();
+  if (cmd == "buttontest") {
+    core::hw::buttonTestInteractive(*g_io);
+    return;
+  }
   if (cmd == "nvstest") {
     std::string arg = (i < line.length()) ? line.substr(i) : "";
     trim(arg);
