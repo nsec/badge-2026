@@ -28,14 +28,15 @@ Format C++ with: `./format-cpp` (runs clang-format per `.clang-format`). Require
 
 ### RTOS Task Model
 
-Five FreeRTOS tasks communicate via type-safe `Queue<T>` wrappers (no shared memory):
+Six FreeRTOS tasks communicate via type-safe `Queue<T>` wrappers (no shared memory):
 
 | Task | Priority | Role |
 |------|----------|------|
 | ButtonTask | 5 | Polls 6 buttons (15ms debounce), sends `ButtonPressEvent` |
 | NfcTask | 3 | Reader, NTAG213 emulator (deferred ISR), or NFC-DEP P2P pairing |
 | LedTask | 3 | Processes `LedCommand` queue, drives 18x WS2812 on IO8 |
-| ControllerTask | 2 | Central event router: buttons → NFC/LED/social commands |
+| ControllerTask | 2 | Central event router: buttons → NFC/LED/display/social commands |
+| DisplayTask | 1 | Processes `DisplayCommand` queue, renders e-ink content with timeouts |
 | CliTask | 1 | Serial CLI with command registration, history, ANSI escape |
 
 Plus a heartbeat software timer (500ms status LED toggle on IO7).
@@ -57,6 +58,20 @@ Plus a heartbeat software timer (500ms status LED toggle on IO7).
 Single `RfalRfST25R3916Class` instance (with real interrupt pin) serves both reader and emulator modes. Never use `int_pin = -1` — it completely breaks interrupt processing.
 
 After modifying patches: `rm -rf .pio/libdeps` to force re-patching.
+
+### E-Ink Display (SSD1681 via GxEPD2)
+
+1.54" 200x200 BW display (GDEH0154D67) shares HSPI bus with NFC. Pins: CS=IO41, DC=IO42, RST=IO45, BUSY=IO46. Library: `zinggjm/GxEPD2`.
+
+- **Detection**: `einkInit()` sends SSD1681 soft-reset via SPI and watches BUSY pin (INPUT_PULLDOWN). Missing display = all display ops become no-ops.
+- **Rotation**: Always use `setRotation(1)` for correct orientation (FPC connector on right).
+- **Bitmap format**: GxEPD2 inverted format (0xFF=white, 0x00=black, MSB first). Draw with `drawInvertedBitmap()`.
+- **Bitmap conversion**: `./tools/bmp2header.sh <image> <output.h> <array_name>` converts BMP/PNG to PROGMEM C header. Requires ImageMagick (`magick`).
+- **DisplayTask**: Receives `DisplayCommand` via queue. Shows mode screens (no timeout while active), scan results (15s), pair results (5s), social progress (10s), then reverts to nsec logo.
+- **Layout**: Info screens use 200x105 half-logo on top + 95px text area below. Boot/idle shows full 200x200 logo.
+- **SPI sharing**: Uses same `SPIClass(HSPI)` as NFC via `nfcSPI()`. ESP32 SPI transactions handle bus locking.
+
+See `lib/core/hardware/eink.*`, `lib/core/tasks/display.*`, `lib/core/tasks/display_task.*`.
 
 ### Dual Firmware / OTA
 
@@ -100,6 +115,7 @@ Built-in commands (registered in `lib/core/tasks/cli.cpp`):
 | `info` | Print boot/partition info |
 | `hwid` | Print hardware ID (MAC-based) |
 | `ledtest [N]` | RGB LED test suite |
+| `einktest` | E-ink display test (skipped if no display) |
 | `buttontest` | Interactive button test |
 | `nvstest <key> <val>` | Set social NVS value (social/sponsor/light/attraction/all) |
 | `status` | Show social NVS values |

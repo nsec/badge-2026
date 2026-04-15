@@ -28,10 +28,12 @@ inline constexpr UBaseType_t led_depth = 8;
 inline constexpr UBaseType_t cli_depth = 4;
 inline constexpr UBaseType_t nfc_depth = 4;
 inline constexpr UBaseType_t dock_depth = 8;
+inline constexpr UBaseType_t display_depth = 4;
 }  // namespace queues
 
 namespace tasks {
 inline constexpr UBaseType_t priority_cli = 1;
+inline constexpr UBaseType_t priority_display = 1;
 inline constexpr UBaseType_t priority_controller = 2;
 inline constexpr UBaseType_t priority_led = 3;
 inline constexpr UBaseType_t priority_nfc = 3;

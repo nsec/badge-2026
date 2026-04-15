@@ -67,6 +67,12 @@ void setup() {
 
   core::hw::dockInit();
 
+  if (core::hw::einkInit()) {
+    Serial.println("E-Ink initialized");
+  } else {
+    Serial.println("E-Ink init failed - display features disabled");
+  }
+
   // Light sensor shares the same I2C pins as the dock. Each read temporarily
   // borrows the bus (Wire1 master) then restores the dock slave (Wire).
   if (core::hw::lightSensorInit()) {
@@ -96,26 +102,25 @@ void setup() {
   static core::Queue<core::LedCommand> ledQueue(badge::config::queues::led_depth);
   static core::Queue<core::CliResponse> cliQueue(badge::config::queues::cli_depth);
   static core::Queue<core::NfcCommand> nfcQueue(badge::config::queues::nfc_depth);
+  static core::Queue<core::DisplayCommand> displayQueue(badge::config::queues::display_depth);
 
   core::g_controllerQueue = &controllerQueue;
   core::g_ledQueue = &ledQueue;
   core::g_cliQueue = &cliQueue;
   core::g_nfcQueue = &nfcQueue;
+  core::g_displayQueue = &displayQueue;
 
   // Create tasks
   static core::LedTask ledTask(ledQueue);
-  static core::ControllerTask controllerTask(controllerQueue, ledQueue, cliQueue, nfcQueue);
+  static core::ControllerTask controllerTask(controllerQueue, ledQueue, cliQueue, nfcQueue, displayQueue);
   static core::CliTask cliTask;
   static core::ButtonTask buttonTask(controllerQueue);
-  static core::NfcTask nfcTask(nfcQueue, ledQueue);
+  static core::NfcTask nfcTask(nfcQueue, ledQueue, displayQueue);
   static core::DockTask dockTask(dockEventQueue, ledQueue);
+  static core::DisplayTask displayTask(displayQueue);
   static core::LightTask lightTask;
 
   core::heartbeatStart();
-
-  Serial.println("Setup complete!");
-  Serial.println("Type 'help' for commands.");
-  Serial.flush();
 
   ledTask.start();
   controllerTask.start();
@@ -123,6 +128,18 @@ void setup() {
   buttonTask.start();
   nfcTask.start();
   dockTask.start();
+  displayTask.start();
+
+  // Show boot logo via DisplayTask (moved from einkInit)
+  {
+    core::DisplayCommand dc{};
+    dc.type = core::DisplayCommand::Type::ShowLogo;
+    displayQueue.send(dc, core::Milliseconds(0));
+  }
+
+  Serial.println("Setup complete!");
+  Serial.println("Type 'help' for commands.");
+  Serial.flush();
   lightTask.start();
 }
 
