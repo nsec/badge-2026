@@ -67,6 +67,8 @@ void setup() {
 
   core::hw::dockInit();
 
+  // Light sensor shares the same I2C pins as the dock. Each read temporarily
+  // borrows the bus (Wire1 master) then restores the dock slave (Wire).
   if (core::hw::lightSensorInit()) {
     Serial.println("Light sensor initialized");
   } else {

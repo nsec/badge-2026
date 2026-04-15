@@ -1,16 +1,16 @@
 #include "hardware/light_sensor.h"
 #include "hardware/board_pins.h"
+#include "hardware/dock.h"
 
 #include <Arduino.h>
 #include <Wire.h>
 
-// Use Wire1 (second I2C peripheral) for the light sensor.
-// Wire (first peripheral) is used by the dock subsystem in slave mode
-// and cannot do master transactions simultaneously on ESP32-S3.
-// Both share the same physical SDA/SCL pins — ESP32-S3 supports this
-// via its I2C peripheral multiplexing.
+// Use Wire1 (second I2C peripheral) as a temporary I2C master for the sensor.
+// Wire (first peripheral) is used by the dock subsystem in slave mode.
+// Both share the same physical SDA/SCL pins, so only one can own the GPIO
+// output mux at a time. We bring up Wire1 for each transaction, then tear it
+// down and re-init the dock slave so dock I2C stays functional.
 static TwoWire &LightWire = Wire1;
-static bool g_wireInitDone = false;
 
 // VEML6040 I2C address and registers
 #define VEML6040_ADDR 0x10
@@ -47,15 +47,22 @@ static bool readReg(uint8_t reg, uint16_t &out) {
   return true;
 }
 
+/// Temporarily claim the I2C bus for master transactions.
+static void busAcquire() {
+  LightWire.begin(badge::pins::I2C_SDA, badge::pins::I2C_SCL, 100000);
+}
+
+/// Release the I2C bus and restore the dock's slave ownership.
+static void busRelease() {
+  LightWire.end();
+  core::hw::dockReinitSlave();
+}
+
 namespace core {
 namespace hw {
 
 bool lightSensorInit() {
-  // Initialize Wire1 as I2C master on the same SDA/SCL pins
-  if (!g_wireInitDone) {
-    LightWire.begin(badge::pins::I2C_SDA, badge::pins::I2C_SCL, 100000);
-    g_wireInitDone = true;
-  }
+  busAcquire();
 
   // Configure: 160ms integration, auto mode, sensor enabled
   writeReg(VEML6040_CONF, VEML6040_IT_160MS | VEML6040_AF_AUTO | VEML6040_SD_ENABLE);
@@ -63,7 +70,11 @@ bool lightSensorInit() {
 
   // Verify sensor is responding by reading green channel
   uint16_t g = 0;
-  if (!readReg(VEML6040_G, g))
+  bool ok = readReg(VEML6040_G, g);
+
+  busRelease();
+
+  if (!ok)
     return false;
 
   g_lightReady = true;
@@ -78,13 +89,18 @@ bool lightSensorRead(LightReading &out) {
   if (!g_lightReady)
     return false;
 
-  if (!readReg(VEML6040_R, out.r))
-    return false;
-  if (!readReg(VEML6040_G, out.g))
-    return false;
-  if (!readReg(VEML6040_B, out.b))
-    return false;
-  if (!readReg(VEML6040_W, out.w))
+  busAcquire();
+
+  bool ok = readReg(VEML6040_R, out.r) && readReg(VEML6040_G, out.g) && readReg(VEML6040_B, out.b) &&
+            readReg(VEML6040_W, out.w);
+
+  // Re-configure sensor each poll — the config register may have been lost
+  // when we tore down Wire1 on the previous cycle.
+  writeReg(VEML6040_CONF, VEML6040_IT_160MS | VEML6040_AF_AUTO | VEML6040_SD_ENABLE);
+
+  busRelease();
+
+  if (!ok)
     return false;
 
   // Lux from green channel (0.25168 sensitivity for 160ms integration)

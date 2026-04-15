@@ -3,6 +3,7 @@
 #include <Arduino.h>
 
 #include "hardware/light_sensor.h"
+#include "hardware/dock.h"
 #include "hardware/serial_mutex.h"
 #include "storage/nvs_social.h"
 
@@ -41,6 +42,10 @@ void LightTask::run() {
 
   for (;;) {
     vTaskDelay(pdMS_TO_TICKS(POLL_MS));
+
+    // Skip sensor read while docked — the dock owns the I2C bus.
+    if (hw::dockIsActive())
+      continue;
 
     hw::LightReading reading;
     if (!hw::lightSensorRead(reading))
