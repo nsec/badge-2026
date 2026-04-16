@@ -16,8 +16,7 @@ namespace core {
 class ControllerTask : public Task {
 public:
   ControllerTask(Queue<ControllerEvent> &inQueue, Queue<LedCommand> &ledQueue, Queue<CliResponse> &cliQueue,
-                 Queue<NfcCommand> &nfcQueue, Queue<DisplayCommand> &displayQueue,
-                 Queue<PortalCommand> &portalQueue)
+                 Queue<NfcCommand> &nfcQueue, Queue<DisplayCommand> &displayQueue, Queue<PortalCommand> &portalQueue)
       : Task("controller", badge::config::tasks::priority_controller), _inQueue(inQueue), _ledQueue(ledQueue),
         _cliQueue(cliQueue), _nfcQueue(nfcQueue), _displayQueue(displayQueue), _portalQueue(portalQueue) {}
 
