@@ -64,12 +64,10 @@ struct SocialData {
   uint8_t social = 0;
   uint8_t sponsor = 0;
   uint8_t light = 0;
-  uint8_t attraction = 0;
 };
 
 int toJson(const SocialData &d, char *buf, size_t bufSize) {
-  return snprintf(buf, bufSize, "{\"social\":%u,\"sponsor\":%u,\"light\":%u,\"attraction\":%u}", d.social, d.sponsor,
-                  d.light, d.attraction);
+  return snprintf(buf, bufSize, "{\"social\":%u,\"sponsor\":%u,\"light\":%u}", d.social, d.sponsor, d.light);
 }
 
 SocialData fromJson(std::string_view json) {
@@ -96,7 +94,6 @@ SocialData fromJson(std::string_view json) {
   d.social = findKey("\"social\"");
   d.sponsor = findKey("\"sponsor\"");
   d.light = findKey("\"light\"");
-  d.attraction = findKey("\"attraction\"");
   return d;
 }
 
@@ -200,8 +197,6 @@ const char *keyStr(core::storage::SocialKey key) {
       return "sponsor";
     case core::storage::SocialKey::Light:
       return "light";
-    case core::storage::SocialKey::Attraction:
-      return "attraction";
     default:
       return "unknown";
   }
@@ -246,8 +241,6 @@ uint8_t socialRead(SocialKey key) {
       return d.sponsor;
     case SocialKey::Light:
       return d.light;
-    case SocialKey::Attraction:
-      return d.attraction;
     default:
       return 0;
   }
@@ -265,9 +258,6 @@ void socialWrite(SocialKey key, uint8_t value) {
       break;
     case SocialKey::Light:
       d.light = value;
-      break;
-    case SocialKey::Attraction:
-      d.attraction = value;
       break;
     default:
       return;

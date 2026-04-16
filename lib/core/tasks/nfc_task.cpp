@@ -192,7 +192,26 @@ static void fillRandom(uint8_t *buf, size_t len) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Custom NDEF text — stored in NVS namespace "ndef"
+// ---------------------------------------------------------------------------
+
+static char g_customNdefText[128] = {};  // empty = use default
+
+static void loadCustomNdef() {
+  nvs_handle_t h;
+  if (nvs_open("ndef", NVS_READONLY, &h) != ESP_OK)
+    return;
+  size_t len = sizeof(g_customNdefText) - 1;
+  if (nvs_get_str(h, "text", g_customNdefText, &len) != ESP_OK)
+    g_customNdefText[0] = '\0';
+  nvs_close(h);
+}
+
 void initTagMemory() {
+  // Load custom NDEF text from NVS (if any)
+  loadCustomNdef();
+
   // Build unique UID from MAC: 0x04 (NXP) + 6 MAC bytes
   uint8_t mac[core::hw::MAC_LEN];
   core::hw::getHwidMac(mac);
@@ -215,16 +234,25 @@ void initTagMemory() {
   tagMemory[14] = 0x12;
   tagMemory[15] = 0x00;
 
-  // Build NDEF Text record: "NSEC Badge <MAC>"
+  // Build NDEF Text record
+  // Use custom text if set in NVS, otherwise default to "NSEC Badge <MAC>"
   char macHex[13];
   snprintf(macHex, sizeof(macHex), "%02X%02X%02X%02X%02X%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
-  const char *prefix = "NSEC Badge ";
-  uint8_t prefixLen = 11;
-  uint8_t textPayloadLen = 1 + 2 + prefixLen + 12;  // status + "en" + prefix + MAC
+  char ndefText[128];
+  if (g_customNdefText[0] != '\0') {
+    strncpy(ndefText, g_customNdefText, sizeof(ndefText) - 1);
+    ndefText[sizeof(ndefText) - 1] = '\0';
+  } else {
+    snprintf(ndefText, sizeof(ndefText), "NSEC Badge %s", macHex);
+  }
+  uint8_t textLen = static_cast<uint8_t>(strlen(ndefText));
+  if (textLen > 100)
+    textLen = 100;                           // keep within NTAG213 capacity
+  uint8_t textPayloadLen = 1 + 2 + textLen;  // status + "en" + text
 
   // NDEF record header (SR=1, MB=1, ME=1, TNF=0x01 well-known, type='T')
-  uint8_t ndefRecord[40];
+  uint8_t ndefRecord[128];
   uint8_t pos = 0;
   ndefRecord[pos++] = 0xD1;            // MB|ME|SR, TNF=0x01
   ndefRecord[pos++] = 0x01;            // type length = 1
@@ -233,10 +261,8 @@ void initTagMemory() {
   ndefRecord[pos++] = 0x02;            // status: UTF-8, lang len = 2
   ndefRecord[pos++] = 'e';
   ndefRecord[pos++] = 'n';
-  memcpy(&ndefRecord[pos], prefix, prefixLen);
-  pos += prefixLen;
-  memcpy(&ndefRecord[pos], macHex, 12);
-  pos += 12;
+  memcpy(&ndefRecord[pos], ndefText, textLen);
+  pos += textLen;
 
   // Build TLV: 0x03 <len> <record> 0xFE
   g_ndefLen = 0;
@@ -786,6 +812,46 @@ static bool ensureReady(RfalNfcClass &nfc) {
 }
 
 }  // namespace
+
+// ===========================================================================
+// NDEF text get/set/reset — accessible from CLI
+// ===========================================================================
+
+const char *ndefGetText() {
+  return g_customNdefText[0] != '\0' ? g_customNdefText : nullptr;
+}
+
+bool ndefSetText(const char *text) {
+  if (!text || strlen(text) == 0 || strlen(text) > 100)
+    return false;
+
+  nvs_handle_t h;
+  if (nvs_open("ndef", NVS_READWRITE, &h) != ESP_OK)
+    return false;
+  nvs_set_str(h, "text", text);
+  nvs_commit(h);
+  nvs_close(h);
+
+  strncpy(g_customNdefText, text, sizeof(g_customNdefText) - 1);
+  g_customNdefText[sizeof(g_customNdefText) - 1] = '\0';
+
+  // Rebuild tag memory with new text
+  initTagMemory();
+  return true;
+}
+
+void ndefReset() {
+  nvs_handle_t h;
+  if (nvs_open("ndef", NVS_READWRITE, &h) == ESP_OK) {
+    nvs_erase_key(h, "text");
+    nvs_commit(h);
+    nvs_close(h);
+  }
+  g_customNdefText[0] = '\0';
+
+  // Rebuild tag memory with default text
+  initTagMemory();
+}
 
 // ===========================================================================
 // NfcTask public interface

@@ -12,6 +12,10 @@
 // Set via dockSetEventQueue() before tasks start.
 static QueueHandle_t g_dockEventQueue = nullptr;
 
+// Timestamp of last dock I2C activity (set from ISR, read from light task).
+static volatile unsigned long g_lastDockActivityMs = 0;
+static constexpr unsigned long DOCK_ACTIVE_TIMEOUT_MS = 5000;
+
 // Custom response buffer for next I2C read, protected by critical section.
 #define RESPONSE_BUF_MAX 64
 static uint8_t g_responseBuf[RESPONSE_BUF_MAX];
@@ -33,6 +37,8 @@ char g_hwidHex[13] = {};
 void onReceive(int numBytes) {
   if (numBytes < 1)
     return;
+
+  g_lastDockActivityMs = millis();
 
   uint8_t cmd = Wire.read();
   core::DockEvent evt;
@@ -91,6 +97,7 @@ void onReceive(int numBytes) {
 
 // I2C request handler — called when dock reads from badge
 void onRequest() {
+  g_lastDockActivityMs = millis();
   taskENTER_CRITICAL_ISR(&g_responseMux);
   if (g_responseReady && g_responseLen > 0) {
     Wire.write(g_responseBuf, g_responseLen);
@@ -111,6 +118,13 @@ void dockSetEventQueue(void *queueHandle) {
   g_dockEventQueue = static_cast<QueueHandle_t>(queueHandle);
 }
 
+bool dockIsActive() {
+  unsigned long last = g_lastDockActivityMs;
+  if (last == 0)
+    return false;
+  return (millis() - last) < DOCK_ACTIVE_TIMEOUT_MS;
+}
+
 void dockInit() {
   // Build the hardware ID hex string
   uint8_t mac[MAC_LEN];
@@ -126,6 +140,13 @@ void dockInit() {
   Wire.onRequest(onRequest);
 
   Serial.printf("I2C initialized\r\n");
+}
+
+void dockReinitSlave() {
+  Wire.end();
+  Wire.begin(DOCK_I2C_ADDR, badge::pins::I2C_SDA, badge::pins::I2C_SCL, 0);
+  Wire.onReceive(onReceive);
+  Wire.onRequest(onRequest);
 }
 
 void dockRegisterChallengeHandler(uint8_t subOpcode, DockChallengeHandler handler) {

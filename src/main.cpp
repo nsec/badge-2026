@@ -10,6 +10,7 @@
 #include <badge_config.h>
 #include <core.h>
 #include <hardware/line_buffered_stream.h>
+#include <hardware/light_sensor.h>
 #include <hardware/serial_mutex.h>
 
 // Conditionally include conference or challenges based on build flags
@@ -72,6 +73,14 @@ void setup() {
     Serial.println("E-Ink init failed - display features disabled");
   }
 
+  // Light sensor shares the same I2C pins as the dock. Each read temporarily
+  // borrows the bus (Wire1 master) then restores the dock slave (Wire).
+  if (core::hw::lightSensorInit()) {
+    Serial.println("Light sensor initialized");
+  } else {
+    Serial.println("Light sensor init failed");
+  }
+
   core::ota::printBootInfo(Serial);
 
   static core::hw::LineBufferedStream bufferedSerial(Serial);
@@ -109,6 +118,7 @@ void setup() {
   static core::NfcTask nfcTask(nfcQueue, ledQueue, displayQueue);
   static core::DockTask dockTask(dockEventQueue, ledQueue);
   static core::DisplayTask displayTask(displayQueue);
+  static core::LightTask lightTask;
 
   core::heartbeatStart();
 
@@ -130,6 +140,7 @@ void setup() {
   Serial.println("Setup complete!");
   Serial.println("Type 'help' for commands.");
   Serial.flush();
+  lightTask.start();
 }
 
 void loop() {

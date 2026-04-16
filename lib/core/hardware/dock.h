@@ -43,6 +43,10 @@ struct ChallengeHandlerEntry {
 /// Initialize the I2C slave for dock communication.
 void dockInit();
 
+/// Re-attach the I2C slave after a temporary master transaction (e.g. light sensor).
+/// Cheaper than dockInit(): skips HWID setup, just re-inits Wire + callbacks.
+void dockReinitSlave();
+
 /// Register a handler for ChallengeData commands with a specific sub-opcode.
 /// Multiple handlers can be registered for different sub-opcodes.
 void dockRegisterChallengeHandler(uint8_t subOpcode, DockChallengeHandler handler);
@@ -53,6 +57,10 @@ void dockSetResponseBuffer(const uint8_t *data, uint8_t len);
 
 /// Set the dock event queue (called from main.cpp before tasks start).
 void dockSetEventQueue(void *queueHandle);
+
+/// Returns true if the badge has received dock I2C activity recently (within ~3s).
+/// Used by the light sensor to avoid bus contention while docked.
+bool dockIsActive();
 
 /// Maximum number of unique docks that fill the sponsor bar.
 static constexpr uint8_t MAX_SPONSOR_DOCKS = 16;
