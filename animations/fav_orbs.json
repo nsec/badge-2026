@@ -1,0 +1,144 @@
+{
+  "name": "fav_orbs",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "orbit",
+        "center": [
+          0.530209152801955,
+          0.31804695568892943
+        ],
+        "rx": 0.42,
+        "ry": 0.3,
+        "period": 50,
+        "phase": 0
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.3,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.9,
+        "amplitude": 0.1,
+        "period": 3,
+        "phase": 0
+      }
+    },
+    {
+      "motion": {
+        "type": "noise_drift",
+        "center": [
+          0.30405510124447643,
+          1.0007726590723247
+        ],
+        "amplitude": 0.2,
+        "speed": 0.1
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_analogous1"
+      },
+      "radius": 0.3,
+      "intensity": 1
+    },
+    {
+      "motion": {
+        "type": "noise_drift",
+        "center": [
+          0.7448521765784012,
+          0.9773122336431025
+        ],
+        "amplitude": 0.2,
+        "speed": 0.4
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_analogous2"
+      },
+      "radius": 0.3,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.9,
+        "amplitude": 0.1,
+        "period": 5,
+        "phase": 0
+      }
+    },
+    {
+      "motion": {
+        "type": "lissajous",
+        "center": [
+          0.49329873868087176,
+          0.02946115950778273
+        ],
+        "rx": 0.3,
+        "ry": 0.17,
+        "freq_a": 1,
+        "freq_b": 2,
+        "phase": 0,
+        "speed": 0.03
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.3,
+      "intensity": 1
+    },
+    {
+      "motion": {
+        "type": "spline",
+        "points": [
+          [
+            0.6808466645186128,
+            0.041709011966561536
+          ],
+          [
+            -0.1039017418328619,
+            0.1064378544353596
+          ],
+          [
+            1.074996305852889,
+            0.43655487281040994
+          ],
+          [
+            0.006176077827899024,
+            0.6857608287880556
+          ],
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.26539160182403254,
+            0.01581748987729369
+          ],
+          [
+            0.2050263775180353,
+            0.6048498408819079
+          ],
+          [
+            -0.022231096166560674,
+            0.3459344710067156
+          ]
+        ],
+        "period": 50
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.3,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.8,
+        "amplitude": 0.2,
+        "period": 1.5,
+        "phase": 0
+      }
+    }
+  ]
+}

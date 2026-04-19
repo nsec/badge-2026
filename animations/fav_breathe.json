@@ -1,0 +1,28 @@
+{
+  "name": "fav_breathe",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.4911315329520538,
+          0.4762173700882014
+        ]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 200,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.85,
+        "amplitude": 0.15,
+        "period": 8,
+        "phase": 0
+      }
+    }
+  ]
+}
+

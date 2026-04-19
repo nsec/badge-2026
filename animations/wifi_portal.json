@@ -1,0 +1,67 @@
+{
+  "name": "wifi_portal",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "orbit",
+        "center": [
+          0.2974239437223822,
+          0.3636214515702423
+        ],
+        "rx": 0.3,
+        "ry": 0.3,
+        "period": 4,
+        "phase": 0
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.3,
+      "intensity": 1
+    },
+    {
+      "motion": {
+        "type": "orbit",
+        "center": [
+          0.690670480508503,
+          0.3331844729852034
+        ],
+        "rx": 0.3,
+        "ry": 0.3,
+        "period": 4,
+        "phase": 3.38,
+        "reverse": true
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.3,
+      "intensity": 1
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.4805578541359802,
+          1.563825253093878
+        ]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_complement"
+      },
+      "radius": 1,
+      "intensity": {
+        "type": "breathe",
+        "base": 1,
+        "amplitude": 1,
+        "period": 4,
+        "phase": 0
+      }
+    }
+  ]
+}
+

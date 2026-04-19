@@ -1,0 +1,115 @@
+{
+  "name": "splotches",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "lissajous",
+        "center": [
+          0.515082355942647,
+          0.33145121041975595
+        ],
+        "rx": 0.48,
+        "ry": 0.3,
+        "freq_a": 1,
+        "freq_b": 2,
+        "phase": 0,
+        "speed": 0.03
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.3,
+      "intensity": 1
+    },
+    {
+      "motion": {
+        "type": "lissajous",
+        "center": [
+          0.4786181817159464,
+          0.9746287606046944
+        ],
+        "rx": 0.56,
+        "ry": 0.3,
+        "freq_a": 0.7,
+        "freq_b": 2,
+        "phase": 0,
+        "speed": 0.1
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_light"
+      },
+      "radius": 0.3,
+      "intensity": 1
+    },
+    {
+      "motion": {
+        "type": "spline",
+        "points": [
+          [
+            0.2,
+            0.5
+          ],
+          [
+            0.06550072954501707,
+            0.19431720145906559
+          ],
+          [
+            1.0050098715456783,
+            0.4435852831449622
+          ],
+          [
+            0.68004261541954,
+            1.0007726590723247
+          ]
+        ],
+        "period": 20
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_complement"
+      },
+      "radius": 0.3,
+      "intensity": 1
+    },
+    {
+      "motion": {
+        "type": "noise_drift",
+        "center": [
+          -0.06084519045584077,
+          0.46947486846155073
+        ],
+        "amplitude": 0.2,
+        "speed": 0.3
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.3,
+      "intensity": 1
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.49569274215820835,
+          0.03847255308258883
+        ]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "theme_gold"
+      },
+      "radius": 0.3,
+      "intensity": {
+        "type": "noise",
+        "base": 0.5,
+        "amplitude": 0.5,
+        "speed": 1
+      }
+    }
+  ]
+}

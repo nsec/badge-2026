@@ -1,0 +1,26 @@
+{
+  "name": "fav_noise",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.4911315329520538,
+          0.4762173700882014
+        ]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 200,
+      "intensity": {
+        "type": "noise",
+        "base": 0.9,
+        "amplitude": 0.1,
+        "speed": 6
+      }
+    }
+  ]
+}
