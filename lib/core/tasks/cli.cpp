@@ -456,19 +456,19 @@ void handleLine(const std::string &line) {
     return cmdHelp();
   // if (cmd == "info")
   //   return cmdInfo();
-  //if (cmd == "hwid")
+  // if (cmd == "hwid")
   //  return cmdHwid();
-  //if (cmd == "ledtest") {
+  // if (cmd == "ledtest") {
   //  std::string arg = nextToken(line, i);
   //  return cmdLedTest(arg);
   //}
-  //if (cmd == "einktest")
+  // if (cmd == "einktest")
   //  return cmdEinkTest();
-  //if (cmd == "buttontest") {
+  // if (cmd == "buttontest") {
   //  core::hw::buttonTestInteractive(*g_io);
   //  return;
   //}
-  //if (cmd == "nvstest") {
+  // if (cmd == "nvstest") {
   //  std::string arg = (i < line.length()) ? line.substr(i) : "";
   //  trim(arg);
   //  return cmdNvsTest(arg);
