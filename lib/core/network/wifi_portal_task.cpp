@@ -116,7 +116,6 @@ void PortalTask::startPortal(const PortalCommand &cmd) {
         {"social", storage::socialRead(storage::SocialKey::Social)},
         {"sponsor", storage::socialRead(storage::SocialKey::Sponsor)},
         {"light", storage::socialRead(storage::SocialKey::Light)},
-        {"attraction", storage::socialRead(storage::SocialKey::Attraction)},
     };
 
     request->send(200, "application/json", progress.dump().c_str());
