@@ -37,12 +37,6 @@ void setup() {
 #endif
   Serial.begin(115200);
 
-  unsigned long start = millis();
-  while (!Serial && (millis() - start) < 5000) {
-    delay(100);
-  }
-  delay(500);  // Extra delay for stability
-
   // Send test pattern
   for (int i = 0; i < 10; i++) {
     Serial.println();
