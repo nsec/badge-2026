@@ -1,0 +1,40 @@
+{
+  "project": "NorthSec Badge 2026",
+  "mode": "dual",
+  "version": "dev",
+  "build_time": "2026-04-19T19:08:49.618007+00:00",
+  "chip": "esp32s3",
+  "flash_size": "8MB",
+  "flash_mode": "dio",
+  "flash_freq": "80m",
+  "files": [
+    {
+      "name": "bootloader.bin",
+      "address": "0x0",
+      "size_bytes": 15104,
+      "size_kb": 14.8,
+      "sha256": "1776e4dd896a69d0a5c2e79957b0e2a88aa4129b1381d6478683515a1f6af343"
+    },
+    {
+      "name": "partitions.bin",
+      "address": "0x8000",
+      "size_bytes": 3072,
+      "size_kb": 3.0,
+      "sha256": "f5facf0bb83d6dc44ee414af37ed009cb56121a6a3387b7ec22c9b8712f38aef"
+    },
+    {
+      "name": "badge-conference.bin",
+      "address": "0x10000",
+      "size_bytes": 424832,
+      "size_kb": 414.9,
+      "sha256": "5310238229c6eee61d2596fe02bb00d70638230d0f9824ac7dabc79242ad2b57"
+    },
+    {
+      "name": "badge-ctf.bin",
+      "address": "0x150000",
+      "size_bytes": 451392,
+      "size_kb": 440.8,
+      "sha256": "102e15e5429fcb869b4c3b4330c9b92aa8ffede233aa887faa84b5c72e20178c"
+    }
+  ]
+}

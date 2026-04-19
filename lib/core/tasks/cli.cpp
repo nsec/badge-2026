@@ -149,7 +149,9 @@ void cmdHelp() {
               "  ndef [text|reset]    - show/set/reset NFC emulator text\r\n"
               "  status               - show social NVS values\r\n"
               "  clear                - clear the screen\r\n"
+#ifndef CONFERENCE_ONLY
               "  swapboot             - switch to other firmware and reboot\r\n"
+#endif
               "  reboot               - reboot now\r\n");
   g_io->flush();
 
@@ -423,6 +425,7 @@ void cmdDockTest(const std::string &args) {
   g_io->printf("Sponsor value: %d\r\n", core::storage::socialRead(core::storage::SocialKey::Sponsor));
 }
 
+#ifndef CONFERENCE_ONLY
 void cmdBoot() {
   std::string current(core::ota::getRunningPartitionLabel().c_str());
   core::ota::BootTarget target;
@@ -444,6 +447,7 @@ void cmdBoot() {
   if (core::ota::setNextBoot(target, *g_io))
     cmdReboot();
 }
+#endif
 
 void handleLine(const std::string &line) {
   size_t i = 0;
@@ -557,9 +561,11 @@ void handleLine(const std::string &line) {
     return;
   }
 
+#ifndef CONFERENCE_ONLY
   if (cmd == "swapboot") {
     return cmdBoot();
   }
+#endif
 
   // Check registered module commands
   for (const auto &registeredCmd : g_commands) {

@@ -44,6 +44,13 @@ void setup() {
   Serial.print(__DATE__);
   Serial.print(" ");
   Serial.println(__TIME__);
+#ifdef CONFERENCE_ONLY
+  Serial.println("Mode:  conference-only");
+#elif defined(HAS_CHALLENGES)
+  Serial.println("Mode:  ctf");
+#elif defined(HAS_CONFERENCE)
+  Serial.println("Mode:  conference (dual)");
+#endif
   Serial.println("=========================");
   Serial.flush();
 

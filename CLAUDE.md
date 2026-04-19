@@ -9,13 +9,20 @@ NorthSec 2026 CTF badge firmware targeting ESP32-S3. Arduino framework, Platform
 ## Build Commands
 
 ```bash
-pio run                                              # Build all environments
-pio run -e esp32-s3-devkitc-1-conference             # Build conference only
+pio run                                              # Build default environments (conference + ctf)
+pio run -e esp32-s3-devkitc-1-conference             # Build conference firmware (dual — swapboot enabled)
+pio run -e esp32-s3-devkitc-1-conference-only        # Build conference-only firmware (swapboot disabled)
 pio run -e esp32-s3-devkitc-1-ctf                    # Build CTF only
 pio run -e native                                    # Build desktop simulator
 pio run -t upload                                    # Flash to badge
 pio device monitor                                   # Serial monitor (115200 baud)
 ./.pio/build/native/program                          # Run simulator
+python tools/package_release.py --version vX.Y.Z     # Package release artifacts
+python tools/validate_conference_only.py release/conference-only/  # Validate no CTF leaks
+python tools/flash.py --mode dual --port <PORT>      # Flash badge (dual firmware)
+python tools/flash.py --mode conference-only --port <PORT>  # Flash badge (conference only)
+python tools/flash.py --mode dual --all               # Multi-flash all connected badges
+python tools/flash.py --list-ports                     # Show detected serial ports
 ```
 
 After flashing NFC changes, **power cycle the badge** (soft reset doesn't clear ST25R3916 MODE register).
@@ -76,6 +83,8 @@ See `lib/core/hardware/eink.*`, `lib/core/tasks/display.*`, `lib/core/tasks/disp
 ### Dual Firmware / OTA
 
 Partition layout: conference at `0x10000` (factory), ctf at `0x150000` (ota_0). CLI command `swapboot` toggles between firmwares via `esp_ota_set_boot_partition()`.
+
+**Conference-only mode**: Build with `-D CONFERENCE_ONLY=1` (env `esp32-s3-devkitc-1-conference-only`). Compiles out `swapboot`, prevents accidental inclusion of CTF code via `#error` guard in `badge_config.h`. Used for pre-CTF badge distribution.
 
 ### NVS Social Storage
 
