@@ -900,7 +900,20 @@ function evaluateField(lights) {
       pg += lt.color[1] * atten;
       pb += lt.color[2] * atten;
     }
-    let r = clamp01(pr), g = clamp01(pg), b = clamp01(pb);
+    // Scale proportionally instead of per-channel clamping to preserve
+    // color ratios. Per-channel clamping shifts hue toward white when
+    // additive contributions push individual channels past 1.0.
+    const maxC = Math.max(pr, pg, pb);
+    let r, g, b;
+    if (maxC > 1.0) {
+      const s = 1.0 / maxC;
+      r = pr * s; g = pg * s; b = pb * s;
+    } else {
+      r = pr; g = pg; b = pb;
+    }
+    if (r < 0) r = 0;
+    if (g < 0) g = 0;
+    if (b < 0) b = 0;
     [r, g, b] = applySaturationFloor(r, g, b);
     out.push([r, g, b]);
   }
@@ -1000,7 +1013,10 @@ function evaluateFrame(t) {
     const radius = evaluateScalar(normalizeScalar(track.radius), tt);
     let intensity = evaluateScalar(normalizeScalar(track.intensity), tt);
     const fadeIn = track.fadeIn || 0;
-    if (fadeIn > 0 && tt < fadeIn) intensity *= tt / fadeIn;
+    if (fadeIn > 0 && tt < fadeIn) {
+      const fade = tt / fadeIn;
+      intensity *= Math.pow(fade, 1.0 / GAMMA);
+    }
     lights.push({pos, color, radius, intensity});
   }
   editor.lights = lights;

@@ -56,9 +56,12 @@ bool AnimationEngine::tick(float dt) {
     _lights[i].radius = evaluate(track.radius, trackTime);
     _lights[i].intensity = evaluate(track.intensity, trackTime);
 
-    // Apply fade-in envelope.
+    // Apply fade-in envelope. The linear ramp is raised to 1/gamma so
+    // that after gamma correction in the output stage the perceived
+    // brightness increases linearly with time.
     if (track.fadeIn > 0 && trackTime < track.fadeIn) {
-      _lights[i].intensity *= trackTime / track.fadeIn;
+      float fade = trackTime / track.fadeIn;
+      _lights[i].intensity *= powf(fade, 1.0f / badge::config::animation::gamma);
     }
   }
 
