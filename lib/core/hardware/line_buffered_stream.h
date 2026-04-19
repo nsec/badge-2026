@@ -15,12 +15,12 @@ namespace hw {
 /*
  * Batched stream wrapper for ESP32-S3 USB CDC serial.
  *
- * The HWCDC driver seemingly has race conditions that silently discard data
- * during write bursts.
+ * The HWCDC driver has race conditions that silently discard data.
+ * In particular, HWCDC::flush() re-checks isCDC_Connected() and, when
+ * the SOF tick-hook races, discards the entire TX ring buffer.
  *
  * This wrapper accumulates output in a userspace buffer and drains
- * to HWCDC in batches, minimizing the number of racy
- * isCDC_Connected() checks. HWCDC::flush() is never called.
+ * to HWCDC in batches via write() only — HWCDC::flush() is never called.
  *
  * Drain triggers:
  *   - flush(): unconditional (echo, prompt, end of command)
@@ -152,7 +152,9 @@ private:
   void drain() {
     if (_pos > 0) {
       _inner.write(_buf, _pos);
-      _inner.flush();  // block until HWCDC TX ring is fully sent to USB host
+      // Never call _inner.flush() here.  HWCDC::flush() re-checks
+      // isCDC_Connected() and, if the SOF tick-hook races, discards the
+      // entire TX ring buffer — destroying the bytes write() just enqueued.
       _pos = 0;
       _lastDrainMs = millis();
     }
