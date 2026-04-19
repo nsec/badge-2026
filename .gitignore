@@ -9,6 +9,7 @@
 *.bin
 *.elf
 *.map
+release/
 
 .pytest_cache/
 __pycache__/
