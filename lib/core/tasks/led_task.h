@@ -1,7 +1,10 @@
 #pragma once
 
+#include <memory>
+
 #include <badge_config.h>
 
+#include "animation/engine.h"
 #include "rtos/task.hpp"
 #include "rtos/queue.hpp"
 #include "tasks/led.h"
@@ -10,7 +13,7 @@ namespace core {
 
 class LedTask : public Task {
 public:
-  explicit LedTask(Queue<LedCommand> &queue) : Task("led", badge::config::tasks::priority_led), _queue(queue) {}
+  explicit LedTask(Queue<LedCommand> &queue) : Task("led", badge::config::tasks::priority_led, 8192), _queue(queue) {}
 
 protected:
   void run() override;
@@ -26,7 +29,14 @@ private:
   /// Run interruptible rainbow. Returns true if interrupted (next cmd in `out`).
   bool runRainbow(const LedCommand &cmd, LedCommand &out);
 
+  /// Run a field-based animation from cmd.animation.
+  /// Takes ownership of the AnimationDef pointer.
+  /// Returns true if interrupted (next cmd in `out`).
+  bool runAnimation(LedCommand &cmd, LedCommand &out);
+
   Queue<LedCommand> &_queue;
+  animation::AnimationEngine _animEngine;
+  std::unique_ptr<animation::AnimationDef> _currentAnimation;
 };
 
 namespace led {

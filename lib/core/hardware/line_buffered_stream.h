@@ -42,6 +42,10 @@ public:
   }
 
   size_t write(uint8_t c) override {
+#ifdef NATIVE_BUILD
+    // No buffering needed on native — no USB CDC race conditions.
+    return _inner.write(c);
+#else
     lock();
     if (_pos < sizeof(_buf)) {
       _buf[_pos++] = c;
@@ -54,9 +58,13 @@ public:
     updateLastWriteTimestamp();
     unlock();
     return 1;
+#endif
   }
 
   size_t write(const uint8_t *buf, size_t len) override {
+#ifdef NATIVE_BUILD
+    return _inner.write(buf, len);
+#else
     lock();
     bool hasNewline = false;
 
@@ -75,12 +83,17 @@ public:
     updateLastWriteTimestamp();
     unlock();
     return len;
+#endif
   }
 
   void flush() override {
+#ifdef NATIVE_BUILD
+    _inner.flush();
+#else
     lock();
     drain();
     unlock();
+#endif
   }
 
   int available() override {

@@ -7,8 +7,12 @@
 
 #include <Arduino.h>
 
+#include <cstring>
+
 #include <badge_config.h>
 #include <core.h>
+#include <animation/parser.h>
+#include <animation/storage.h>
 #include <hardware/line_buffered_stream.h>
 #include <hardware/light_sensor.h>
 #include <hardware/serial_mutex.h>
@@ -28,6 +32,9 @@ const std::string cleartextFirmwareFlg =
 
 void setup() {
   Serial.setTxBufferSize(4096);
+#ifndef NATIVE_BUILD
+  Serial.setRxBufferSize(4096);
+#endif
   Serial.begin(115200);
 
   unsigned long start = millis();
@@ -65,6 +72,12 @@ void setup() {
 
   core::storage::socialNvsInit();
   core::storage::configNvsInit();
+
+  if (core::animation::storageInit()) {
+    Serial.println("Animation filesystem initialized");
+  } else {
+    Serial.println("WARNING: Animation filesystem init failed");
+  }
 
   if (core::hw::nfcInit()) {
     Serial.println("NFC initialized");
@@ -156,6 +169,16 @@ void setup() {
     core::DisplayCommand dc{};
     dc.type = core::DisplayCommand::Type::ShowLogo;
     displayQueue.send(dc, core::Milliseconds(0));
+  }
+
+  // Play boot LED animation
+  {
+    auto result = core::animation::loadAndParseAnimation("boot");
+    if (result.ok) {
+      core::LedCommand lc(core::LedCommandType::Animation);
+      lc.animation = result.def.release();
+      ledQueue.send(lc, core::Milliseconds(0));
+    }
   }
 
   Serial.println("Setup complete!");

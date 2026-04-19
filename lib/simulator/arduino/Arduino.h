@@ -30,9 +30,8 @@ using String = std::string;
 // Use std::min/std::max - no macros defined to avoid conflicts
 // If your code needs min/max macros, use std::min/std::max directly
 
-#ifndef abs
-  #define abs(x) ((x) > 0 ? (x) : -(x))
-#endif
+// abs macro removed — conflicts with C++ stdlib internals (riemann_zeta.tcc).
+// Arduino code should use the C++ std::abs() or a local inline instead.
 #ifndef constrain
   #define constrain(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
 #endif

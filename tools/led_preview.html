@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>LED Preview</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: monospace;
+    color: #888;
+  }
+  #status {
+    margin-bottom: 16px;
+    font-size: 14px;
+  }
+  #status.connected { color: #4CAF50; }
+  #status.disconnected { color: #f44336; }
+  svg {
+    width: min(90vw, 800px);
+    height: auto;
+    filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
+  }
+  #fps {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #555;
+  }
+</style>
+</head>
+<body>
+
+<div id="status" class="disconnected">Connecting...</div>
+
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="14 15 192 170">
+  <defs>
+    <!-- One radial gradient per LED, updated dynamically -->
+    <radialGradient id="g0"><stop offset="0%" stop-color="#000" stop-opacity="0.9"/><stop offset="60%" stop-color="#000" stop-opacity="0.2"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g1"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g2"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g3"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g4"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g5"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g6"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g7"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g8"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g9"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g10"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g11"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g12"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g13"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g14"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g15"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g16"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g17"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+  </defs>
+
+  <!-- Badge outline (simplified) -->
+  <polygon points="83.967,30.082 80.804,37.962 73.852,37.962 73.493,37.773 73.121,37.599 72.736,37.439 72.34,37.292 71.932,37.158 71.514,37.038 71.085,36.929 70.647,36.832 70.2,36.748 69.744,36.674 69.28,36.611 68.809,36.558 68.332,36.516 67.847,36.483 67.358,36.46 66.863,36.446 66.364,36.44 65.86,36.442 65.354,36.452 64.844,36.469 64.333,36.494 63.819,36.525 63.305,36.562 62.79,36.606 62.275,36.654 61.761,36.708 61.247,36.767 60.736,36.829 60.227,36.896 59.721,36.967 59.557,36.99 59.535,37.156 59.524,37.336 59.523,37.529 59.532,37.736 59.55,37.954 59.576,38.184 59.611,38.425 59.654,38.675 59.704,38.934 59.761,39.201 59.825,39.475 59.895,39.755 59.971,40.041 60.052,40.332 60.138,40.627 60.228,40.925 60.322,41.225 60.42,41.527 60.521,41.83 60.625,42.132 60.731,42.434 60.839,42.734 60.948,43.031 61.059,43.325 61.17,43.615 61.281,43.899 61.392,44.178 61.502,44.451 61.611,44.716 61.718,44.973 61.824,45.22 61.927,45.458 62.027,45.685 62.124,45.901 62.217,46.104 62.307,46.295 62.391,46.471 62.471,46.633 62.545,46.779 62.613,46.909 62.676,47.021 62.725,47.106 62.977,47.51 63.238,47.899 63.508,48.274 63.787,48.635 64.074,48.979 64.37,49.308 64.675,49.621 64.989,49.917 65.311,50.196 65.642,50.458 65.698,50.5 62.296,56.827 62.047,56.563 61.783,56.309 61.505,56.065 61.213,55.831 60.91,55.605 60.596,55.388 60.273,55.178 59.941,54.976 59.602,54.78 59.258,54.591 58.909,54.407 58.557,54.228 58.203,54.054 57.848,53.884 57.493,53.717 57.139,53.553 56.789,53.392 56.442,53.232 56.101,53.074 55.766,52.917 55.439,52.76 55.12,52.603 54.812,52.445 54.515,52.286 54.23,52.125 54.02,51.998 53.659,52.408 53.787,52.843 53.924,53.269 54.071,53.684 54.226,54.09 54.39,54.485 54.563,54.869 54.745,55.242 54.935,55.604 55.134,55.954 55.341,56.292 55.557,56.617 55.78,56.929 56.012,57.228 56.252,57.514 56.5,57.785 56.756,58.043 57.019,58.286 57.29,58.514 57.569,58.726 57.855,58.924 58.148,59.105 58.449,59.27 58.756,59.418 59.071,59.549 59.393,59.663 59.722,59.76 60.057,59.838 60.399,59.898 60.626,59.927 56.383,67.817 56.208,67.59 56.028,67.376 55.844,67.174 55.656,66.987 55.465,66.815 55.271,66.66 55.076,66.523 54.889,66.411 54.801,66.366 54.695,66.322 54.573,66.278 54.435,66.233 54.282,66.189 54.115,66.145 53.934,66.102 53.741,66.059 53.535,66.016 53.319,65.974 53.091,65.932 52.854,65.892 52.608,65.852 52.353,65.812 52.091,65.774 51.822,65.737 51.546,65.701 51.266,65.666 50.98,65.632 50.691,65.6 50.398,65.569 50.104,65.54 49.807,65.512 49.509,65.486 49.211,65.461 48.914,65.438 48.618,65.418 48.323,65.399 48.032,65.382 47.744,65.367 47.46,65.354 47.181,65.344 46.907,65.336 46.64,65.33 46.381,65.327 46.129,65.327 45.885,65.329 45.651,65.334 45.427,65.342 45.214,65.352 45.013,65.366 44.823,65.382 44.647,65.402 44.485,65.425 44.337,65.451 44.204,65.48 44.087,65.513 43.987,65.55 43.904,65.59 43.84,65.633 43.796,65.679 43.837,65.962 43.881,66.253 43.928,66.549 43.979,66.85 44.033,67.156 44.091,67.466 44.152,67.78 44.218,68.097 44.288,68.417 44.362,68.739 44.44,69.062 44.524,69.387 44.612,69.712 44.704,70.037 44.802,70.362 44.905,70.685 45.014,71.008 45.128,71.328 45.248,71.645 45.373,71.959 45.505,72.27 45.643,72.577 45.787,72.879 45.937,73.175 46.094,73.466 46.258,73.751 46.429,74.029 46.607,74.3 46.792,74.563 46.984,74.818 47.184,75.064 47.392,75.3 47.607,75.526 47.831,75.743 48.062,75.948 48.302,76.142 48.551,76.323 48.807,76.493 49.073,76.649 49.348,76.791 49.632,76.92 49.924,77.034 50.227,77.133 50.538,77.216 50.86,77.283 51.191,77.334 51.261,77.342 46.306,86.555 46.143,86.378 45.977,86.217 45.809,86.074 45.64,85.948 45.47,85.841 45.447,85.828 45.358,85.783 45.253,85.739 45.131,85.695 44.993,85.65 44.84,85.606 44.673,85.562 44.493,85.519 44.3,85.476 44.094,85.433 43.877,85.391 43.65,85.349 43.413,85.308 43.167,85.268 42.912,85.229 42.65,85.191 42.381,85.153 42.106,85.117 41.825,85.082 41.54,85.048 41.251,85.016 40.959,84.985 40.664,84.955 40.367,84.927 40.07,84.9 39.772,84.876 39.474,84.853 39.178,84.832 38.884,84.813 38.593,84.796 38.305,84.781 38.021,84.768 37.742,84.758 37.469,84.749 37.202,84.744 36.942,84.74 36.69,84.74 36.447,84.742 36.213,84.747 35.989,84.754 35.776,84.765 35.575,84.778 35.385,84.794 35.209,84.814 35.047,84.837 34.899,84.863 34.766,84.892 34.65,84.925 34.55,84.962 34.467,85.002 34.403,85.045 34.359,85.091 34.401,85.386 34.447,85.687 34.496,85.995 34.549,86.309 34.606,86.628 34.667,86.951 34.731,87.278 34.801,87.608 34.875,87.941 34.953,88.276 35.036,88.613 35.125,88.95 35.219,89.288 35.318,89.625 35.422,89.962 35.533,90.297 35.649,90.631 35.771,90.961 35.9,91.289 36.035,91.613 36.177,91.932 36.325,92.247 36.481,92.556 36.643,92.859 36.813,93.155 36.99,93.444 37.175,93.725 37.368,93.998 37.569,94.261 37.777,94.515 37.994,94.759 38.22,94.992 38.454,95.214 38.698,95.424 38.95,95.621 39.211,95.805 39.482,95.975 39.762,96.131 40.052,96.272 40.352,96.398 40.661,96.507 40.916,96.583 29.345,118.095 68.662,159.071 69.211,159.071 69.221,168.65 69.721,169.15 131.521,169.15 132.021,168.65 132.011,160.775 133.921,160.775 133.921,168.65 134.421,169.15 147.961,169.15 148.461,168.65 148.461,159.075 149.004,159.071 189.18,118.095 177.467,96.744 177.792,96.669 178.107,96.578 178.411,96.47 178.706,96.347 178.992,96.209 179.268,96.056 179.535,95.89 179.793,95.71 180.042,95.518 180.282,95.313 180.513,95.097 180.737,94.87 180.951,94.632 181.158,94.384 181.357,94.127 181.549,93.861 181.732,93.586 181.908,93.304 182.077,93.015 182.239,92.719 182.394,92.417 182.542,92.11 182.684,91.797 182.819,91.48 182.948,91.16 183.07,90.836 183.187,90.509 183.298,90.18 183.404,89.85 183.503,89.518 183.598,89.186 183.688,88.854 183.772,88.523 183.852,88.192 183.927,87.864 183.997,87.538 184.064,87.214 184.126,86.894 184.184,86.578 184.238,86.267 184.289,85.96 184.336,85.66 184.371,85.427 184.374,85.34 184.359,85.258 184.328,85.181 184.281,85.113 184.221,85.056 184.148,85.012 184.098,84.993 183.97,84.959 183.826,84.929 183.664,84.903 183.487,84.88 183.294,84.861 183.088,84.845 182.868,84.832 182.636,84.823 182.392,84.817 182.138,84.814 181.874,84.814 181.601,84.817 181.32,84.822 181.032,84.831 180.737,84.841 180.437,84.855 180.133,84.871 179.824,84.889 179.513,84.909 179.2,84.932 178.886,84.957 178.572,84.983 178.258,85.012 177.946,85.042 177.636,85.074 177.329,85.107 177.027,85.142 176.729,85.179 176.437,85.217 176.152,85.256 175.875,85.296 175.606,85.337 175.346,85.379 175.097,85.422 174.858,85.466 174.631,85.511 174.418,85.556 174.217,85.601 174.032,85.647 173.861,85.694 173.707,85.74 173.57,85.787 173.452,85.834 173.351,85.88 173.323,85.896 173.156,85.999 172.989,86.12 172.824,86.26 172.661,86.416 172.499,86.588 172.341,86.774 172.185,86.974 172.141,87.033 166.893,77.464 167.133,77.448 167.39,77.424 167.474,77.415 167.808,77.37 168.132,77.308 168.446,77.23 168.751,77.136 169.047,77.027 169.333,76.903 169.61,76.765 169.878,76.613 170.138,76.448 170.388,76.271 170.631,76.081 170.865,75.88 171.09,75.667 171.308,75.445 171.518,75.212 171.72,74.969 171.915,74.718 172.102,74.458 172.282,74.19 172.455,73.915 172.621,73.633 172.78,73.344 172.932,73.05 173.078,72.75 173.218,72.445 173.351,72.136 173.479,71.823 173.6,71.507 173.716,71.189 173.826,70.868 173.931,70.545 174.031,70.221 174.125,69.897 174.215,69.572 174.299,69.247 174.379,68.924 174.455,68.602 174.526,68.282 174.593,67.964 174.656,67.649 174.715,67.338 174.77,67.031 174.822,66.728 174.87,66.431 174.915,66.139 174.934,66.016 174.937,65.929 174.921,65.846 174.89,65.769 174.843,65.7 174.782,65.642 174.71,65.597 174.655,65.576 174.528,65.542 174.383,65.512 174.221,65.486 174.044,65.463 173.851,65.444 173.645,65.428 173.425,65.416 173.193,65.407 172.949,65.401 172.694,65.398 172.43,65.398 172.157,65.401 171.876,65.407 171.588,65.415 171.293,65.426 170.993,65.44 170.689,65.456 170.38,65.474 170.069,65.495 169.756,65.517 169.442,65.542 169.127,65.569 168.814,65.598 168.501,65.628 168.191,65.66 167.885,65.694 167.582,65.729 167.284,65.766 166.993,65.804 166.708,65.843 166.43,65.883 166.161,65.925 165.901,65.967 165.652,66.01 165.413,66.054 165.187,66.099 164.973,66.144 164.773,66.19 164.587,66.236 164.417,66.282 164.263,66.329 164.126,66.376 164.008,66.423 163.908,66.47 163.88,66.484 163.682,66.604 163.485,66.743 163.29,66.9 163.097,67.073 162.908,67.262 162.722,67.466 162.541,67.683 162.365,67.913 162.196,68.154 162.034,68.405 161.976,68.501 157.45,60.25 157.796,60.196 158.135,60.124 158.467,60.034 158.792,59.926 159.11,59.8 159.421,59.657 159.725,59.497 160.022,59.321 160.311,59.129 160.593,58.921 160.867,58.698 161.134,58.459 161.393,58.206 161.644,57.938 161.887,57.656 162.123,57.36 162.35,57.052 162.568,56.73 162.779,56.395 162.981,56.048 163.174,55.689 163.359,55.318 163.535,54.936 163.703,54.543 163.861,54.14 164.01,53.726 164.151,53.302 164.256,52.955 164.271,52.869 164.267,52.783 164.245,52.7 164.206,52.622 164.173,52.579 164.109,52.521 164.036,52.478 163.957,52.452 163.875,52.444 163.792,52.453 163.711,52.481 163.68,52.497 163.391,52.658 163.089,52.818 162.776,52.977 162.453,53.135 162.121,53.293 161.783,53.451 161.437,53.611 161.087,53.772 160.734,53.935 160.377,54.101 160.02,54.27 159.663,54.442 159.307,54.619 158.953,54.801 158.603,54.987 158.258,55.18 157.92,55.38 157.589,55.586 157.267,55.799 156.954,56.021 156.653,56.251 156.365,56.491 156.09,56.74 155.83,56.999 155.727,57.11 152.393,51.032 152.732,50.816 153.063,50.583 153.386,50.332 153.701,50.065 154.008,49.781 154.306,49.481 154.596,49.166 154.878,48.835 155.152,48.49 155.417,48.132 155.674,47.759 155.923,47.373 156.044,47.175 156.101,47.078 156.163,46.964 156.232,46.832 156.307,46.684 156.388,46.521 156.473,46.343 156.562,46.151 156.656,45.946 156.754,45.729 156.854,45.501 156.958,45.262 157.064,45.013 157.171,44.755 157.281,44.489 157.391,44.216 157.502,43.937 157.613,43.651 157.724,43.361 157.835,43.067 157.944,42.769 158.052,42.469 158.158,42.167 158.261,41.865 158.362,41.562 158.459,41.261 158.553,40.961 158.643,40.663 158.729,40.368 158.809,40.078 158.884,39.793 158.953,39.513 159.017,39.239 159.073,38.973 159.123,38.715 159.164,38.466 159.198,38.227 159.224,37.999 159.241,37.781 159.249,37.576 159.247,37.395 159.235,37.309 159.205,37.23 159.159,37.16 159.1,37.1 159.03,37.054 158.95,37.024 158.905,37.015 158.395,36.945 157.881,36.879 157.366,36.817 156.849,36.759 156.331,36.707 155.812,36.66 155.294,36.618 154.777,36.583 154.26,36.554 153.746,36.532 153.234,36.517 152.725,36.51 152.22,36.51 151.719,36.52 151.223,36.538 150.732,36.565 150.247,36.602 149.769,36.649 149.298,36.706 148.835,36.774 148.379,36.853 147.933,36.943 147.496,37.046 147.069,37.161 146.653,37.288 146.247,37.429 145.854,37.583 145.473,37.751 145.105,37.933 145.05,37.962 137.003,37.962 133.932,30.248 109.263,30.082 83.972,30.082"
+        fill="#1a2e1a" stroke="#2d5a2d" stroke-width="0.5"/>
+
+  <!-- Lanyard holes -->
+  <circle cx="89.4" cy="37.5" r="3" fill="#0d1a0d" stroke="#2d5a2d" stroke-width="0.3"/>
+  <circle cx="128.5" cy="37.5" r="3" fill="#0d1a0d" stroke="#2d5a2d" stroke-width="0.3"/>
+
+  <!-- LED glow circles (large, blurred) -->
+  <g id="glows" style="mix-blend-mode: screen;">
+    <circle id="glow0"  cx="63.80"  cy="99.37"  r="12" fill="url(#g0)"/>
+    <circle id="glow1"  cx="62.78"  cy="90.66"  r="12" fill="url(#g1)"/>
+    <circle id="glow2"  cx="68.78"  cy="70.69"  r="12" fill="url(#g2)"/>
+    <circle id="glow3"  cx="78.86"  cy="58.46"  r="12" fill="url(#g3)"/>
+    <circle id="glow4"  cx="90.43"  cy="48.99"  r="12" fill="url(#g4)"/>
+    <circle id="glow5"  cx="97.08"  cy="51.79"  r="12" fill="url(#g5)"/>
+    <circle id="glow6"  cx="109.13" cy="52.60"  r="12" fill="url(#g6)"/>
+    <circle id="glow7"  cx="121.19" cy="52.03"  r="12" fill="url(#g7)"/>
+    <circle id="glow8"  cx="129.64" cy="50.66"  r="12" fill="url(#g8)"/>
+    <circle id="glow9"  cx="139.71" cy="58.23"  r="12" fill="url(#g9)"/>
+    <circle id="glow10" cx="156.13" cy="91.78"  r="12" fill="url(#g10)"/>
+    <circle id="glow11" cx="155.21" cy="99.75"  r="12" fill="url(#g11)"/>
+    <circle id="glow12" cx="143.06" cy="151.41" r="12" fill="url(#g12)"/>
+    <circle id="glow13" cx="127.80" cy="151.30" r="12" fill="url(#g13)"/>
+    <circle id="glow14" cx="112.83" cy="151.20" r="12" fill="url(#g14)"/>
+    <circle id="glow15" cx="99.43"  cy="151.30" r="12" fill="url(#g15)"/>
+    <circle id="glow16" cx="88.53"  cy="151.10" r="12" fill="url(#g16)"/>
+    <circle id="glow17" cx="75.53"  cy="151.10" r="12" fill="url(#g17)"/>
+  </g>
+
+  <!-- LED dots (small, solid center) -->
+  <g id="dots">
+    <circle id="dot0"  cx="63.80"  cy="99.37"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+    <circle id="dot1"  cx="62.78"  cy="90.66"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+    <circle id="dot2"  cx="68.78"  cy="70.69"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+    <circle id="dot3"  cx="78.86"  cy="58.46"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+    <circle id="dot4"  cx="90.43"  cy="48.99"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+    <circle id="dot5"  cx="97.08"  cy="51.79"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+    <circle id="dot6"  cx="109.13" cy="52.60"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+    <circle id="dot7"  cx="121.19" cy="52.03"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+    <circle id="dot8"  cx="129.64" cy="50.66"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+    <circle id="dot9"  cx="139.71" cy="58.23"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+    <circle id="dot10" cx="156.13" cy="91.78"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+    <circle id="dot11" cx="155.21" cy="99.75"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+    <circle id="dot12" cx="143.06" cy="151.41" r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+    <circle id="dot13" cx="127.80" cy="151.30" r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+    <circle id="dot14" cx="112.83" cy="151.20" r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+    <circle id="dot15" cx="99.43"  cy="151.30" r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+    <circle id="dot16" cx="88.53"  cy="151.10" r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+    <circle id="dot17" cx="75.53"  cy="151.10" r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+  </g>
+
+  <!-- LED index labels -->
+  <g font-family="monospace" font-size="3" fill="#555" text-anchor="middle" dominant-baseline="central">
+    <text x="63.80"  y="99.37">0</text>
+    <text x="62.78"  y="90.66">1</text>
+    <text x="68.78"  y="70.69">2</text>
+    <text x="78.86"  y="58.46">3</text>
+    <text x="90.43"  y="48.99">4</text>
+    <text x="97.08"  y="51.79">5</text>
+    <text x="109.13" y="52.60">6</text>
+    <text x="121.19" y="52.03">7</text>
+    <text x="129.64" y="50.66">8</text>
+    <text x="139.71" y="58.23">9</text>
+    <text x="156.13" y="91.78">10</text>
+    <text x="155.21" y="99.75">11</text>
+    <text x="143.06" y="151.41">12</text>
+    <text x="127.80" y="151.30">13</text>
+    <text x="112.83" y="151.20">14</text>
+    <text x="99.43"  y="151.30">15</text>
+    <text x="88.53"  y="151.10">16</text>
+    <text x="75.53"  y="151.10">17</text>
+  </g>
+
+  <!-- Light source markers (populated dynamically) -->
+  <g id="lights"></g>
+</svg>
+
+<div id="fps">-- fps</div>
+
+<script>
+const NUM_LEDS = 18;
+const MAX_LIGHTS = 16;
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+// Normalized [0,1] → SVG coordinate mapping (from led_positions.h).
+const X_MIN = 62.78, X_RANGE = 93.35;
+const Y_MIN = 48.99, Y_RANGE = 102.42;
+function normToSvgX(nx) { return X_MIN + nx * X_RANGE; }
+function normToSvgY(ny) { return Y_MIN + ny * Y_RANGE; }
+
+// Cache SVG gradient references.
+const gradients = [];
+for (let i = 0; i < NUM_LEDS; i++) {
+  gradients.push(document.getElementById('g' + i));
+}
+
+const dots = [];
+for (let i = 0; i < NUM_LEDS; i++) {
+  dots.push(document.getElementById('dot' + i));
+}
+
+const statusEl = document.getElementById('status');
+const fpsEl = document.getElementById('fps');
+const lightsGroup = document.getElementById('lights');
+
+// Pre-create light source marker elements.
+const lightMarkers = [];
+const lightRadii = [];
+for (let i = 0; i < MAX_LIGHTS; i++) {
+  // Radius ring (shows falloff area).
+  const ring = document.createElementNS(SVG_NS, 'circle');
+  ring.setAttribute('fill', 'none');
+  ring.setAttribute('stroke-width', '0.3');
+  ring.setAttribute('stroke-dasharray', '1,1');
+  ring.setAttribute('opacity', '0');
+  lightsGroup.appendChild(ring);
+  lightRadii.push(ring);
+
+  // Center dot with crosshair.
+  const dot = document.createElementNS(SVG_NS, 'circle');
+  dot.setAttribute('r', '1.5');
+  dot.setAttribute('fill', 'none');
+  dot.setAttribute('stroke-width', '0.4');
+  dot.setAttribute('opacity', '0');
+  lightsGroup.appendChild(dot);
+  lightMarkers.push(dot);
+}
+
+// FPS tracking.
+let frameCount = 0;
+let lastFpsTime = performance.now();
+
+function updateFps() {
+  const now = performance.now();
+  const elapsed = now - lastFpsTime;
+  if (elapsed >= 1000) {
+    fpsEl.textContent = Math.round(frameCount * 1000 / elapsed) + ' fps';
+    frameCount = 0;
+    lastFpsTime = now;
+  }
+}
+
+// Read a little-endian float from a binary string at offset.
+function readFloat(bin, off) {
+  const buf = new ArrayBuffer(4);
+  const view = new DataView(buf);
+  for (let i = 0; i < 4; i++) view.setUint8(i, bin.charCodeAt(off + i));
+  return view.getFloat32(0, true);  // little-endian
+}
+
+// Decode base64 frame and update LED colors + light sources.
+function applyFrame(b64) {
+  const binary = atob(b64);
+  if (binary.length < NUM_LEDS * 3) return;
+
+  // --- LED pixels ---
+  for (let i = 0; i < NUM_LEDS; i++) {
+    const r = binary.charCodeAt(i * 3);
+    const g = binary.charCodeAt(i * 3 + 1);
+    const b = binary.charCodeAt(i * 3 + 2);
+    const color = `rgb(${r},${g},${b})`;
+
+    const grad = gradients[i];
+    const stops = grad.getElementsByTagName('stop');
+    if (stops.length >= 2) {
+      stops[0].setAttribute('stop-color', color);
+      stops[0].setAttribute('stop-opacity', '0.9');
+      stops[1].setAttribute('stop-color', color);
+      stops[1].setAttribute('stop-opacity', '0');
+    }
+
+    dots[i].setAttribute('fill', color);
+  }
+
+  // --- Light sources ---
+  let off = NUM_LEDS * 3;
+  const lightCount = (off < binary.length) ? binary.charCodeAt(off) : 0;
+  off++;
+
+  for (let i = 0; i < MAX_LIGHTS; i++) {
+    if (i < lightCount && off + 28 <= binary.length) {
+      const x   = readFloat(binary, off);
+      const y   = readFloat(binary, off + 4);
+      const lr  = readFloat(binary, off + 8);
+      const lg  = readFloat(binary, off + 12);
+      const lb  = readFloat(binary, off + 16);
+      const rad = readFloat(binary, off + 20);
+      const intensity = readFloat(binary, off + 24);
+      off += 28;
+
+      const sx = normToSvgX(x);
+      const sy = normToSvgY(y);
+      // Color scaled by intensity for visibility.
+      const cr = Math.round(Math.min(1, lr * intensity) * 255);
+      const cg = Math.round(Math.min(1, lg * intensity) * 255);
+      const cb = Math.round(Math.min(1, lb * intensity) * 255);
+      const color = `rgb(${cr},${cg},${cb})`;
+      const alpha = Math.min(1, intensity).toFixed(2);
+
+      // Radius ring — map normalized radius to SVG units.
+      const svgRad = rad * Math.max(X_RANGE, Y_RANGE);
+      lightRadii[i].setAttribute('cx', sx);
+      lightRadii[i].setAttribute('cy', sy);
+      lightRadii[i].setAttribute('r', svgRad);
+      lightRadii[i].setAttribute('stroke', color);
+      lightRadii[i].setAttribute('opacity', alpha * 0.5);
+
+      // Center marker.
+      lightMarkers[i].setAttribute('cx', sx);
+      lightMarkers[i].setAttribute('cy', sy);
+      lightMarkers[i].setAttribute('stroke', color);
+      lightMarkers[i].setAttribute('opacity', alpha);
+    } else {
+      lightRadii[i].setAttribute('opacity', '0');
+      lightMarkers[i].setAttribute('opacity', '0');
+    }
+  }
+
+  frameCount++;
+  updateFps();
+}
+
+// Connect via Server-Sent Events.
+function connect() {
+  const source = new EventSource('/events');
+
+  source.onopen = () => {
+    statusEl.textContent = 'Connected';
+    statusEl.className = 'connected';
+  };
+
+  source.onmessage = (event) => {
+    applyFrame(event.data.trim());
+  };
+
+  source.onerror = () => {
+    statusEl.textContent = 'Disconnected — retrying...';
+    statusEl.className = 'disconnected';
+    source.close();
+    setTimeout(connect, 1000);
+  };
+}
+
+connect();
+</script>
+</body>
+</html>

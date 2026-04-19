@@ -1,7 +1,22 @@
 #include "hardware/nfc.h"
-#include "hardware/board_pins.h"
 
-#include <Arduino.h>
+#ifdef NATIVE_BUILD
+
+namespace core {
+namespace hw {
+
+bool nfcInit() {
+  return false;  // NFC not available in simulator
+}
+
+}  // namespace hw
+}  // namespace core
+
+#else  // Real hardware build
+
+  #include "hardware/board_pins.h"
+
+  #include <Arduino.h>
 
 namespace {
 
@@ -68,3 +83,5 @@ SPIClass &nfcSPI() {
 
 }  // namespace hw
 }  // namespace core
+
+#endif  // NATIVE_BUILD

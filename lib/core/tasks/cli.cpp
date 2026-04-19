@@ -8,6 +8,8 @@
 #include <vector>
 
 #include "system/ota_manager.h"
+#include "animation/parser.h"
+#include "animation/storage.h"
 #include "hardware/hwid.h"
 #include "hardware/buttons.h"
 #include "tasks/led.h"
@@ -335,6 +337,101 @@ void cmdNvsTest(const std::string &args) {
   g_io->printf("NVS '%s' set to %u (readback: %u)\r\n", core::storage::socialKeyName(key), value, readback);
 }
 
+void cmdAnimateLoad(const std::string &jsonStr) {
+  if (jsonStr.empty()) {
+    g_io->println("Usage: animate load <json>");
+    return;
+  }
+
+  auto result = core::animation::parseAnimationJson(jsonStr);
+  if (!result.ok) {
+    g_io->printf("Parse error: %s\r\n", result.error.c_str());
+    return;
+  }
+
+  g_io->printf("Playing: %s (%u tracks)\r\n", result.def->name, result.def->trackCount);
+  core::LedCommand cmd(core::LedCommandType::Animation);
+  cmd.animation = result.def.release();
+  core::g_ledQueue->send(cmd);
+}
+
+void cmdAnimate(const std::string &arg) {
+  // Extract the first word to decide the subcommand.
+  size_t pos = 0;
+  std::string sub = nextToken(arg, pos);
+  toLower(sub);
+
+  if (sub.empty() || sub == "list") {
+    auto names = core::animation::storageList();
+    g_io->println("Animations:");
+    for (size_t i = 0; i < names.size(); i++) {
+      g_io->printf("  %u  %s\r\n", (unsigned)i, names[i].c_str());
+    }
+    g_io->println();
+    g_io->println("Usage: animate <name|number>");
+    g_io->println("       animate load <json>");
+    g_io->println("       animate off");
+    return;
+  }
+
+  if (sub == "off" || sub == "stop") {
+    core::LedCommand cmd(core::LedCommandType::Off);
+    core::g_ledQueue->send(cmd);
+    g_io->println("Animation stopped.");
+    return;
+  }
+
+  if (sub == "load") {
+    std::string rest = (pos < arg.length()) ? arg.substr(pos) : "";
+    trim(rest);
+    return cmdAnimateLoad(rest);
+  }
+
+  // Try numeric index first.
+  auto names = core::animation::storageList();
+
+  bool isNumber = true;
+  for (char c : sub) {
+    if (!isdigit(static_cast<unsigned char>(c))) {
+      isNumber = false;
+      break;
+    }
+  }
+
+  std::string matchedName;
+  if (isNumber) {
+    int idx = std::atoi(sub.c_str());
+    if (idx >= 0 && idx < (int)names.size())
+      matchedName = names[idx];
+  } else {
+    // Match by name (case-insensitive prefix).
+    for (const auto &name : names) {
+      std::string lower = name;
+      toLower(lower);
+      if (lower.find(sub) == 0 || lower == sub) {
+        matchedName = name;
+        break;
+      }
+    }
+  }
+
+  if (matchedName.empty()) {
+    g_io->println("Unknown animation. Type 'animate list' to see options.");
+    return;
+  }
+
+  auto result = core::animation::loadAndParseAnimation(matchedName.c_str());
+  if (!result.ok) {
+    g_io->printf("Error: %s\r\n", result.error.c_str());
+    return;
+  }
+
+  core::LedCommand cmd(core::LedCommandType::Animation);
+  cmd.animation = result.def.release();
+  core::g_ledQueue->send(cmd);
+  g_io->printf("Playing: %s\r\n", matchedName.c_str());
+}
+
 void cmdPairTest(const std::string &args) {
   std::string arg = args;
   toLower(arg);
@@ -507,6 +604,11 @@ void handleLine(const std::string &line) {
     trim(arg);
     return cmdDockTest(arg);
   }
+  if (cmd == "animate") {
+    std::string rest = (i < line.length()) ? line.substr(i) : "";
+    trim(rest);
+    return cmdAnimate(rest);
+  }
   if (cmd == "pairtest") {
     std::string arg = (i < line.length()) ? line.substr(i) : "";
     trim(arg);
@@ -610,7 +712,7 @@ namespace cli {
 
 void init(Stream &io) {
   g_io = &io;
-  g_line.reserve(256);
+  g_line.reserve(2048);
   // Don't print prompt here - main.cpp still has boot messages to print.
   // Set flag so poll() prints it once everything is ready.
   g_promptNeeded = true;
@@ -690,7 +792,7 @@ void poll() {
     }
 
     if (isPrintable((unsigned char)c)) {
-      if (g_line.length() < 255) {
+      if (g_line.length() < 4095) {
         g_line += c;
         g_io->print(c);
       }

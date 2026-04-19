@@ -1,8 +1,13 @@
 #include "tasks/led_task.h"
 
+#include <memory>
+
 #include <Arduino.h>
 
+#include "animation/palette.h"
+#include "animation/types.h"
 #include "hardware/rgb_led.h"
+#include "storage/nvs_config.h"
 
 namespace core {
 
@@ -82,37 +87,53 @@ bool LedTask::sleepOrInterrupt(uint32_t ms, LedCommand &out) {
 }
 
 bool LedTask::runProgressFlash(const LedCommand &cmd, LedCommand &out) {
-  uint8_t n = cmd.pixelCount;
-  if (n == 0)
-    n = 1;
-  if (n > hw::RGB_LED_COUNT)
-    n = hw::RGB_LED_COUNT;
+  uint8_t ledCount = cmd.pixelCount;
+
+  if (ledCount == 0) {
+    ledCount = 1;
+  }
+
+  if (ledCount > hw::RGB_LED_COUNT) {
+    ledCount = hw::RGB_LED_COUNT;
+  }
 
   // 3 flashes: 250 ms on, 250 ms off
   for (int flash = 0; flash < 3; flash++) {
     hw::rgbClear();
-    for (uint8_t i = 0; i < n; i++)
+
+    for (uint8_t i = 0; i < ledCount; i++) {
       hw::rgbSetPixel(i, cmd.r, cmd.g, cmd.b);
+    }
+
     hw::rgbShow();
-    if (sleepOrInterrupt(250, out))
+
+    if (sleepOrInterrupt(250, out)) {
       return true;
+    }
 
     hw::rgbClear();
-    if (sleepOrInterrupt(250, out))
+
+    if (sleepOrInterrupt(250, out)) {
       return true;
+    }
   }
 
   // Solid for 3 seconds
-  for (uint8_t i = 0; i < n; i++)
+  for (uint8_t i = 0; i < ledCount; i++) {
     hw::rgbSetPixel(i, cmd.r, cmd.g, cmd.b);
+  }
+
   hw::rgbShow();
-  if (sleepOrInterrupt(3000, out))
+
+  if (sleepOrInterrupt(3000, out)) {
     return true;
+  }
 
   // If hold, leave LEDs on (task will block on queue until next command).
   // Otherwise turn off.
-  if (!cmd.hold)
+  if (!cmd.hold) {
     hw::rgbClear();
+  }
 
   return false;
 }
@@ -172,15 +193,44 @@ bool LedTask::runRainbow(const LedCommand &cmd, LedCommand &out) {
   return false;
 }
 
+bool LedTask::runAnimation(LedCommand &cmd, LedCommand &out) {
+  // Take ownership of the heap-allocated AnimationDef from the command.
+  _currentAnimation.reset(cmd.animation);
+  cmd.animation = nullptr;
+
+  if (!_currentAnimation || _currentAnimation->trackCount == 0) {
+    return false;
+  }
+
+  auto cfg = storage::configRead();
+  uint16_t hue = animation::rgbToHueDeg(cfg.profile.r, cfg.profile.g, cfg.profile.b);
+  auto palette = animation::resolvePalette(hue);
+
+  _animEngine.start(*_currentAnimation, palette);
+
+  while (_animEngine.isRunning()) {
+    _animEngine.tick(animation::kFrameInterval);
+
+    if (sleepOrInterrupt(animation::kFrameIntervalMs, out)) {
+      _animEngine.stop();
+      return true;
+    }
+  }
+
+  return false;
+}
+
 void LedTask::run() {
   LedCommand cmd;
   bool pending = false;  // true if `cmd` already holds the next command
 
   for (;;) {
     if (!pending) {
-      if (!_queue.receive(cmd))
+      if (!_queue.receive(cmd)) {
         continue;
+      }
     }
+
     pending = false;
 
     switch (cmd.type) {
@@ -216,6 +266,9 @@ void LedTask::run() {
         break;
       case LedCommandType::SolidColor:
         hw::rgbSetAll(cmd.r, cmd.g, cmd.b);
+        break;
+      case LedCommandType::Animation:
+        pending = runAnimation(cmd, cmd);
         break;
     }
   }

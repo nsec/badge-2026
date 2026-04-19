@@ -47,6 +47,8 @@ public:
   void begin(unsigned long baud);
   void end();
 
+  void setTxBufferSize(size_t /*size*/) {}
+
   int available() override;
   int read() override;
   int peek() override;

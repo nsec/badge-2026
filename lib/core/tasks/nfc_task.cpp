@@ -1,36 +1,58 @@
 #include "tasks/nfc_task.h"
 
 #include <Arduino.h>
-#include <cstring>
 #include "hardware/serial_mutex.h"
 
-#include <rfal_rf.h>
-#include <rfal_nfc.h>
-#include <rfal_nfca.h>
-#include <rfal_nfcb.h>
-#include <rfal_nfcv.h>
-#include <rfal_nfcDep.h>
-#include <rfal_t2t.h>
-#include <rfal_rfst25r3916.h>
-#include <st_errno.h>
-#include <mbedtls/md.h>
+#ifndef NATIVE_BUILD
+  #include <cstring>
 
-#include "hardware/nfc.h"
-#include "hardware/board_pins.h"
-#include "hardware/crypto1.h"
-#include "hardware/hwid.h"
-#include "tasks/display.h"
+  #include <rfal_nfca.h>
+  #include <rfal_nfcb.h>
+  #include <rfal_nfcv.h>
+  #include <rfal_nfcDep.h>
+  #include <rfal_t2t.h>
+  #include <st_errno.h>
+  #include <mbedtls/md.h>
 
-#include <nvs_flash.h>
-#include <nvs.h>
+  #include "hardware/nfc.h"
+  #include "hardware/board_pins.h"
+  #include "hardware/crypto1.h"
+  #include "hardware/hwid.h"
+  #include "tasks/display.h"
 
-#include "storage/nvs_social.h"
-#include "storage/nvs_config.h"
-#include "storage/nvs_contacts.h"
+  #include <nvs_flash.h>
+  #include <nvs.h>
+
+  #include "storage/nvs_social.h"
+  #include "storage/nvs_config.h"
+  #include "storage/nvs_contacts.h"
+#endif  // !NATIVE_BUILD
 
 namespace core {
 
 Queue<NfcCommand> *g_nfcQueue = nullptr;
+
+#ifdef NATIVE_BUILD
+
+void NfcTask::run() {
+  // NFC hardware not available in simulator — sleep forever.
+  NfcCommand cmd;
+  for (;;) {
+    _nfcQueue.receive(cmd);
+  }
+}
+
+bool NfcTask::checkCommand(NfcCommand &) {
+  return false;
+}
+
+void NfcTask::runReader() {}
+
+void NfcTask::runEmulator() {}
+
+void NfcTask::runPair() {}
+
+#else  // Real hardware build
 
 // ===========================================================================
 // NTAG213 Emulation
@@ -38,9 +60,9 @@ Queue<NfcCommand> *g_nfcQueue = nullptr;
 
 namespace {
 
-#define NTAG213_PAGES      45
-#define NTAG213_PAGE_SIZE  4
-#define NTAG213_USER_START 4
+  #define NTAG213_PAGES      45
+  #define NTAG213_PAGE_SIZE  4
+  #define NTAG213_USER_START 4
 
 static uint8_t tagMemory[NTAG213_PAGES * NTAG213_PAGE_SIZE];
 
@@ -55,8 +77,8 @@ static uint8_t g_ndefLen = 0;
 // UID is derived from the badge's MAC: 0x04 + 6 MAC bytes = 7-byte NTAG UID
 static uint8_t g_tagUid[7];
 
-#define TX_BUF_LEN (NTAG213_PAGES * NTAG213_PAGE_SIZE)
-#define RX_BUF_LEN 64
+  #define TX_BUF_LEN       (NTAG213_PAGES * NTAG213_PAGE_SIZE)
+  #define RX_BUF_LEN       64
 static uint8_t g_emuTxBuf[TX_BUF_LEN];
 static uint8_t g_emuRxBuf[RX_BUF_LEN];
 static uint16_t g_emuRxRcvdLen = 0;
@@ -66,7 +88,7 @@ static uint32_t g_lmConfigMask;
 static bool g_isFirstFrame = true;
 static bool g_wasEverActivated = false;
 static uint32_t g_lastActivityMs = 0;
-#define STUCK_TIMEOUT_MS 1000
+  #define STUCK_TIMEOUT_MS 1000
 
 // ===========================================================================
 // NFC-DEP Pair Protocol - crypto helpers
@@ -80,16 +102,16 @@ static const uint8_t BADGE_SECRET[32] = {
     0x49, 0x52, 0x5F, 0x53, 0x45, 0x43, 0x52, 0x45, 0x54, 0x5F, 0x4B, 0x45, 0x59, 0x21, 0x21, 0x21,
 };
 
-#define PAIR_NONCE_LEN 16
-#define PAIR_HMAC_LEN  32
-// DEP payload: MAC(6) + HMAC(32) = 38 bytes
-#define PAIR_DEP_LEN (core::hw::MAC_LEN + PAIR_HMAC_LEN)
-// Max profile payload (without MAC): 4 length-prefixed strings + RGB
-#define PAIR_PROFILE_MAX_LEN                                                                                           \
-  (1 + badge::config::profile::name_max_len + 1 + badge::config::profile::pronouns_max_len + 1 +                       \
-   badge::config::profile::affiliation_max_len + 1 + badge::config::profile::contact_max_len + 3)
-// Max DEP payload: base + optional profile
-#define PAIR_DEP_MAX_LEN (PAIR_DEP_LEN + PAIR_PROFILE_MAX_LEN)
+  #define PAIR_NONCE_LEN 16
+  #define PAIR_HMAC_LEN  32
+  // DEP payload: MAC(6) + HMAC(32) = 38 bytes
+  #define PAIR_DEP_LEN   (core::hw::MAC_LEN + PAIR_HMAC_LEN)
+  // Max profile payload (without MAC): 4 length-prefixed strings + RGB
+  #define PAIR_PROFILE_MAX_LEN                                                                                         \
+    (1 + badge::config::profile::name_max_len + 1 + badge::config::profile::pronouns_max_len + 1 +                     \
+     badge::config::profile::affiliation_max_len + 1 + badge::config::profile::contact_max_len + 3)
+  // Max DEP payload: base + optional profile
+  #define PAIR_DEP_MAX_LEN    (PAIR_DEP_LEN + PAIR_PROFILE_MAX_LEN)
 
 /// Derive a per-badge key: HMAC-SHA256(BADGE_SECRET, mac)
 static void deriveKey(const uint8_t mac[core::hw::MAC_LEN], uint8_t keyOut[32]) {
@@ -172,9 +194,9 @@ static bool unpackProfileFields(const uint8_t *buf, size_t available, storage::C
 // Partner tracking - NVS-based unique pair tracking
 // ===========================================================================
 
-// Store seen partner MACs as a blob of 6-byte entries in NVS.
-// Max 128 partners (768 bytes blob). Each entry is a raw 6-byte MAC.
-#define MAX_PAIRED_PARTNERS 128
+  // Store seen partner MACs as a blob of 6-byte entries in NVS.
+  // Max 128 partners (768 bytes blob). Each entry is a raw 6-byte MAC.
+  #define MAX_PAIRED_PARTNERS 128
 
 /// Check if a partner MAC has been seen before. Returns true if new (not seen).
 static bool isNewPartner(const uint8_t mac[core::hw::MAC_LEN]) {
@@ -691,7 +713,7 @@ static const uint8_t MFC_KEYS[][6] = {
     {0xD3, 0xF7, 0xD3, 0xF7, 0xD3, 0xF7},
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
 };
-#define MFC_NUM_KEYS (sizeof(MFC_KEYS) / sizeof(MFC_KEYS[0]))
+  #define MFC_NUM_KEYS        (sizeof(MFC_KEYS) / sizeof(MFC_KEYS[0]))
 
 void crc14443a(const uint8_t *d, uint8_t len, uint8_t *a, uint8_t *b) {
   uint32_t w = 0x6363;
@@ -1634,5 +1656,7 @@ void NfcTask::runPair() {
     return;
   }
 }
+
+#endif  // NATIVE_BUILD
 
 }  // namespace core
