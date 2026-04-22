@@ -136,20 +136,12 @@ std::string nextToken(const std::string &s, size_t &idx) {
 void cmdHelp() {
   g_io->print("Commands:\r\n"
               "  help                 - show this help\r\n"
-              "  info                 - print current boot/partition info\r\n"
-              "  hwid                 - print unique hardware ID\r\n"
-              "  ledtest [N]          - run RGB LED test suite (N=test# or all)\r\n"
-              "  einktest             - e-ink display test pattern\r\n"
-              "  buttontest           - interactive button test (press all 6)\r\n"
-              "  nvstest <key> <val>  - set social NVS\r\n"
-              "  pairtest [reset]     - show/reset paired partners\r\n");
-  g_io->flush();
-  g_io->print("  docktest [reset]     - show/reset seen dock stations\r\n"
-              "  lighttest [reset]    - show light sensor / reset NVS\r\n"
               "  ndef [text|reset]    - show/set/reset NFC emulator text\r\n"
               "  status               - show social NVS values\r\n"
               "  clear                - clear the screen\r\n"
+#ifndef CONFERENCE_ONLY
               "  swapboot             - switch to other firmware and reboot\r\n"
+#endif
               "  reboot               - reboot now\r\n");
   g_io->flush();
 
@@ -423,6 +415,7 @@ void cmdDockTest(const std::string &args) {
   g_io->printf("Sponsor value: %d\r\n", core::storage::socialRead(core::storage::SocialKey::Sponsor));
 }
 
+#ifndef CONFERENCE_ONLY
 void cmdBoot() {
   std::string current(core::ota::getRunningPartitionLabel().c_str());
   core::ota::BootTarget target;
@@ -444,6 +437,7 @@ void cmdBoot() {
   if (core::ota::setNextBoot(target, *g_io))
     cmdReboot();
 }
+#endif
 
 void handleLine(const std::string &line) {
   size_t i = 0;
@@ -462,23 +456,23 @@ void handleLine(const std::string &line) {
     return cmdHelp();
   // if (cmd == "info")
   //   return cmdInfo();
-  if (cmd == "hwid")
-    return cmdHwid();
-  if (cmd == "ledtest") {
-    std::string arg = nextToken(line, i);
-    return cmdLedTest(arg);
-  }
-  if (cmd == "einktest")
-    return cmdEinkTest();
-  if (cmd == "buttontest") {
-    core::hw::buttonTestInteractive(*g_io);
-    return;
-  }
-  if (cmd == "nvstest") {
-    std::string arg = (i < line.length()) ? line.substr(i) : "";
-    trim(arg);
-    return cmdNvsTest(arg);
-  }
+  // if (cmd == "hwid")
+  //  return cmdHwid();
+  // if (cmd == "ledtest") {
+  //  std::string arg = nextToken(line, i);
+  //  return cmdLedTest(arg);
+  //}
+  // if (cmd == "einktest")
+  //  return cmdEinkTest();
+  // if (cmd == "buttontest") {
+  //  core::hw::buttonTestInteractive(*g_io);
+  //  return;
+  //}
+  // if (cmd == "nvstest") {
+  //  std::string arg = (i < line.length()) ? line.substr(i) : "";
+  //  trim(arg);
+  //  return cmdNvsTest(arg);
+  //}
   if (cmd == "docktest") {
     std::string arg = (i < line.length()) ? line.substr(i) : "";
     trim(arg);
@@ -557,9 +551,11 @@ void handleLine(const std::string &line) {
     return;
   }
 
+#ifndef CONFERENCE_ONLY
   if (cmd == "swapboot") {
     return cmdBoot();
   }
+#endif
 
   // Check registered module commands
   for (const auto &registeredCmd : g_commands) {

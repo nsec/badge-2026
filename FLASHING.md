@@ -1,157 +1,161 @@
-# Badge Flashing Quick Reference
+# Badge Flashing Guide
 
-## For Mass Production / Distribution
+## Two Distribution Modes
 
-### Requirements
+The badge firmware supports two release packages:
 
-- Python 3.7+ with esptool: `python -m pip install esptool`
-- USB-C cable
-- Badge firmware files from GitHub release
+| Mode | Use Case | Contents |
+|------|----------|----------|
+| **conference-only** | Pre-CTF badge distribution | Conference firmware only, no `swapboot`, no CTF code |
+| **dual** | Full badge experience | Conference + CTF firmware, `swapboot` enabled |
 
-### Batch Flashing Script
+## Requirements
 
-**Windows (`flash.bat`):**
-```batch
-@echo off
-set PORT=COM4
-set BAUD=460800
+- Python 3.7+ with esptool: `pip install esptool`
+- USB-C data cable
+- Badge firmware package from GitHub release
 
-where python > NUL 2>&1
-if %errorlevel% NEQ 0 (
-  echo ERROR: Python not found in PATH!
-  pause
-  exit /b 1
-)
+## Quick Flash (Recommended)
 
-echo Flashing NorthSec Badge 2026...
-python -m esptool --chip esp32s3 --port %PORT% --baud %BAUD% ^
-  --before default_reset --after hard_reset write_flash -z ^
-  --flash_mode dio --flash_freq 80m --flash_size 8MB ^
-  0x0 bootloader.bin ^
-  0x8000 partitions.bin ^
-  0x10000 badge-conference.bin ^
-  0x150000 badge-ctf.bin
+Each release package includes `flash.py`. Extract the package and run:
 
-if %errorlevel% equ 0 (
-  echo SUCCESS: Badge flashed successfully!
-) else (
-  echo ERROR: Flashing failed!
-  pause
-  exit /b 1
-)
-pause
-```
-
-**Windows (`flash.ps1`):**
-```powershell
-$PORT = "COM4"
-$BAUD = 460800
-
-if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
-    Write-Host "ERROR: Python not found in PATH!"
-    Read-Host "Press Enter to exit"
-    exit 1
-}
-
-Write-Host "Flashing NorthSec Badge 2026..."
-
-python -m esptool --chip esp32s3 --port $PORT --baud $BAUD `
-    --before default_reset --after hard_reset write_flash -z `
-    --flash_mode dio --flash_freq 80m --flash_size 8MB `
-    0x0 bootloader.bin `
-    0x8000 partitions.bin `
-    0x10000 badge-conference.bin `
-    0x150000 badge-ctf.bin
-
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "SUCCESS: Badge flashed successfully!"
-} else {
-    Write-Host "ERROR: Flashing failed!"
-    Read-Host "Press Enter to exit"
-    exit 1
-}
-
-Read-Host "Press Enter to exit"
-```
-
-**Linux/Mac (`flash.sh`):**
 ```bash
-#!/bin/bash
-PORT=/dev/ttyACM0
-BAUD=460800
+# Conference-only (pre-CTF distribution)
+python flash.py --mode conference-only --port <PORT>
 
-which python > /dev/null 2>&1
-if [ $? -neq 0 ]; then
-  echo "ERROR: Flashing failed!"
-  exit 1
-fi
+# Dual firmware (full badge)
+python flash.py --mode dual --port <PORT>
+```
 
-echo "Flashing NorthSec Badge 2026..."
-python3 -m esptool --chip esp32s3 --port $PORT --baud $BAUD \
+### Options
+
+| Flag | Description |
+|------|-------------|
+| `--mode` | `conference-only` or `dual` (required for flashing) |
+| `--port` | Serial port, e.g. `COM4` or `/dev/ttyACM0` (auto-detect if omitted) |
+| `--all` | Flash ALL detected ESP32-S3 badges in parallel |
+| `--baud` | Baud rate (default: 460800) |
+| `--dry-run` | Print the esptool command without executing |
+| `--bin-dir` | Directory containing binaries (default: script directory) |
+| `--list-ports` | Show all serial ports and exit |
+
+### Examples
+
+```bash
+# Single badge (auto-detect port — works on Windows, macOS, Linux)
+python flash.py --mode dual
+
+# Single badge with explicit port
+python flash.py --mode dual --port COM4              # Windows
+python3 flash.py --mode conference-only --port /dev/ttyACM0  # Linux
+python3 flash.py --mode dual --port /dev/cu.usbmodem*  # macOS
+
+# Multi-flash: flash ALL connected badges at once
+python flash.py --mode conference-only --all
+
+# Preview without flashing
+python flash.py --mode dual --all --dry-run
+
+# Debug port detection
+python flash.py --list-ports
+```
+
+### Erase (Wipe Badge Clean)
+
+```bash
+# Erase a single badge
+python flash.py --erase
+
+# Erase a specific port
+python flash.py --erase --port COM4
+
+# Erase ALL connected badges
+python flash.py --erase --all
+```
+
+After erasing, reflash with the desired mode.
+
+### Multi-Flash (Mass Production)
+
+Connect multiple badges via USB hubs, then:
+
+```bash
+python flash.py --mode conference-only --all
+```
+
+All detected ESP32-S3 badges flash in parallel. A summary report shows success/failure per port.
+
+## Manual Flash (esptool)
+
+### Conference-Only
+
+```bash
+python -m esptool --chip esp32s3 --port <PORT> --baud 460800 \
+  --before default_reset --after hard_reset write_flash -z \
+  --flash_mode dio --flash_freq 80m --flash_size 8MB \
+  0x0 bootloader.bin \
+  0x8000 partitions.bin \
+  0x10000 badge-conference.bin
+```
+
+### Dual Firmware
+
+```bash
+python -m esptool --chip esp32s3 --port <PORT> --baud 460800 \
   --before default_reset --after hard_reset write_flash -z \
   --flash_mode dio --flash_freq 80m --flash_size 8MB \
   0x0 bootloader.bin \
   0x8000 partitions.bin \
   0x10000 badge-conference.bin \
   0x150000 badge-ctf.bin
-
-if [ $? -eq 0 ]; then
-    echo "SUCCESS: Badge flashed successfully!"
-else
-    echo "ERROR: Flashing failed!"
-    exit 1
-fi
 ```
 
-### Memory Map Reference
+## Memory Map
 
-| Address    | Size      | Content              | Purpose                           |
-|------------|-----------|----------------------|-----------------------------------|
-| 0x0        | ~15KB     | bootloader.bin       | ESP32-S3 second-stage bootloader  |
-| 0x8000     | 3KB       | partitions.bin       | Partition table                   |
-| 0xE000     | 8KB       | (auto)               | OTA data selector                 |
-| 0x10000    | 1.25MB    | badge-conference.bin | Conference firmware (conference)  |
-| 0x150000   | 1.25MB    | badge-ctf.bin        | CTF challenges (ctf)              |
-| 0x290000   | 64KB      | (reserved)           | Core dump partition               |
-| 0x2A0000   | ~1.4MB    | (empty)              | SPIFFS filesystem                 |
+| Address    | Size   | Content              | Present In         |
+|------------|--------|----------------------|--------------------|
+| 0x0        | ~15KB  | bootloader.bin       | Both modes         |
+| 0x8000     | 3KB    | partitions.bin       | Both modes         |
+| 0xE000     | 8KB    | OTA data selector    | Auto               |
+| 0x10000    | 1.25MB | badge-conference.bin | Both modes         |
+| 0x150000   | 1.25MB | badge-ctf.bin        | Dual only          |
+| 0x290000   | 64KB   | Core dump partition  | Auto               |
+| 0x2A0000   | ~1.4MB | SPIFFS filesystem    | Auto               |
 
-### Verification Checklist
+## Verification Checklists
 
-After flashing each badge:
+### Conference-Only
 
-1. **Connect to serial** (115200 baud) - Should see boot banner
-2. **Check conference boot**: Device should boot to conference firmware by default
-3. **Test CLI**: Type `help` - should show commands including `schedule`
-4. **Test CTF switch**: Type `boot ctf` - device reboots to challenges firmware
-5. **Verify CTF boot**: Type `help` - should show commands including `crypto`
-6. **Test return**: Type `boot conference` - returns to conference firmware
+After flashing:
+- [ ] Boot banner shows `Mode: conference-only`
+- [ ] CLI `help` does NOT list `swapboot`
+- [ ] LED heartbeat blinks
+- [ ] CLI commands respond
 
-### Troubleshooting
+### Dual Firmware
+
+After flashing:
+- [ ] Boot banner shows `Mode: conference (dual)`
+- [ ] CLI `help` lists `swapboot`
+- [ ] `swapboot` reboots to CTF firmware
+- [ ] CTF boot banner shows `Mode: ctf`
+- [ ] `swapboot` returns to conference firmware
+
+## Troubleshooting
 
 **"Failed to connect":**
 - Hold BOOT button while connecting USB
 - Try lower baud rate: `--baud 115200`
-- Check USB cable (must support data, not just charging)
+- Check USB cable supports data (not charge-only)
 
-**"Hash of data verified" but badge not working:**
-- Erase flash first: `python -m esptool --chip esp32s3 --port <PORT> erase_flash`
-- Reflash with all files
+**Badge not working after flash:**
+- Erase flash: `python -m esptool --chip esp32s3 --port <PORT> erase_flash`
+- Reflash all files
 
 **Wrong partition boots:**
-- Flash OTA data partition: `python -m esptool --chip esp32s3 --port <PORT> write_flash 0xE000 ota_data_initial.bin`
-- Or use CLI: `boot conference` then `reboot`
+- Use CLI `swapboot` command
+- Or reflash with the correct package
 
-### Quality Assurance
+## Support
 
-Test sample from each batch:
-- [ ] Boot banner displays correctly
-- [ ] USB CDC serial communication working
-- [ ] LED blinks (heartbeat)
-- [ ] CLI responsive to commands
-- [ ] Both firmware partitions functional
-- [ ] Boot switching works in both directions
-
-### Support
-
-For flashing issues or firmware bugs, open an issue at:
-https://github.com/nsec/badge-2026/issues
+For issues: https://github.com/nsec/badge-2026/issues

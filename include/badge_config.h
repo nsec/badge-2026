@@ -6,6 +6,11 @@
 #define NSEC_BADGE_YEAR 2026
 #endif
 
+// Build-time safety: CONFERENCE_ONLY and HAS_CHALLENGES must never both be set.
+#if defined(CONFERENCE_ONLY) && defined(HAS_CHALLENGES)
+#error "CONFERENCE_ONLY and HAS_CHALLENGES are mutually exclusive. Conference-only builds must not include CTF code."
+#endif
+
 #include <chrono>
 
 #include <freertos/FreeRTOS.h>

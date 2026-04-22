@@ -42,72 +42,50 @@ jobs:
           python -m pip install --upgrade pip
           pip install platformio
 
-      - name: Build conference firmware
-        run: |
-          pio run -e esp32-s3-devkitc-1-conference
+      # --- Build all three firmware variants ---
+      - name: Build conference firmware (for dual package — swapboot enabled)
+        run: pio run -e esp32-s3-devkitc-1-conference
+
+      - name: Build conference-only firmware (swapboot disabled)
+        run: pio run -e esp32-s3-devkitc-1-conference-only
 
       - name: Build CTF firmware
+        run: pio run -e esp32-s3-devkitc-1-ctf
+
+      # --- Determine version string ---
+      - name: Set version
+        id: version
         run: |
-          pio run -e esp32-s3-devkitc-1-ctf
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=dev-${GITHUB_SHA::8}" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Prepare release artifacts
+      # --- Package both release modes ---
+      - name: Package release artifacts
         run: |
-          mkdir -p release
-          # Conference firmware
-          cp .pio/build/esp32-s3-devkitc-1-conference/firmware.bin release/badge-conference.bin
-          cp .pio/build/esp32-s3-devkitc-1-conference/bootloader.bin release/bootloader.bin
-          cp .pio/build/esp32-s3-devkitc-1-conference/partitions.bin release/partitions.bin
-          # CTF challenges firmware
-          cp .pio/build/esp32-s3-devkitc-1-ctf/firmware.bin release/badge-ctf.bin
-          # Create flash script for convenience
-          cat > release/FLASH_INSTRUCTIONS.txt << 'EOF'
-          NorthSec Badge 2026 - Flash Instructions
-          ==========================================
+          python tools/package_release.py \
+            --version "${{ steps.version.outputs.version }}" \
+            --output-dir release
 
-          Prerequisites:
-          - esptool.py installed: pip install esptool
-          - USB driver for ESP32-S3 (usually automatic)
+      # --- Validate conference-only package ---
+      - name: Validate conference-only package (no CTF leaks)
+        run: |
+          python tools/validate_conference_only.py release/conference-only/
 
-          Windows:
-          --------
-          python -m esptool --chip esp32s3 --port COM4 --baud 460800 ^
-            --before default_reset --after hard_reset write_flash -z ^
-            --flash_mode dio --flash_freq 80m --flash_size 8MB ^
-            0x0 bootloader.bin ^
-            0x8000 partitions.bin ^
-            0x10000 badge-conference.bin ^
-            0x150000 badge-ctf.bin
-
-          Linux/Mac:
-          ----------
-          python3 -m esptool --chip esp32s3 --port /dev/ttyACM0 --baud 460800 \
-            --before default_reset --after hard_reset write_flash -z \
-            --flash_mode dio --flash_freq 80m --flash_size 8MB \
-            0x0 bootloader.bin \
-            0x8000 partitions.bin \
-            0x10000 badge-conference.bin \
-            0x150000 badge-ctf.bin
-
-          Files:
-          ------
-          - bootloader.bin: ESP32-S3 bootloader
-          - partitions.bin: Partition table (conference + CTF layout)
-          - badge-conference.bin: Conference firmware (conference partition @ 0x10000)
-          - badge-ctf.bin: CTF challenges firmware (ctf partition @ 0x150000)
-
-          Notes:
-          ------
-          - Replace COM4 (Windows) or /dev/ttyACM0 (Linux/Mac) with your port
-          - Find port: Windows Device Manager, Linux "ls /dev/tty*", Mac "ls /dev/cu.*"
-          - Conference firmware boots by default
-          - Use CLI commands to switch: "boot conference" or "boot ctf"
-          EOF
-
-      - name: Upload firmware artifacts
+      # --- Upload artifacts ---
+      - name: Upload conference-only package
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-binaries
-          path: release/
+          name: nsec2026-conference-only
+          path: release/conference-only/
+
+      - name: Upload dual-firmware package
+        uses: actions/upload-artifact@v4
+        with:
+          name: nsec2026-dual-firmware
+          path: release/dual/
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -115,40 +93,69 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download artifacts
+      - name: Download conference-only artifacts
         uses: actions/download-artifact@v4
         with:
-          name: firmware-binaries
-          path: release
+          name: nsec2026-conference-only
+          path: release/conference-only
+
+      - name: Download dual-firmware artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: nsec2026-dual-firmware
+          path: release/dual
+
+      - name: Determine version
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+
+      - name: Create release archives
+        run: |
+          cd release
+          tar czf "nsec2026-conference-only-${{ steps.version.outputs.version }}.tar.gz" -C conference-only .
+          tar czf "nsec2026-dual-firmware-${{ steps.version.outputs.version }}.tar.gz" -C dual .
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: release/*
+          files: |
+            release/nsec2026-conference-only-${{ steps.version.outputs.version }}.tar.gz
+            release/nsec2026-dual-firmware-${{ steps.version.outputs.version }}.tar.gz
+            release/conference-only/badge-conference.bin
+            release/conference-only/manifest.json
+            release/dual/badge-conference.bin
+            release/dual/badge-ctf.bin
+            release/dual/bootloader.bin
+            release/dual/partitions.bin
+            release/dual/manifest.json
           body: |
-            ## NorthSec Badge 2026 Firmware Release
-            
-            This release contains dual-firmware images for the NorthSec 2026 badge (ESP32-S3).
-            
-            ### Files Included
-            - `badge-conference.bin` - Conference firmware (conference partition)
-            - `badge-ctf.bin` - CTF challenges firmware (CTF partition)
-            - `bootloader.bin` - ESP32-S3 bootloader
-            - `partitions.bin` - Partition table
-            - `FLASH_INSTRUCTIONS.txt` - Complete flashing guide
-            
-            ### Quick Flash (All-in-one)
+            ## NorthSec Badge 2026 Firmware — ${{ steps.version.outputs.version }}
+
+            Two release packages are available:
+
+            ### 📦 Conference-Only (`nsec2026-conference-only-${{ steps.version.outputs.version }}.tar.gz`)
+            For pre-CTF badge distribution. Contains only conference firmware.
+            - No CTF firmware, no `swapboot` command, no challenge code.
+            - Safe for public distribution before the CTF begins.
+
+            ### 📦 Dual Firmware (`nsec2026-dual-firmware-${{ steps.version.outputs.version }}.tar.gz`)
+            Full badge experience with both conference and CTF firmware.
+            - Badge boots to conference by default.
+            - Use `swapboot` CLI command to switch to CTF challenges.
+
+            ### Quick Flash
+            Extract the desired package and run:
             ```bash
-            # Flash both firmwares + bootloader + partitions
-            python -m esptool --chip esp32s3 --port <PORT> --baud 460800 \
-              write_flash -z 0x0 bootloader.bin \
-              0x8000 partitions.bin 0x10000 badge-conference.bin 0x150000 badge-ctf.bin
+            python flash.py --mode conference-only --port <PORT>   # conference-only
+            python flash.py --mode dual --port <PORT>              # dual firmware
             ```
-            
-            ### Switching Between Firmwares
-            Connect to serial console (115200 baud) and use CLI commands:
-            - `boot conference` - Switch to conference firmware
-            - `boot ctf` - Switch to CTF challenges firmware
-            - `info` - Show current firmware partition
-            
-            See `FLASH_INSTRUCTIONS.txt` for detailed platform-specific instructions.
+
+            ### Memory Map
+            | Address | Content |
+            |---------|---------|
+            | 0x0     | Bootloader |
+            | 0x8000  | Partition table |
+            | 0x10000 | Conference firmware |
+            | 0x150000| CTF firmware (dual only) |
+
+            See `README.txt` in each package for detailed instructions.
