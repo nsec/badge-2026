@@ -35,6 +35,11 @@ public:
   /// Stop the current animation and clear LEDs.
   void stop();
 
+  /// Update the palette used for PaletteSlot color lookups (mid-animation safe).
+  void setPalette(const ResolvedPalette &palette) {
+    _palette = palette;
+  }
+
   bool isRunning() const {
     return _running;
   }

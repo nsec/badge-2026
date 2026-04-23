@@ -72,12 +72,19 @@ inline uint16_t rgbToHueDeg(uint8_t r, uint8_t g, uint8_t b) {
   return static_cast<uint16_t>(hue + 0.5f);
 }
 
-/// Resolve all palette slots for a given user hue (0-360 degrees).
-inline ResolvedPalette resolvePalette(uint16_t hueDeg) {
+/// Resolve all palette slots from an RGB user color (0-255 per channel).
+/// UserPrimary faithfully reproduces the chosen color; derived slots use its
+/// hue but keep their own fixed saturation/value so they remain visually
+/// distinct even for low-saturation inputs like white.
+inline ResolvedPalette resolvePalette(uint8_t r, uint8_t g, uint8_t b) {
   ResolvedPalette palette;
-  float hueNormalized = static_cast<float>(hueDeg) / 360.0f;  // normalize to 0..1
 
-  palette[PaletteSlot::UserPrimary] = hsvToRgb(hueNormalized, 0.9f, 1.0f);
+  // UserPrimary is the user's chosen color, verbatim.
+  palette[PaletteSlot::UserPrimary] = {r / 255.0f, g / 255.0f, b / 255.0f};
+
+  // Derive hue for the remaining slots.
+  float hueNormalized = static_cast<float>(rgbToHueDeg(r, g, b)) / 360.0f;
+
   palette[PaletteSlot::UserLight] = hsvToRgb(hueNormalized, 0.4f, 1.0f);
   palette[PaletteSlot::UserDark] = hsvToRgb(hueNormalized, 0.9f, 0.4f);
   palette[PaletteSlot::UserComplement] = hsvToRgb(hueNormalized + 0.5f, 0.9f, 1.0f);

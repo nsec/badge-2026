@@ -203,8 +203,7 @@ bool LedTask::runAnimation(LedCommand &cmd, LedCommand &out) {
   }
 
   auto cfg = storage::configRead();
-  uint16_t hue = animation::rgbToHueDeg(cfg.profile.r, cfg.profile.g, cfg.profile.b);
-  auto palette = animation::resolvePalette(hue);
+  auto palette = animation::resolvePalette(cfg.profile.r, cfg.profile.g, cfg.profile.b);
 
   _animEngine.start(*_currentAnimation, palette);
 
@@ -212,6 +211,11 @@ bool LedTask::runAnimation(LedCommand &cmd, LedCommand &out) {
     _animEngine.tick(animation::kFrameInterval);
 
     if (sleepOrInterrupt(animation::kFrameIntervalMs, out)) {
+      if (out.type == LedCommandType::PaletteUpdate) {
+        _animEngine.setPalette(animation::resolvePalette(out.r, out.g, out.b));
+        continue;
+      }
+
       _animEngine.stop();
       return true;
     }
@@ -269,6 +273,9 @@ void LedTask::run() {
         break;
       case LedCommandType::Animation:
         pending = runAnimation(cmd, cmd);
+        break;
+      case LedCommandType::PaletteUpdate:
+        // Only meaningful during an animation; ignore when idle.
         break;
     }
   }

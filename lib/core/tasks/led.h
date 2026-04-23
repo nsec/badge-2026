@@ -20,6 +20,7 @@ enum class LedCommandType : uint8_t {
   ProgressFlash,  // show social-progress animation
   SolidColor,     // set all LEDs to the r/g/b fields and hold
   Animation,      // play a field-based animation from a heap-allocated AnimationDef
+  PaletteUpdate,  // update the palette of the running animation (uses r/g/b as new user color)
 };
 
 struct LedCommand {

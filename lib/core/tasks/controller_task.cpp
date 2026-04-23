@@ -8,6 +8,7 @@
 #include "storage/nvs_social.h"
 #include "storage/nvs_wifi_creds.h"
 #include "hardware/rgb_led.h"
+#include "animation/parser.h"
 
 namespace core {
 
@@ -291,12 +292,23 @@ void ControllerTask::handle(const PortalToggleRequest &) {
     strlcpy(ncmd.wifi.ssid, creds.ssid, sizeof(ncmd.wifi.ssid));
     strlcpy(ncmd.wifi.passphrase, creds.passphrase, sizeof(ncmd.wifi.passphrase));
     _nfcQueue.send(ncmd, Milliseconds(0));
+
+    // Play the wifi_portal LED animation
+    auto result = animation::loadAndParseAnimation("wifi_portal");
+    if (result.ok) {
+      LedCommand lc(LedCommandType::Animation);
+      lc.animation = result.def.release();
+      _ledQueue.send(lc, Milliseconds(0));
+    }
   } else {
     PortalCommand pcmd{};
     pcmd.type = PortalCommand::Type::Stop;
     _portalQueue.send(pcmd);
 
     _nfcQueue.send(NfcCommand{NfcMode::Off}, Milliseconds(0));
+
+    // Turn off the wifi_portal LED animation
+    _ledQueue.send(LedCommand(LedCommandType::Off), Milliseconds(0));
   }
 
   Serial.printf("[controller] Portal %s\r\n", _portalActive ? "starting" : "stopping");
@@ -312,7 +324,7 @@ void ControllerTask::handle(const ConfigChangedEvent &event) {
   hw::rgbSetBrightness(cfg.brightness);
 
   LedCommand cmd{};
-  cmd.type = LedCommandType::SolidColor;
+  cmd.type = LedCommandType::PaletteUpdate;
   cmd.r = cfg.profile.r;
   cmd.g = cfg.profile.g;
   cmd.b = cfg.profile.b;
