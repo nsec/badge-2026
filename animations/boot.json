@@ -168,15 +168,9 @@
           1
         ]
       },
-      "radius": 0.3,
-      "intensity": {
-        "type": "breathe",
-        "base": 0.9,
-        "amplitude": 0.1,
-        "period": 3,
-        "phase": 0
-      },
-      "startTime": 1.6,
+      "radius": 0.37,
+      "intensity": 1,
+      "startTime": 1,
       "fadeIn": 2
     },
     {
@@ -200,17 +194,17 @@
             0.4347783308247061
           ]
         ],
-        "period": 4
+        "period": 6
       },
       "color": {
         "type": "hue_cycle",
         "from_hue": 0,
         "to_hue": 1,
-        "period": 0.8
+        "period": 2
       },
       "radius": 0.3,
       "intensity": 1,
-      "startTime": 2,
+      "startTime": 3,
       "fadeIn": 1
     },
     {
@@ -234,18 +228,18 @@
             0.4347783308247061
           ]
         ],
-        "period": 4,
+        "period": 6,
         "reverse": true
       },
       "color": {
         "type": "hue_cycle",
         "from_hue": 0,
         "to_hue": 1,
-        "period": 0.8
+        "period": 2
       },
       "radius": 0.3,
       "intensity": 1,
-      "startTime": 2,
+      "startTime": 3,
       "fadeIn": 1
     }
   ]
