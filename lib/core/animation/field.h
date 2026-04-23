@@ -67,12 +67,20 @@ inline void evaluateField(const Light *lights, uint8_t lightCount, RGBF *out) {
     // Scale proportionally instead of per-channel clamping to preserve
     // color ratios. Per-channel clamping shifts hue toward white when
     // additive contributions push individual channels past 1.0.
-    float maxC = pixel.r > pixel.g ? (pixel.r > pixel.b ? pixel.r : pixel.b)
-                                   : (pixel.g > pixel.b ? pixel.g : pixel.b);
+    float maxC = pixel.r > pixel.g ? (pixel.r > pixel.b ? pixel.r : pixel.b) : (pixel.g > pixel.b ? pixel.g : pixel.b);
     RGBF rgb = maxC > 1.0f ? pixel * (1.0f / maxC) : pixel;
-    if (rgb.r < 0.0f) rgb.r = 0.0f;
-    if (rgb.g < 0.0f) rgb.g = 0.0f;
-    if (rgb.b < 0.0f) rgb.b = 0.0f;
+    if (rgb.r < 0.0f) {
+      rgb.r = 0.0f;
+    }
+
+    if (rgb.g < 0.0f) {
+      rgb.g = 0.0f;
+    }
+
+    if (rgb.b < 0.0f) {
+      rgb.b = 0.0f;
+    }
+
     rgb = rgb * kLedCalibration[i];
 
     if (kSaturationFloor > 0.0f) {
