@@ -4,63 +4,51 @@
   "tracks": [
     {
       "motion": {
-        "type": "orbit",
-        "center": [
-          0.2974239437223822,
-          0.3636214515702423
+        "type": "pingpong",
+        "a": [
+          0,
+          1
         ],
-        "rx": 0.3,
-        "ry": 0.3,
-        "period": 4,
-        "phase": 0
+        "b": [
+          1,
+          1
+        ],
+        "period": 5
       },
       "color": {
         "type": "palette_slot",
         "slot": "user_primary"
       },
-      "radius": 0.3,
-      "intensity": 1
-    },
-    {
-      "motion": {
-        "type": "orbit",
-        "center": [
-          0.690670480508503,
-          0.3331844729852034
-        ],
-        "rx": 0.3,
-        "ry": 0.3,
-        "period": 4,
-        "phase": 3.38,
-        "reverse": true
-      },
-      "color": {
-        "type": "palette_slot",
-        "slot": "user_primary"
-      },
-      "radius": 0.3,
+      "radius": 0.5,
       "intensity": 1
     },
     {
       "motion": {
         "type": "static",
         "pos": [
-          0.4805578541359802,
-          1.563825253093878
+          0.5012510441686613,
+          0.027691805928369378
         ]
       },
       "color": {
-        "type": "palette_slot",
-        "slot": "user_complement"
+        "type": "palette",
+        "colors": [
+          [
+            1,
+            0.6823529411764706,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "count": 2,
+        "period": 0.5
       },
-      "radius": 1,
-      "intensity": {
-        "type": "breathe",
-        "base": 1,
-        "amplitude": 1,
-        "period": 4,
-        "phase": 0
-      }
+      "radius": 0.3,
+      "intensity": 1
     }
   ]
 }

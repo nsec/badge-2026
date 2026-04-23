@@ -17,12 +17,11 @@
       "radius": 200,
       "intensity": {
         "type": "breathe",
-        "base": 0.85,
-        "amplitude": 0.15,
-        "period": 8,
+        "base": 0.6,
+        "amplitude": 0.4,
+        "period": 6,
         "phase": 0
       }
     }
   ]
 }
-
