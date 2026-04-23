@@ -54,7 +54,8 @@ bool AnimationEngine::tick(float dt) {
     _lights[i].pos = evaluate(track.motion, trackTime);
     _lights[i].color = evaluate(track.color, trackTime, _palette);
     _lights[i].radius = evaluate(track.radius, trackTime);
-    _lights[i].intensity = evaluate(track.intensity, trackTime);
+    _lights[i].intensity = powf(evaluate(track.intensity, trackTime),
+                                badge::config::animation::intensity_curve / badge::config::animation::gamma);
 
     // Apply fade-in envelope. The linear ramp is raised to 1/gamma so
     // that after gamma correction in the output stage the perceived
@@ -78,10 +79,9 @@ bool AnimationEngine::tick(float dt) {
   // Write to hardware with temporal dithering.
   for (uint8_t i = 0; i < hw::RGB_LED_COUNT; i++) {
     const RGBF &pixel = _framebuffer[i];
-    uint8_t seed = i * 3;
-    uint8_t red = ditheredOutput(pixel.r, badge::config::animation::white_balance_r, _frameCounter, seed);
-    uint8_t green = ditheredOutput(pixel.g, badge::config::animation::white_balance_g, _frameCounter, seed + 1);
-    uint8_t blue = ditheredOutput(pixel.b, badge::config::animation::white_balance_b, _frameCounter, seed + 2);
+    uint8_t red = ditheredOutput(pixel.r, badge::config::animation::white_balance_r, _frameCounter, i, 0);
+    uint8_t green = ditheredOutput(pixel.g, badge::config::animation::white_balance_g, _frameCounter, i, 1);
+    uint8_t blue = ditheredOutput(pixel.b, badge::config::animation::white_balance_b, _frameCounter, i, 2);
     hw::rgbSetPixel(i, red, green, blue);
   }
 

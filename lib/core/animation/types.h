@@ -177,7 +177,7 @@ inline RGBF oklabToRgb(Oklab color) {
 /// Gamma-correct and dither a single channel. Noise-based temporal dithering
 /// spreads quantization error across all frequencies, avoiding the coherent
 /// flicker that ordered dithering produces at low PWM values.
-inline uint8_t ditheredOutput(float value, float whiteBalance, uint8_t frameCounter, uint8_t seed) {
+inline uint8_t ditheredOutput(float value, float whiteBalance, uint8_t frameCounter, uint8_t led, uint8_t channel) {
   float corrected = powf(value, badge::config::animation::gamma) * whiteBalance * 255.0f;
 
   if (corrected < 0.0f) {
@@ -195,11 +195,14 @@ inline uint8_t ditheredOutput(float value, float whiteBalance, uint8_t frameCoun
   }
 
   float fractional = corrected - quantized;
-  // Noise dither: hash of frame counter and spatial seed produces a unique
-  // threshold per pixel/channel/frame, converting coherent flicker into
-  // perceptually invisible noise.
-  uint8_t noise = static_cast<uint8_t>(frameCounter * 251u + seed * 173u);
-  float threshold = noise * (1.0f / 255.0f);
+  // Noise dither: hash of frame counter, LED index, and channel produces a
+  // unique threshold per pixel/channel/frame, converting coherent flicker
+  // into perceptually invisible noise. Each channel uses a different frame
+  // multiplier so R/G/B follow independent temporal sequences, avoiding
+  // correlated hue shifts.
+  static constexpr uint8_t kFrameMult[] = {251, 127, 31};
+  uint8_t noise = static_cast<uint8_t>(frameCounter * kFrameMult[channel] + led * 173u);
+  float threshold = noise * (1.0f / 256.0f);
 
   return quantized + ((fractional > threshold) ? 1 : 0);
 }

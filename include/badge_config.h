@@ -71,8 +71,12 @@ inline constexpr uint8_t target_fps = 60;
 inline constexpr uint32_t frame_interval_ms = 1000 / target_fps;  // ~16ms
 // Gamma correction for LED output. Higher values crush non-dominant channels,
 // improving color saturation through the PCB diffuser. 1.0 = linear (no correction).
-// Typical range for diffused WS2812: 2.2–2.8.
+// Typical range for WS2812: 2.2–2.8.
 inline constexpr float gamma = 2.6f;
+// Power curve applied to the intensity parameter before it is used as a linear
+// multiplier. There's no reason for this value beyond "vibes"; it makes fades
+// feel more "dramatic". Let's call it a fudge factor.
+inline constexpr float intensity_curve = 1.5f;
 // Per-channel white balance. Compensates for unequal luminous efficacy of the
 // WS2812 R/G/B dies (green is ~2x brighter than blue at same PWM).
 // Applied after gamma correction. 1.0 = no correction.

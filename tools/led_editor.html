@@ -640,6 +640,7 @@ const MAX_LIGHTS = 16;
 const MAX_SPLINE_POINTS = 8;
 const MAX_PALETTE_COLORS = 4;
 const GAMMA = 2.6;
+const INTENSITY_CURVE = 1.5;
 const WB_R = 0.85;
 const WB_G = 0.55;
 const WB_B = 1.0;
@@ -734,10 +735,10 @@ function svgToNorm(sx, sy) {
   return [(sx - SVG_X_MIN) / SVG_X_RANGE, (sy - SVG_Y_MIN) / SVG_Y_RANGE];
 }
 
-// Linear RGB [0,1] → sRGB byte [0,255] for accurate monitor display.
-// The badge firmware uses gamma 2.6 + WB for WS2812 hardware output, but
-// applying that to CSS colors double-gamma's through the monitor, crushing
-// everything to black. sRGB transfer gives correct perceptual brightness.
+// Linear light [0,1] → sRGB byte [0,255] for accurate monitor display.
+// The field evaluator applies badge gamma + WB so its output represents the
+// light the WS2812 LEDs actually emit. sRGB encoding maps that linear light
+// to monitor values, giving a WYSIWYG preview.
 function linearToSRGB8(v) {
   v = clamp01(v);
   const s = v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1/2.4) - 0.055;
@@ -915,6 +916,11 @@ function evaluateField(lights) {
     if (g < 0) g = 0;
     if (b < 0) b = 0;
     [r, g, b] = applySaturationFloor(r, g, b);
+    // Simulate badge output: apply gamma + white balance so the editor
+    // previews what the WS2812 LEDs actually emit.
+    r = Math.pow(r, GAMMA) * WB_R;
+    g = Math.pow(g, GAMMA) * WB_G;
+    b = Math.pow(b, GAMMA) * WB_B;
     out.push([r, g, b]);
   }
   return out;
@@ -1011,7 +1017,7 @@ function evaluateFrame(t) {
     const pos = evaluateMotion(track.motion, tt);
     const color = evaluateColor(track.color, tt, editor.palette);
     const radius = evaluateScalar(normalizeScalar(track.radius), tt);
-    let intensity = evaluateScalar(normalizeScalar(track.intensity), tt);
+    let intensity = Math.pow(evaluateScalar(normalizeScalar(track.intensity), tt), INTENSITY_CURVE / GAMMA);
     const fadeIn = track.fadeIn || 0;
     if (fadeIn > 0 && tt < fadeIn) {
       const fade = tt / fadeIn;
