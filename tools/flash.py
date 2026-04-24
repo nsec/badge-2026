@@ -40,6 +40,7 @@ ADDR_BOOTLOADER = "0x0"
 ADDR_PARTITIONS = "0x8000"
 ADDR_CONFERENCE = "0x10000"
 ADDR_CTF = "0x150000"
+ADDR_SPIFFS = "0x2A2000"
 
 # Expected file names per mode
 REQUIRED_FILES = {
@@ -47,12 +48,14 @@ REQUIRED_FILES = {
         ("bootloader.bin", ADDR_BOOTLOADER),
         ("partitions.bin", ADDR_PARTITIONS),
         ("badge-conference.bin", ADDR_CONFERENCE),
+        ("spiffs-conference.bin", ADDR_SPIFFS),
     ],
     "dual": [
         ("bootloader.bin", ADDR_BOOTLOADER),
         ("partitions.bin", ADDR_PARTITIONS),
         ("badge-conference.bin", ADDR_CONFERENCE),
         ("badge-ctf.bin", ADDR_CTF),
+        ("spiffs-ctf.bin", ADDR_SPIFFS),
     ],
 }
 

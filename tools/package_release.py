@@ -9,6 +9,7 @@ distribution modes:
     bootloader.bin
     partitions.bin
     badge-conference.bin
+    spiffs-conference.bin
     flash.py
     manifest.json
     README.txt
@@ -18,6 +19,7 @@ distribution modes:
     partitions.bin
     badge-conference.bin
     badge-ctf.bin
+    spiffs-ctf.bin
     flash.py
     manifest.json
     README.txt
@@ -47,6 +49,8 @@ FLASH_MAP = {
     "partitions.bin": "0x8000",
     "badge-conference.bin": "0x10000",
     "badge-ctf.bin": "0x150000",
+    "spiffs-conference.bin": "0x2A2000",
+    "spiffs-ctf.bin": "0x2A2000",
 }
 
 
@@ -138,6 +142,7 @@ def package_mode(mode, output_dir, version, flash_script_path):
             "bootloader.bin": os.path.join(BUILD_CONFERENCE_ONLY, "bootloader.bin"),
             "partitions.bin": os.path.join(BUILD_CONFERENCE_ONLY, "partitions.bin"),
             "badge-conference.bin": os.path.join(BUILD_CONFERENCE_ONLY, "firmware.bin"),
+            "spiffs-conference.bin": os.path.join(BUILD_CONFERENCE_ONLY, "spiffs.bin"),
         }
     else:
         sources = {
@@ -145,6 +150,7 @@ def package_mode(mode, output_dir, version, flash_script_path):
             "partitions.bin": os.path.join(BUILD_CONFERENCE, "partitions.bin"),
             "badge-conference.bin": os.path.join(BUILD_CONFERENCE, "firmware.bin"),
             "badge-ctf.bin": os.path.join(BUILD_CTF, "firmware.bin"),
+            "spiffs-ctf.bin": os.path.join(BUILD_CTF, "spiffs.bin"),
         }
 
     # Validate source files exist
@@ -229,6 +235,7 @@ def main():
         print("  pio run -e esp32-s3-devkitc-1-conference-only")
         print("  pio run -e esp32-s3-devkitc-1-conference")
         print("  pio run -e esp32-s3-devkitc-1-ctf")
+        print("SPIFFS images are built automatically after each firmware build.")
         sys.exit(1)
 
     print(f"\nDone. Release packages in: {args.output_dir}")
