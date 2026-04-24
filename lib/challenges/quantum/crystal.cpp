@@ -160,10 +160,10 @@ float groundStateEnergy() {
 float solveThreshold() {
   computeGroundEnergy();
   // The TFIM with h/J=1.5 is near the quantum phase transition.
-  // The 2-layer RY+CZ ansatz can reach ~65% of the bound via coordinate
-  // descent.  Set threshold at 64% — requires multiple rounds of sweeps
-  // plus fine-tuning to achieve.
-  return g_ground_energy * 0.64f;
+  // The 2-layer RY+CZ ansatz can reach ~64.4% of the bound via coordinate
+  // descent.  Set threshold at 64.2% — requires 3-4 full sweeps of
+  // parameter tuning to achieve.
+  return g_ground_energy * 0.642f;
 }
 
 // ---------------------------------------------------------------------------
@@ -235,6 +235,16 @@ static float g_workParams[NUM_PARAMS] = {};
 static constexpr uint32_t EVAL_COOLDOWN_MS = 3000;
 static uint32_t g_lastEvalMs = 0;
 
+/// Wrap angle to [-π, π] for display.
+static float wrapToPi(float x) {
+  x = fmodf(x, 2.f * M_PI);
+  if (x > M_PI)
+    x -= 2.f * M_PI;
+  if (x < -M_PI)
+    x += 2.f * M_PI;
+  return x;
+}
+
 static bool checkCooldown(Stream &stream) {
   uint32_t now = millis();
   if (now - g_lastEvalMs < EVAL_COOLDOWN_MS) {
@@ -292,6 +302,32 @@ void handleCommand(Stream &stream, const std::string &args) {
     stream.printf("  Local fields δ: (hidden — use sweep to probe)\r\n");
     stream.printf("Ansatz: %d-layer variational circuit, %d parameters\r\n", NUM_LAYERS, NUM_PARAMS);
     stream.printf("Solve threshold: %.4f\r\n", solveThreshold());
+    stream.printf("Type 'quantum crystal circuit' to view the ansatz.\r\n");
+    return;
+  }
+
+  // --- circuit ---
+  if (sub == "circuit") {
+    // clang-format off
+    stream.printf("=== Crystal Ansatz (2-layer RY + CZ chain) ===\r\n\r\n");
+    stream.printf("q0 --[RY(t0 )]--*-----------[RY(t8 )]--*-----------\r\n");
+    stream.printf("                |                       |\r\n");
+    stream.printf("q1 --[RY(t1 )]--*--[CZ]-----[RY(t9 )]--*--[CZ]-----\r\n");
+    stream.printf("                    |                       |\r\n");
+    stream.printf("q2 --[RY(t2 )]-----*--[CZ]--[RY(t10)]-----*--[CZ]--\r\n");
+    stream.printf("                       |                       |\r\n");
+    stream.printf("     :          :      :     :          :      :\r\n");
+    stream.printf("                       |                       |\r\n");
+    stream.printf("q6 --[RY(t6 )]-----*--[CZ]--[RY(t14)]-----*--[CZ]--\r\n");
+    stream.printf("                    |                       |\r\n");
+    stream.printf("q7 --[RY(t7 )]--*--[CZ]-----[RY(t15)]--*--[CZ]-----\r\n");
+    stream.printf("                |\r\n");
+    stream.printf("     <- Layer 1 ->           <- Layer 2 ->\r\n\r\n");
+    stream.printf("  * RY(t) rotations prepare superpositions\r\n");
+    stream.printf("  * CZ chain entangles nearest-neighbour qubits\r\n");
+    stream.printf("  * 16 params: t[0..7] (layer 1) + t[8..15] (layer 2)\r\n");
+    stream.printf("  * Goal: minimize <psi(t)|H|psi(t)>\r\n");
+    // clang-format on
     return;
   }
 
@@ -328,7 +364,7 @@ void handleCommand(Stream &stream, const std::string &args) {
     }
     g_workParams[paramIdx] = val;
     float energy = evaluate(g_workParams);
-    stream.printf("θ[%d] = %.4f  →  Energy: %.6f  %s\r\n", paramIdx, val, energy,
+    stream.printf("θ[%d] = %.4f  →  Energy: %.6f  %s\r\n", paramIdx, wrapToPi(val), energy,
                   energy < solveThreshold() ? "SOLVED!" : "");
     return;
   }
@@ -338,7 +374,7 @@ void handleCommand(Stream &stream, const std::string &args) {
     float energy = evaluate(g_workParams);
     stream.printf("Working params (Energy: %.6f):\r\n", energy);
     for (uint8_t i = 0; i < NUM_PARAMS; i++) {
-      stream.printf("  \xce\xb8[%2d] = %.4f\r\n", i, g_workParams[i]);
+      stream.printf("  \xce\xb8[%2d] = %.4f\r\n", i, wrapToPi(g_workParams[i]));
     }
     return;
   }
@@ -385,7 +421,7 @@ void handleCommand(Stream &stream, const std::string &args) {
     }
 
     // Report best — player must manually `set` to apply
-    stream.printf("Best: θ[%d]=%.4f  E=%.6f  %s\r\n", paramIdx, bestTheta, bestE,
+    stream.printf("Best: θ[%d]=%.4f  E=%.6f  %s\r\n", paramIdx, wrapToPi(bestTheta), bestE,
                   bestE < solveThreshold() ? "SOLVED!" : "not solved");
     return;
   }

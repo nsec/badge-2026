@@ -177,7 +177,7 @@ def crystal_evaluate(params_rad, J, h, delta):
 def crystal_threshold(J, h, delta):
     nq = NUM_CRYSTAL_QUBITS
     bound = (nq - 1) * abs(J) + nq * abs(h) + sum(abs(d) for d in delta)
-    return (-bound) * 0.64
+    return (-bound) * 0.642
 
 # ---------------------------------------------------------------------------
 # Grid Hamiltonian (must match grid.cpp with seed 0x47524944)
