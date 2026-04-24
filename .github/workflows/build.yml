@@ -52,6 +52,13 @@ jobs:
       - name: Build CTF firmware
         run: pio run -e esp32-s3-devkitc-1-ctf
 
+      # --- Build SPIFFS images (tool-mkspiffs not auto-installed in CI) ---
+      - name: Build SPIFFS image (conference-only, data/)
+        run: pio run -t buildfs -e esp32-s3-devkitc-1-conference-only
+
+      - name: Build SPIFFS image (CTF, data-ctf/)
+        run: pio run -t buildfs -e esp32-s3-devkitc-1-ctf
+
       # --- Determine version string ---
       - name: Set version
         id: version
