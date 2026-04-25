@@ -214,6 +214,9 @@ void LedTask::run() {
       case LedCommandType::ProgressFlash:
         pending = runProgressFlash(cmd, cmd);
         break;
+      case LedCommandType::SolidColor:
+        hw::rgbSetAll(cmd.r, cmd.g, cmd.b);
+        break;
     }
   }
 }

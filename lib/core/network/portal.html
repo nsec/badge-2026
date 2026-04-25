@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a0f0a">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+  background: #0a0f0a;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #d4e0c8;
+  overflow-x: hidden;
+}
+
+.main {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+}
+
+/* --- Background layers --- */
+
+.vine-bg {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.3;
+}
+
+.vine-bg path {
+  fill: none;
+  stroke: #2a5a1a;
+  stroke-width: 2;
+  stroke-dasharray: 800;
+  stroke-dashoffset: 800;
+  animation: grow 8s ease-out forwards;
+}
+.vine-bg path:nth-child(2) { stroke: #1a4a2a; animation-delay: 1.5s; }
+.vine-bg path:nth-child(3) { stroke: #2a6a1a; animation-delay: 3s; }
+.vine-bg path:nth-child(4) { stroke: #1a5a2a; animation-delay: 4.5s; stroke-width: 1.5; }
+
+.vine-bg circle {
+  fill: #3a8a2a;
+  opacity: 0;
+  animation: leaf-appear 1s ease-out forwards;
+}
+
+@keyframes grow { to { stroke-dashoffset: 0; } }
+@keyframes leaf-appear {
+  from { opacity: 0; transform: scale(0); }
+  to   { opacity: 0.5; transform: scale(1); }
+}
+
+/* --- Typography --- */
+
+h1 {
+  font-size: 1.5em;
+  margin: 12px 0 4px;
+  color: #7ab648;
+  letter-spacing: 3px;
+  text-shadow: 0 0 20px rgba(122, 182, 72, 0.3);
+  animation: pulse-glow 4s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+  0%, 100% { text-shadow: 0 0 20px rgba(122, 182, 72, 0.2); }
+  50%      { text-shadow: 0 0 30px rgba(122, 182, 72, 0.5), 0 0 60px rgba(122, 182, 72, 0.15); }
+}
+
+h2 {
+  font-size: 1.1em;
+  margin: 18px 0 8px;
+  color: #8aa87a;
+  font-weight: 400;
+}
+
+/* --- Cards --- */
+
+.card {
+  background: linear-gradient(145deg, rgba(17, 26, 17, 0.7), rgba(14, 22, 14, 0.7));
+  border: 1px solid #1e3a1e;
+  border-radius: 16px;
+  padding: 18px;
+  width: 100%;
+  max-width: 400px;
+  margin: 8px 0;
+  animation: card-breathe 6s ease-in-out infinite;
+  box-shadow: 0 0 20px rgba(42, 90, 26, 0.08);
+}
+.card:nth-child(3) { animation-delay: 3s; }
+
+@keyframes card-breathe {
+  0%, 100% { border-color: #1e3a1e; box-shadow: 0 0 20px rgba(42, 90, 26, 0.08); }
+  50%      { border-color: #2a5a2a; box-shadow: 0 0 30px rgba(42, 90, 26, 0.15); }
+}
+
+/* --- Form elements --- */
+
+label {
+  display: block;
+  font-size: 0.9em;
+  color: #7a9a6a;
+  margin: 10px 0 4px;
+}
+
+input[type=text], textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #1e3a1e;
+  border-radius: 10px;
+  background: #0a140a;
+  color: #d4e0c8;
+  font-family: inherit;
+  font-size: 1em;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+input[type=text]:focus, textarea:focus {
+  outline: none;
+  border-color: #4a8a3a;
+  box-shadow: 0 0 12px rgba(74, 138, 58, 0.2);
+}
+textarea { resize: none; }
+
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  margin: 8px 0;
+  border-radius: 3px;
+  background: #1a2a1a;
+  outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #8ac85a, #4a8a3a);
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(122, 182, 72, 0.4);
+}
+input[type=range]::-moz-range-thumb {
+  width: 20px; height: 20px;
+  border: none; border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #8ac85a, #4a8a3a);
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(122, 182, 72, 0.4);
+}
+
+input[type=color] {
+  width: 60px; height: 40px;
+  border: none; border-radius: 10px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin: 16px 0 0;
+  border: 1px solid #3a7a2a;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2a5a1a, #3a7a2a);
+  color: #d4f0c8;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.btn:active {
+  background: linear-gradient(135deg, #1a4a0a, #2a6a1a);
+  box-shadow: 0 0 20px rgba(74, 138, 58, 0.3);
+}
+
+/* --- Small text --- */
+
+.val, .status, .bright-val, .card-hint, .contacts-empty {
+  font-size: 0.85em;
+}
+.val        { color: #4a6a3a; float: right; }
+.status     { color: #5a8a4a; text-align: center; margin: 8px 0; }
+.bright-val { color: #6a8a5a; text-align: right; }
+.card-hint  { color: #5a7a4a; line-height: 1.4; margin: 4px 0 12px; font-size: 0.82em; }
+.contacts-empty { color: #4a6a3a; text-align: center; padding: 8px 0; }
+
+/* --- Progress bars --- */
+
+.bar-wrap {
+  background: #0e1a0e;
+  border-radius: 6px;
+  height: 14px;
+  margin: 4px 0 8px;
+  overflow: hidden;
+  border: 1px solid #1a2a1a;
+}
+.bar {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.6s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+.bar::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  animation: shimmer 3s ease-in-out infinite;
+}
+@keyframes shimmer { 0% { left: -100%; } 100% { left: 100%; } }
+
+.bar-social     { background: linear-gradient(90deg, #2a5a1a, #5a9a3a); }
+.bar-sponsor    { background: linear-gradient(90deg, #8a7a1a, #c8b030); }
+.bar-light      { background: linear-gradient(90deg, #1a5a5a, #30a8a0); }
+.bar-attraction { background: linear-gradient(90deg, #6a4a1a, #c87830); }
+
+/* --- Toggle switch --- */
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8px 0 4px;
+}
+.toggle-label { font-size: 0.95em; color: #8aa87a; margin: 0; }
+
+.toggle {
+  width: 48px; height: 26px;
+  border-radius: 13px;
+  background: #1a2a1a;
+  border: 1px solid #2a3a2a;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.3s, border-color 0.3s;
+  flex-shrink: 0;
+}
+.toggle.active { background: #2a5a1a; border-color: #4a8a3a; }
+
+.toggle-knob {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: #4a6a3a;
+  position: absolute;
+  top: 2px; left: 2px;
+  transition: transform 0.3s, background 0.3s;
+}
+.toggle.active .toggle-knob { transform: translateX(22px); background: #7ab648; }
+
+/* --- Collapsible sections --- */
+
+#profile-fields {
+  overflow: hidden;
+  max-height: 0; opacity: 0;
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+}
+#profile-fields.visible { max-height: 400px; opacity: 1; }
+
+/* --- Contacts --- */
+
+.contact-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #1a2a1a;
+  cursor: pointer;
+}
+.contact-row:last-child { border-bottom: none; }
+
+.contact-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px rgba(122, 182, 72, 0.2);
+}
+.contact-name { flex: 1; font-size: 0.95em; }
+.contact-chevron {
+  color: #4a6a3a;
+  font-size: 0.8em;
+  transition: transform 0.3s;
+}
+.contact-row.open .contact-chevron { transform: rotate(90deg); }
+
+.contact-details {
+  overflow: hidden;
+  max-height: 0; opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.2s ease;
+  padding-left: 22px;
+}
+.contact-row.open + .contact-details { max-height: 200px; opacity: 1; }
+
+.contact-detail { font-size: 0.85em; color: #7a9a6a; padding: 3px 0; }
+.contact-detail span { color: #d4e0c8; }
+</style>
+</head>
+<body>
+
+<svg class="vine-bg" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice">
+  <path d="M-10 800 Q30 650 20 500 Q10 400 50 300 Q80 200 40 100 Q20 50 60 -10"/>
+  <path d="M410 800 Q370 680 380 550 Q390 420 350 320 Q320 240 360 140 Q380 60 340 -10"/>
+  <path d="M200 810 Q160 700 180 580 Q200 460 160 360 Q130 280 170 180 Q200 100 160 -10"/>
+  <path d="M50 810 Q100 720 80 620 Q60 530 110 430 Q140 350 100 250 Q70 170 120 60"/>
+  <circle cx="20" cy="500" r="5" style="animation-delay:4s"/>
+  <circle cx="50" cy="300" r="4" style="animation-delay:5s"/>
+  <circle cx="380" cy="550" r="5" style="animation-delay:5.5s"/>
+  <circle cx="350" cy="320" r="4" style="animation-delay:6s"/>
+  <circle cx="180" cy="580" r="5" style="animation-delay:6.5s"/>
+  <circle cx="160" cy="360" r="4" style="animation-delay:7s"/>
+  <circle cx="80" cy="620" r="3" style="animation-delay:7.5s"/>
+  <circle cx="110" cy="430" r="4" style="animation-delay:8s"/>
+</svg>
+
+<div class="main">
+<h1>NSEC</h1>
+
+<div class="card">
+  <h2>Badge Settings</h2>
+  <label>Favorite Color</label>
+  <input type="color" id="color" value="#8000ff">
+  <label for="brightness">Badge Brightness</label>
+  <input type="range" id="brightness" min="0" max="255" value="255">
+  <div class="bright-val" id="bright-label">255</div>
+  <button class="btn" onclick="save()">Save</button>
+  <div class="status" id="status"></div>
+</div>
+
+<div class="card">
+  <h2>Profile Sharing</h2>
+  <p class="card-hint">When enabled, your profile is shared with nearby badges when you tap. Do not include sensitive information; shared data is not encrypted.</p>
+  <div class="toggle-row">
+    <label class="toggle-label" for="share">Share my profile</label>
+    <div class="toggle" id="share-toggle" onclick="toggleShare()">
+      <div class="toggle-knob"></div>
+    </div>
+  </div>
+  <div id="profile-fields">
+    <label for="name">Name</label>
+    <input type="text" id="name" maxlength="20" placeholder="How you'd like to be known">
+    <label for="pronouns">Pronouns</label>
+    <input type="text" id="pronouns" maxlength="10" placeholder="e.g. they/them">
+    <label for="affiliation">Affiliation</label>
+    <input type="text" id="affiliation" maxlength="30" placeholder="Organization or team">
+    <label for="contact">How to reach me</label>
+    <textarea id="contact" maxlength="60" rows="2" placeholder="Fedi, Matrix, GitHub, email..."></textarea>
+  </div>
+  <button class="btn" onclick="saveProfile()">Save Sharing Settings</button>
+  <div class="status" id="profile-status"></div>
+</div>
+
+<div class="card">
+  <h2>Social Progress</h2>
+  <label>Social <span class="val" id="v-social">0</span></label>
+  <div class="bar-wrap"><div class="bar bar-social" id="b-social" style="width:0%"></div></div>
+  <label>Sponsor <span class="val" id="v-sponsor">0</span></label>
+  <div class="bar-wrap"><div class="bar bar-sponsor" id="b-sponsor" style="width:0%"></div></div>
+  <label>Light <span class="val" id="v-light">0</span></label>
+  <div class="bar-wrap"><div class="bar bar-light" id="b-light" style="width:0%"></div></div>
+  <label>Attraction <span class="val" id="v-attraction">0</span></label>
+  <div class="bar-wrap"><div class="bar bar-attraction" id="b-attraction" style="width:0%"></div></div>
+</div>
+
+<div class="card">
+  <h2>Contacts</h2>
+  <div id="contacts-list">
+    <div class="contacts-empty">No contacts yet. Pair with other badges via NFC!</div>
+  </div>
+</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function hexToRgb(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+function rgbToHex(r, g, b) {
+  return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// --- Floating spores (canvas) ---
+
+(function initSpores() {
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0';
+  document.body.prepend(canvas);
+  const ctx = canvas.getContext('2d');
+
+  // Pre-render glow sprite once to avoid per-frame gradient creation
+  const spriteSize = 16;
+  const sprite = document.createElement('canvas');
+  sprite.width = sprite.height = spriteSize * 2;
+  const sctx = sprite.getContext('2d');
+  const grad = sctx.createRadialGradient(spriteSize, spriteSize, 0, spriteSize, spriteSize, spriteSize);
+  grad.addColorStop(0, 'rgba(122, 182, 72, 1)');
+  grad.addColorStop(1, 'rgba(122, 182, 72, 0)');
+  sctx.fillStyle = grad;
+  sctx.fillRect(0, 0, spriteSize * 2, spriteSize * 2);
+
+  // ~1 spore per 3 CSS pixels of viewport width, clamped to [50, 600]
+  const count = Math.max(50, Math.min(600, Math.round(window.innerWidth / 3)));
+
+  // x, y are in [0..1] screen fractions (0 = top/left, 1 = bottom/right)
+  // speed is in screen-fractions per second
+  // swayAmp/swayFreq drive a sine-wave horizontal sway (avoids sub-pixel snapping)
+  const spores = Array.from({length: count}, () => ({
+    x: Math.random(),
+    y: Math.random(),
+    speed: 0.018 + Math.random() * 0.048,
+    size: 1 + Math.random() * 2,
+    baseX: Math.random(),
+    swayAmp: 0.01 + Math.random() * 0.03,
+    swayFreq: 0.3 + Math.random() * 0.7,
+    phase: Math.random() * Math.PI * 2
+  }));
+
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = Math.round(rect.width * dpr);
+    const h = Math.round(rect.height * dpr);
+    // Only resize if width changed; ignore height-only changes from Safari's
+    // dynamic toolbar to avoid clearing the canvas buffer mid-animation.
+    if (canvas.width === w) return;
+    canvas.width = w;
+    canvas.height = h;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Frame-rate-independent animation loop.
+  // dtSec = elapsed seconds since last frame, used to scale movement
+  // so spores travel at the same speed regardless of display refresh rate.
+  let lastTime = performance.now();
+  (function draw(now) {
+    const dtSec = (now - lastTime) / 1000;
+    lastTime = now;
+    // Use CSS pixel dimensions (not canvas.width/height which are device pixels)
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+    ctx.clearRect(0, 0, w, h);
+    for (const s of spores) {
+      // Move upward; sway horizontally with a sine wave
+      s.y -= s.speed * dtSec;
+      s.phase += s.swayFreq * dtSec;
+      s.x = s.baseX + Math.sin(s.phase) * s.swayAmp;
+
+      // Wrap around when leaving the top; respawn below visible area
+      if (s.y < -0.05) { s.y = 1.15; s.baseX = Math.random(); }
+
+      // Don't draw while offscreen
+      if (s.y > 1.0 || s.y < 0.0) continue;
+
+      // Fade in over bottom 10%, fade out over top 10%, steady in between
+      let opacity = 0.6;
+      if (s.y > 0.9) opacity = 0.6 * (1.0 - s.y) / 0.1;
+      else if (s.y < 0.1) opacity = 0.6 * s.y / 0.1;
+
+      // Stamp the pre-rendered glow sprite, scaled by spore size
+      const r = s.size * 2;
+      ctx.globalAlpha = opacity;
+      ctx.drawImage(sprite, s.x * w - r, s.y * h - r, r * 2, r * 2);
+    }
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(draw);
+  })(performance.now());
+})();
+
+// --- UI interactions ---
+
+let shareEnabled = false;
+
+function toggleShare() {
+  shareEnabled = !shareEnabled;
+  $('share-toggle').classList.toggle('active', shareEnabled);
+  $('profile-fields').classList.toggle('visible', shareEnabled);
+}
+
+$('brightness').addEventListener('input', () => {
+  $('bright-label').textContent = $('brightness').value;
+});
+
+// --- Contacts rendering ---
+
+function renderContacts(contacts) {
+  const list = $('contacts-list');
+  if (!contacts.length) {
+    list.innerHTML = '<div class="contacts-empty">No contacts yet. Pair with other badges via NFC!</div>';
+    return;
+  }
+  list.innerHTML = '';
+  contacts.forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'contact-row';
+    row.innerHTML =
+      `<div class="contact-dot" style="background:${rgbToHex(c.r, c.g, c.b)}"></div>` +
+      `<div class="contact-name">${esc(c.name)}` +
+        (c.pronouns ? ` <span style="color:#5a7a4a;font-size:0.85em">(${esc(c.pronouns)})</span>` : '') +
+      `</div>` +
+      `<div class="contact-chevron">&#9656;</div>`;
+    row.onclick = () => row.classList.toggle('open');
+    list.appendChild(row);
+
+    const details = document.createElement('div');
+    details.className = 'contact-details';
+    if (c.affiliation)
+      details.innerHTML += `<div class="contact-detail"><span>${esc(c.affiliation)}</span></div>`;
+    if (c.contact)
+      details.innerHTML += `<div class="contact-detail"><span>${esc(c.contact)}</span></div>`;
+    list.appendChild(details);
+  });
+}
+
+// --- API ---
+
+async function load() {
+  try {
+    const [cfgRes, socRes, conRes] = await Promise.all([
+      fetch('/api/config'), fetch('/api/social'), fetch('/api/contacts')
+    ]);
+    const cfg = await cfgRes.json();
+    const soc = await socRes.json();
+    const contacts = await conRes.json();
+
+    $('color').value = rgbToHex(cfg.r, cfg.g, cfg.b);
+    $('brightness').value = cfg.brightness;
+    $('bright-label').textContent = cfg.brightness;
+
+    $('name').value = cfg.name || '';
+    $('pronouns').value = cfg.pronouns || '';
+    $('affiliation').value = cfg.affiliation || '';
+    $('contact').value = cfg.contact || '';
+    if (cfg.share) {
+      shareEnabled = true;
+      $('share-toggle').classList.add('active');
+      $('profile-fields').classList.add('visible');
+    }
+
+    for (const key of ['social', 'sponsor', 'light', 'attraction']) {
+      const pct = Math.round(soc[key] / 255 * 100);
+      $('b-' + key).style.width = pct + '%';
+      $('v-' + key).textContent = soc[key] + ' / 255';
+    }
+
+    renderContacts(contacts);
+  } catch (e) {
+    $('status').textContent = 'Failed to load config';
+  }
+}
+
+async function save() {
+  const rgb = hexToRgb($('color').value);
+  const body = {
+    r: rgb.r, g: rgb.g, b: rgb.b,
+    brightness: parseInt($('brightness').value)
+  };
+  try {
+    const res = await fetch('/api/config', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    if (res.ok) {
+      $('status').textContent = 'Saved!';
+      setTimeout(() => $('status').textContent = '', 2000);
+    } else {
+      $('status').textContent = 'Save failed';
+    }
+  } catch (e) {
+    $('status').textContent = 'Connection error';
+  }
+}
+
+async function saveProfile() {
+  const body = {
+    share: shareEnabled,
+    name: $('name').value,
+    pronouns: $('pronouns').value,
+    affiliation: $('affiliation').value,
+    contact: $('contact').value
+  };
+  try {
+    const res = await fetch('/api/config', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    if (res.ok) {
+      $('profile-status').textContent = 'Saved!';
+      setTimeout(() => $('profile-status').textContent = '', 2000);
+    } else {
+      $('profile-status').textContent = 'Save failed';
+    }
+  } catch (e) {
+    $('profile-status').textContent = 'Connection error';
+  }
+}
+
+load();
+</script>
+</body>
+</html>

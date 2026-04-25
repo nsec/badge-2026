@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include <badge_config.h>
+
 #include "rtos/queue.hpp"
 
 namespace core {
@@ -10,11 +12,19 @@ enum class NfcMode : uint8_t {
   Off,
   Reader,
   Emulator,
+  WifiEmulator,
   Pair,
 };
 
 struct NfcCommand {
   NfcMode mode;
+
+  union {
+    struct {
+      char ssid[badge::config::wifi::ssid_max_len + 1];
+      char passphrase[badge::config::wifi::passphrase_len + 1];
+    } wifi;
+  };
 };
 
 extern Queue<NfcCommand> *g_nfcQueue;

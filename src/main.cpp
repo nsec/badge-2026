@@ -64,6 +64,7 @@ void setup() {
   // Serial.println("LEDs initialized");
 
   core::storage::socialNvsInit();
+  core::storage::configNvsInit();
 
   if (core::hw::nfcInit()) {
     Serial.println("NFC initialized");
@@ -108,12 +109,19 @@ void setup() {
   Serial.println("Challenges initialized");
 #endif
 
+  // Apply saved brightness
+  {
+    auto cfg = core::storage::configRead();
+    core::hw::rgbSetBrightness(cfg.brightness);
+  }
+
   // Create queues
   static core::Queue<core::ControllerEvent> controllerQueue(badge::config::queues::controller_depth);
   static core::Queue<core::LedCommand> ledQueue(badge::config::queues::led_depth);
   static core::Queue<core::CliResponse> cliQueue(badge::config::queues::cli_depth);
   static core::Queue<core::NfcCommand> nfcQueue(badge::config::queues::nfc_depth);
   static core::Queue<core::DisplayCommand> displayQueue(badge::config::queues::display_depth);
+  static core::Queue<core::PortalCommand> portalQueue(badge::config::queues::portal_depth);
 
   core::g_controllerQueue = &controllerQueue;
   core::g_ledQueue = &ledQueue;
@@ -123,13 +131,14 @@ void setup() {
 
   // Create tasks
   static core::LedTask ledTask(ledQueue);
-  static core::ControllerTask controllerTask(controllerQueue, ledQueue, cliQueue, nfcQueue, displayQueue);
+  static core::ControllerTask controllerTask(controllerQueue, ledQueue, cliQueue, nfcQueue, displayQueue, portalQueue);
   static core::CliTask cliTask;
   static core::ButtonTask buttonTask(controllerQueue);
   static core::NfcTask nfcTask(nfcQueue, ledQueue, displayQueue);
   static core::DockTask dockTask(dockEventQueue, ledQueue);
   static core::DisplayTask displayTask(displayQueue);
   static core::LightTask lightTask;
+  static core::PortalTask portalTask(portalQueue, controllerQueue);
 
   core::heartbeatStart();
 
@@ -140,6 +149,7 @@ void setup() {
   nfcTask.start();
   dockTask.start();
   displayTask.start();
+  portalTask.start();
 
   // Show boot logo via DisplayTask (moved from einkInit)
   {

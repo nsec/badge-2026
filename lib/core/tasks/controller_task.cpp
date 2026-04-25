@@ -2,9 +2,11 @@
 
 #include <Arduino.h>
 #include "hardware/serial_mutex.h"
+#include <cstring>
 
 #include "tasks/display.h"
 #include "storage/nvs_social.h"
+#include "storage/nvs_wifi_creds.h"
 #include "hardware/rgb_led.h"
 
 namespace core {
@@ -79,7 +81,7 @@ bool ControllerTask::allSocialMaxed() {
 // DOWN  = NFC P2P pair
 // LEFT  = NFC read
 // RIGHT = NFC emulate
-// UP    = (reserved — not yet assigned)
+// UP    = toggle WiFi config portal
 // ---------------------------------------------------------------------------
 
 static constexpr storage::SocialKey SOCIAL_ORDER[] = {
@@ -147,9 +149,9 @@ void ControllerTask::showCurrentSocial(bool hold) {
 void ControllerTask::handle(const ButtonPressEvent &event) {
   switch (event.button) {
 
-    // --- UP: reserved (not yet assigned) ---
+    // --- UP: toggle WiFi config portal ---
     case hw::Button::Up: {
-      // TODO: assign a function to the UP button
+      handle(PortalToggleRequest{});
       break;
     }
 
@@ -264,6 +266,60 @@ void ControllerTask::handle(const SocialSetRequest &req) {
                                 req.value);
 
   _cliQueue.send(CliResponse{CliResponseType::SocialSetComplete});
+}
+
+// ---------------------------------------------------------------------------
+// WiFi portal toggle (A+B or CLI)
+// ---------------------------------------------------------------------------
+
+void ControllerTask::handle(const PortalToggleRequest &) {
+  _portalActive = !_portalActive;
+
+  if (_portalActive) {
+    auto creds = storage::wifiCredsGet();
+
+    PortalCommand pcmd{};
+    pcmd.type = PortalCommand::Type::Start;
+    strlcpy(pcmd.start.ssid, creds.ssid, sizeof(pcmd.start.ssid));
+    strlcpy(pcmd.start.passphrase, creds.passphrase, sizeof(pcmd.start.passphrase));
+    _portalQueue.send(pcmd);
+
+    // Start NFC WiFi emulation so phones can tap the badge to get a
+    // "Connect to Wi-Fi?" prompt.
+    NfcCommand ncmd{};
+    ncmd.mode = NfcMode::WifiEmulator;
+    strlcpy(ncmd.wifi.ssid, creds.ssid, sizeof(ncmd.wifi.ssid));
+    strlcpy(ncmd.wifi.passphrase, creds.passphrase, sizeof(ncmd.wifi.passphrase));
+    _nfcQueue.send(ncmd, Milliseconds(0));
+  } else {
+    PortalCommand pcmd{};
+    pcmd.type = PortalCommand::Type::Stop;
+    _portalQueue.send(pcmd);
+
+    _nfcQueue.send(NfcCommand{NfcMode::Off}, Milliseconds(0));
+  }
+
+  Serial.printf("[controller] Portal %s\r\n", _portalActive ? "starting" : "stopping");
+}
+
+// ---------------------------------------------------------------------------
+// Config changed (from WiFi portal) — update LEDs to reflect new settings
+// ---------------------------------------------------------------------------
+
+void ControllerTask::handle(const ConfigChangedEvent &event) {
+  const auto &cfg = event.config;
+
+  hw::rgbSetBrightness(cfg.brightness);
+
+  LedCommand cmd{};
+  cmd.type = LedCommandType::SolidColor;
+  cmd.r = cfg.profile.r;
+  cmd.g = cfg.profile.g;
+  cmd.b = cfg.profile.b;
+  _ledQueue.send(cmd);
+
+  Serial.printf("[controller] Config updated: name=%s bright=%u color=(%u,%u,%u)\r\n", cfg.profile.name, cfg.brightness,
+                cfg.profile.r, cfg.profile.g, cfg.profile.b);
 }
 
 }  // namespace core

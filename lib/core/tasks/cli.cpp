@@ -14,6 +14,7 @@
 #include "tasks/controller.h"
 #include "tasks/cli_queue.h"
 #include "storage/nvs_social.h"
+#include "storage/nvs_contacts.h"
 
 #include <nvs_flash.h>
 #include <nvs.h>
@@ -137,6 +138,7 @@ void cmdHelp() {
   g_io->print("Commands:\r\n"
               "  help                 - show this help\r\n"
               "  ndef [text|reset]    - show/set/reset NFC emulator text\r\n"
+              "  list-contacts        - list stored contacts\r\n"
               "  status               - show social NVS values\r\n"
               "  clear                - clear the screen\r\n"
 #ifndef CONFERENCE_ONLY
@@ -439,6 +441,33 @@ void cmdBoot() {
 }
 #endif
 
+void cmdContactList() {
+  uint16_t count = core::storage::contactCount();
+  g_io->printf("Stored contacts: %d\r\n", count);
+
+  for (uint16_t i = 0; i < count; i++) {
+    core::storage::ContactProfile profile;
+    if (!core::storage::contactGet(i, profile)) {
+      continue;
+    }
+
+    g_io->printf("  %3d: %02X:%02X:%02X:%02X:%02X:%02X  %s", i + 1, profile.mac[0], profile.mac[1], profile.mac[2],
+                 profile.mac[3], profile.mac[4], profile.mac[5], profile.name);
+    if (profile.pronouns[0]) {
+      g_io->printf(" (%s)", profile.pronouns);
+    }
+    g_io->printf("  #%02X%02X%02X", profile.r, profile.g, profile.b);
+    g_io->println();
+
+    if (profile.affiliation[0]) {
+      g_io->printf("       affil: %s\r\n", profile.affiliation);
+    }
+    if (profile.contact[0]) {
+      g_io->printf("       contact: %s\r\n", profile.contact);
+    }
+  }
+}
+
 void handleLine(const std::string &line) {
   size_t i = 0;
   std::string cmd = nextToken(line, i);
@@ -550,6 +579,8 @@ void handleLine(const std::string &line) {
     }
     return;
   }
+  if (cmd == "list-contacts")
+    return cmdContactList();
 
 #ifndef CONFERENCE_ONLY
   if (cmd == "swapboot") {
