@@ -1,0 +1,162 @@
+{
+  "name": "smooth_glow",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.7349229302837942,
+          0.04176923814776165
+        ]
+      },
+      "color": {
+        "type": "hue_cycle",
+        "from_hue": 0.3,
+        "to_hue": 0.68,
+        "period": 8,
+        "ping_pong": true
+      },
+      "radius": 0.3,
+      "intensity": 1
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.3105671797324836,
+          0.014335896023268142
+        ]
+      },
+      "color": {
+        "type": "hue_cycle",
+        "from_hue": 0,
+        "to_hue": 0.2,
+        "period": 8,
+        "ping_pong": true
+      },
+      "radius": 0.3,
+      "intensity": 1
+    },
+    {
+      "motion": {
+        "type": "spline",
+        "points": [
+          [
+            0.05522871216670292,
+            0.9922927233698404
+          ],
+          [
+            0.4784848818500603,
+            0.9831076534295822
+          ],
+          [
+            0.9420511434725664,
+            0.9984160536691746
+          ],
+          [
+            0.4650482390229563,
+            1.0320947427717975
+          ]
+        ],
+        "period": 20
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.3,
+      "intensity": 1
+    },
+    {
+      "motion": {
+        "type": "spline",
+        "points": [
+          [
+            0.03271787098913698,
+            0.9987220637525018
+          ],
+          [
+            0.5121079136869393,
+            0.8941034139354953
+          ],
+          [
+            0.9543619704489155,
+            0.9987220637525018
+          ],
+          [
+            0.5121079136869393,
+            1.1248798605008787
+          ]
+        ],
+        "period": 10,
+        "reverse": true
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.3,
+      "intensity": 1
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          -0.004006528113701807,
+          0.40345043680719556
+        ]
+      },
+      "color": {
+        "type": "hue_cycle",
+        "from_hue": 0.7,
+        "to_hue": 1,
+        "period": 8,
+        "ping_pong": true
+      },
+      "radius": 0.3,
+      "intensity": 1
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          1.003378235419038,
+          0.4102770390628814
+        ]
+      },
+      "color": {
+        "type": "hue_cycle",
+        "from_hue": 0.7,
+        "to_hue": 1,
+        "period": 8,
+        "ping_pong": true
+      },
+      "radius": 0.3,
+      "intensity": 1
+    },
+    {
+      "motion": {
+        "type": "lissajous",
+        "center": [
+          0.5,
+          0.5
+        ],
+        "rx": 0.61,
+        "ry": 0.57,
+        "freq_a": 1,
+        "freq_b": 2,
+        "phase": 0,
+        "speed": 0.02
+      },
+      "color": {
+        "type": "hue_cycle",
+        "from_hue": 0,
+        "to_hue": 1,
+        "period": 4
+      },
+      "radius": 0.3,
+      "intensity": 1
+    }
+  ]
+}

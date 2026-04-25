@@ -1,36 +1,58 @@
 #include "tasks/nfc_task.h"
 
 #include <Arduino.h>
-#include <cstring>
 #include "hardware/serial_mutex.h"
 
-#include <rfal_rf.h>
-#include <rfal_nfc.h>
-#include <rfal_nfca.h>
-#include <rfal_nfcb.h>
-#include <rfal_nfcv.h>
-#include <rfal_nfcDep.h>
-#include <rfal_t2t.h>
-#include <rfal_rfst25r3916.h>
-#include <st_errno.h>
-#include <mbedtls/md.h>
+#ifndef NATIVE_BUILD
+  #include <cstring>
 
-#include "hardware/nfc.h"
-#include "hardware/board_pins.h"
-#include "hardware/crypto1.h"
-#include "hardware/hwid.h"
-#include "tasks/display.h"
+  #include <rfal_nfca.h>
+  #include <rfal_nfcb.h>
+  #include <rfal_nfcv.h>
+  #include <rfal_nfcDep.h>
+  #include <rfal_t2t.h>
+  #include <st_errno.h>
+  #include <mbedtls/md.h>
 
-#include <nvs_flash.h>
-#include <nvs.h>
+  #include "hardware/nfc.h"
+  #include "hardware/board_pins.h"
+  #include "hardware/crypto1.h"
+  #include "hardware/hwid.h"
+  #include "tasks/display.h"
 
-#include "storage/nvs_social.h"
-#include "storage/nvs_config.h"
-#include "storage/nvs_contacts.h"
+  #include <nvs_flash.h>
+  #include <nvs.h>
+
+  #include "storage/nvs_social.h"
+  #include "storage/nvs_config.h"
+  #include "storage/nvs_contacts.h"
+#endif  // !NATIVE_BUILD
 
 namespace core {
 
 Queue<NfcCommand> *g_nfcQueue = nullptr;
+
+#ifdef NATIVE_BUILD
+
+void NfcTask::run() {
+  // NFC hardware not available in simulator — sleep forever.
+  NfcCommand cmd;
+  for (;;) {
+    _nfcQueue.receive(cmd);
+  }
+}
+
+bool NfcTask::checkCommand(NfcCommand &) {
+  return false;
+}
+
+void NfcTask::runReader() {}
+
+void NfcTask::runEmulator() {}
+
+void NfcTask::runPair() {}
+
+#else  // Real hardware build
 
 // ===========================================================================
 // NTAG213 Emulation
@@ -38,9 +60,9 @@ Queue<NfcCommand> *g_nfcQueue = nullptr;
 
 namespace {
 
-#define NTAG213_PAGES      45
-#define NTAG213_PAGE_SIZE  4
-#define NTAG213_USER_START 4
+  #define NTAG213_PAGES      45
+  #define NTAG213_PAGE_SIZE  4
+  #define NTAG213_USER_START 4
 
 static uint8_t tagMemory[NTAG213_PAGES * NTAG213_PAGE_SIZE];
 
@@ -55,8 +77,8 @@ static uint8_t g_ndefLen = 0;
 // UID is derived from the badge's MAC: 0x04 + 6 MAC bytes = 7-byte NTAG UID
 static uint8_t g_tagUid[7];
 
-#define TX_BUF_LEN (NTAG213_PAGES * NTAG213_PAGE_SIZE)
-#define RX_BUF_LEN 64
+  #define TX_BUF_LEN       (NTAG213_PAGES * NTAG213_PAGE_SIZE)
+  #define RX_BUF_LEN       64
 static uint8_t g_emuTxBuf[TX_BUF_LEN];
 static uint8_t g_emuRxBuf[RX_BUF_LEN];
 static uint16_t g_emuRxRcvdLen = 0;
@@ -66,7 +88,7 @@ static uint32_t g_lmConfigMask;
 static bool g_isFirstFrame = true;
 static bool g_wasEverActivated = false;
 static uint32_t g_lastActivityMs = 0;
-#define STUCK_TIMEOUT_MS 1000
+  #define STUCK_TIMEOUT_MS 1000
 
 // ===========================================================================
 // NFC-DEP Pair Protocol - crypto helpers
@@ -80,16 +102,16 @@ static const uint8_t BADGE_SECRET[32] = {
     0x49, 0x52, 0x5F, 0x53, 0x45, 0x43, 0x52, 0x45, 0x54, 0x5F, 0x4B, 0x45, 0x59, 0x21, 0x21, 0x21,
 };
 
-#define PAIR_NONCE_LEN 16
-#define PAIR_HMAC_LEN  32
-// DEP payload: MAC(6) + HMAC(32) = 38 bytes
-#define PAIR_DEP_LEN (core::hw::MAC_LEN + PAIR_HMAC_LEN)
-// Max profile payload (without MAC): 4 length-prefixed strings + RGB
-#define PAIR_PROFILE_MAX_LEN                                                                                           \
-  (1 + badge::config::profile::name_max_len + 1 + badge::config::profile::pronouns_max_len + 1 +                       \
-   badge::config::profile::affiliation_max_len + 1 + badge::config::profile::contact_max_len + 3)
-// Max DEP payload: base + optional profile
-#define PAIR_DEP_MAX_LEN (PAIR_DEP_LEN + PAIR_PROFILE_MAX_LEN)
+  #define PAIR_NONCE_LEN 16
+  #define PAIR_HMAC_LEN  32
+  // DEP payload: MAC(6) + HMAC(32) = 38 bytes
+  #define PAIR_DEP_LEN   (core::hw::MAC_LEN + PAIR_HMAC_LEN)
+  // Max profile payload (without MAC): 4 length-prefixed strings + RGB
+  #define PAIR_PROFILE_MAX_LEN                                                                                         \
+    (1 + badge::config::profile::name_max_len + 1 + badge::config::profile::pronouns_max_len + 1 +                     \
+     badge::config::profile::affiliation_max_len + 1 + badge::config::profile::contact_max_len + 3)
+  // Max DEP payload: base + optional profile
+  #define PAIR_DEP_MAX_LEN    (PAIR_DEP_LEN + PAIR_PROFILE_MAX_LEN)
 
 /// Derive a per-badge key: HMAC-SHA256(BADGE_SECRET, mac)
 static void deriveKey(const uint8_t mac[core::hw::MAC_LEN], uint8_t keyOut[32]) {
@@ -172,9 +194,9 @@ static bool unpackProfileFields(const uint8_t *buf, size_t available, storage::C
 // Partner tracking - NVS-based unique pair tracking
 // ===========================================================================
 
-// Store seen partner MACs as a blob of 6-byte entries in NVS.
-// Max 128 partners (768 bytes blob). Each entry is a raw 6-byte MAC.
-#define MAX_PAIRED_PARTNERS 128
+  // Store seen partner MACs as a blob of 6-byte entries in NVS.
+  // Max 128 partners (768 bytes blob). Each entry is a raw 6-byte MAC.
+  #define MAX_PAIRED_PARTNERS 128
 
 /// Check if a partner MAC has been seen before. Returns true if new (not seen).
 static bool isNewPartner(const uint8_t mac[core::hw::MAC_LEN]) {
@@ -691,7 +713,7 @@ static const uint8_t MFC_KEYS[][6] = {
     {0xD3, 0xF7, 0xD3, 0xF7, 0xD3, 0xF7},
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
 };
-#define MFC_NUM_KEYS (sizeof(MFC_KEYS) / sizeof(MFC_KEYS[0]))
+  #define MFC_NUM_KEYS        (sizeof(MFC_KEYS) / sizeof(MFC_KEYS[0]))
 
 void crc14443a(const uint8_t *d, uint8_t len, uint8_t *a, uint8_t *b) {
   uint32_t w = 0x6363;
@@ -1048,7 +1070,6 @@ void NfcTask::run() {
         stopAndFlush(hw::nfcInstance());
       cur = NfcMode::Off;
       digitalWrite(badge::pins::NFC_LED, LOW);
-      _ledQueue.send(LedCommand(LedCommandType::Off), Milliseconds(0));
       core::hw::safeSerial().print("> ");
       continue;
     }
@@ -1098,13 +1119,11 @@ void NfcTask::runReader() {
     return;
   }
   core::hw::safeSerial().println("NFC reader: scanning... (press A to stop)");
-  _ledQueue.send(LedCommand(LedCommandType::SolidWhite), Milliseconds(0));
 
   for (;;) {
     NfcCommand cmd;
     if (checkCommand(cmd)) {
       stopAndFlush(nfc);
-      _ledQueue.send(LedCommand(LedCommandType::Off), Milliseconds(0));
       if (cmd.mode != NfcMode::Off && cmd.mode != NfcMode::Reader)
         _nfcQueue.send(cmd, Milliseconds(0));
       core::hw::safeSerial().print("> ");
@@ -1168,11 +1187,7 @@ void NfcTask::runReader() {
       _displayQueue.send(dc, Milliseconds(0));
     }
 
-    LedCommand lc{};
-    lc.type = LedCommandType::ProgressFlash;
-    lc.pixelCount = 18;
-    lc.g = 255;
-    _ledQueue.send(lc, Milliseconds(0));
+    _controllerQueue.send(NfcScanResultEvent{}, Milliseconds(0));
     digitalWrite(badge::pins::NFC_LED, LOW);
     stopAndFlush(nfc);
     core::hw::safeSerial().println("---");
@@ -1218,15 +1233,11 @@ void NfcTask::runEmulator() {
   g_wasEverActivated = false;
   g_lastActivityMs = millis();
 
-  LedCommand lc(LedCommandType::SolidCyan);
-  _ledQueue.send(lc, Milliseconds(0));
-
   for (;;) {
     NfcCommand cmd;
     if (checkCommand(cmd)) {
       hw.rfalListenStop();
       digitalWrite(badge::pins::NFC_LED, LOW);
-      _ledQueue.send(LedCommand(LedCommandType::Off), Milliseconds(0));
       if (cmd.mode != NfcMode::Off && cmd.mode != NfcMode::Emulator && cmd.mode != NfcMode::WifiEmulator)
         _nfcQueue.send(cmd, Milliseconds(0));
       core::hw::safeSerial().println("NFC emu: stopped");
@@ -1273,23 +1284,29 @@ void NfcTask::runEmulator() {
 void NfcTask::runPair() {
   RfalNfcClass &nfc = hw::nfcInstance();
 
+  // --- Static buffers: keep off the stack to avoid overflow from RFAL's ---
+  // --- deep call chains.  runPair() is single-threaded (NfcTask only). ---
+  static uint8_t myMac[core::hw::MAC_LEN];
+  static uint8_t myKey[32];
+  static uint8_t myNonce[PAIR_NONCE_LEN];
+  static uint8_t txPayload[PAIR_DEP_MAX_LEN];
+  static rfalNfcDepBufFormat txBuf;
+  static uint8_t rxCopy[PAIR_DEP_MAX_LEN];
+  static rfalNfcDiscoverParam dp;
+
   // Prepare our identity
-  uint8_t myMac[core::hw::MAC_LEN];
   core::hw::getHwidMac(myMac);
 
   // Derive our per-badge key
-  uint8_t myKey[32];
   deriveKey(myMac, myKey);
 
   // Generate a fresh nonce for this session
-  uint8_t myNonce[PAIR_NONCE_LEN];
   fillRandom(myNonce, sizeof(myNonce));
 
   // Check if we should share our profile
   const storage::UserConfig myCfg = storage::configRead();
 
   core::hw::safeSerial().println("NFC-DEP pair: searching... (press A/B to stop)");
-  _ledQueue.send(LedCommand(LedCommandType::SolidOrange), Milliseconds(0));
 
   // Break symmetry with true hardware RNG - different on every attempt
   bool preferPoll = (esp_random() & 0x01) != 0;
@@ -1300,7 +1317,6 @@ void NfcTask::runPair() {
   for (;;) {
     NfcCommand cmd;
     if (checkCommand(cmd)) {
-      _ledQueue.send(LedCommand(LedCommandType::Off), Milliseconds(0));
       if (cmd.mode != NfcMode::Off && cmd.mode != NfcMode::Pair)
         _nfcQueue.send(cmd, Milliseconds(0));
       core::hw::safeSerial().println("NFC-DEP pair: cancelled");
@@ -1314,7 +1330,6 @@ void NfcTask::runPair() {
       continue;
     }
 
-    rfalNfcDiscoverParam dp;
     memset(&dp, 0, sizeof(dp));
     dp.compMode = RFAL_COMPLIANCE_MODE_NFC;
     dp.devLimit = 1;
@@ -1357,7 +1372,6 @@ void NfcTask::runPair() {
     while (millis() - startMs < cycleTimeout) {
       if (checkCommand(cmd)) {
         stopAndFlush(nfc);
-        _ledQueue.send(LedCommand(LedCommandType::Off), Milliseconds(0));
         if (cmd.mode != NfcMode::Off && cmd.mode != NfcMode::Pair)
           _nfcQueue.send(cmd, Milliseconds(0));
         core::hw::safeSerial().println("NFC-DEP pair: cancelled");
@@ -1412,12 +1426,17 @@ void NfcTask::runPair() {
     }
 
     core::hw::safeSerial().printf("NFC-DEP pair: activated as %s\r\n", role);
+    core::hw::safeSerial().printf("  myNonce(GB):    %02X%02X%02X%02X%02X%02X%02X%02X...\r\n", myNonce[0], myNonce[1],
+                                  myNonce[2], myNonce[3], myNonce[4], myNonce[5], myNonce[6], myNonce[7]);
+    core::hw::safeSerial().printf("  partnerNonce:   %02X%02X%02X%02X%02X%02X%02X%02X...\r\n", partnerNonce[0],
+                                  partnerNonce[1], partnerNonce[2], partnerNonce[3], partnerNonce[4], partnerNonce[5],
+                                  partnerNonce[6], partnerNonce[7]);
+    core::hw::safeSerial().printf("  partnerGBLen:   %d\r\n", partnerGBLen);
     digitalWrite(badge::pins::NFC_LED, HIGH);
 
     // Build our DEP payload: MAC(6) + HMAC(32) [+ profile if sharing]
     // Proof = HMAC-SHA256(myKey, partnerNonce || myMac)
     // This proves we know the firmware secret + our identity
-    uint8_t txPayload[PAIR_DEP_MAX_LEN];
     memcpy(txPayload, myMac, core::hw::MAC_LEN);
     computeProof(myKey, partnerNonce, myMac, txPayload + core::hw::MAC_LEN);
 
@@ -1427,7 +1446,6 @@ void NfcTask::runPair() {
     }
 
     // NFC-DEP data exchange (asymmetric: initiator sends first, target receives first)
-    rfalNfcDepBufFormat txBuf;
     uint8_t *rxData = nullptr;
     uint16_t *rvdLen = nullptr;
     bool depDone = false;
@@ -1473,7 +1491,6 @@ void NfcTask::runPair() {
 
     // If target: we received initiator's data, now send our response
     uint16_t savedRxLen = 0;
-    uint8_t rxCopy[PAIR_DEP_MAX_LEN];
     if (!weAreInitiator) {
       // Save received data before starting response (buffer may be reused)
       const uint16_t rxLen = (rvdLen != nullptr) ? *rvdLen : 0;
@@ -1546,6 +1563,20 @@ void NfcTask::runPair() {
 
     bool verified = (memcmp(partnerHmac, expectedHmac, PAIR_HMAC_LEN) == 0);
 
+    if (!verified) {
+      core::hw::safeSerial().printf("NFC-DEP pair: HMAC debug rxLen=%d\r\n", finalRxLen);
+      core::hw::safeSerial().printf("  partnerMAC: %02X:%02X:%02X:%02X:%02X:%02X\r\n", partnerMac[0], partnerMac[1],
+                                    partnerMac[2], partnerMac[3], partnerMac[4], partnerMac[5]);
+      core::hw::safeSerial().printf("  got  HMAC: %02X%02X%02X%02X...%02X%02X%02X%02X\r\n", partnerHmac[0],
+                                    partnerHmac[1], partnerHmac[2], partnerHmac[3], partnerHmac[28], partnerHmac[29],
+                                    partnerHmac[30], partnerHmac[31]);
+      core::hw::safeSerial().printf("  exp  HMAC: %02X%02X%02X%02X...%02X%02X%02X%02X\r\n", expectedHmac[0],
+                                    expectedHmac[1], expectedHmac[2], expectedHmac[3], expectedHmac[28],
+                                    expectedHmac[29], expectedHmac[30], expectedHmac[31]);
+      core::hw::safeSerial().printf("  myNonce:   %02X%02X%02X%02X%02X%02X%02X%02X...\r\n", myNonce[0], myNonce[1],
+                                    myNonce[2], myNonce[3], myNonce[4], myNonce[5], myNonce[6], myNonce[7]);
+    }
+
     // Clean session teardown
     nfc.rfalNfcDeactivate(RFAL_NFC_DEACTIVATE_IDLE);
     digitalWrite(badge::pins::NFC_LED, LOW);
@@ -1582,12 +1613,7 @@ void NfcTask::runPair() {
             "NFC-DEP pair: NEW partner %02X:%02X:%02X:%02X:%02X:%02X (%s) - social=%d (+3)\r\n", partnerMac[0],
             partnerMac[1], partnerMac[2], partnerMac[3], partnerMac[4], partnerMac[5], role, newVal);
 
-        // Green flash - new partner
-        LedCommand sc{};
-        sc.type = LedCommandType::ProgressFlash;
-        sc.pixelCount = 18;
-        sc.g = 255;
-        _ledQueue.send(sc, Milliseconds(0));
+        _controllerQueue.send(NfcPairResultEvent{0}, Milliseconds(0));
 
         DisplayCommand dc{};
         dc.type = DisplayCommand::Type::PairResult;
@@ -1598,13 +1624,7 @@ void NfcTask::runPair() {
                                       partnerMac[0], partnerMac[1], partnerMac[2], partnerMac[3], partnerMac[4],
                                       partnerMac[5], role);
 
-        // Yellow flash - already paired before
-        LedCommand sc{};
-        sc.type = LedCommandType::ProgressFlash;
-        sc.pixelCount = 18;
-        sc.r = 255;
-        sc.g = 255;
-        _ledQueue.send(sc, Milliseconds(0));
+        _controllerQueue.send(NfcPairResultEvent{1}, Milliseconds(0));
 
         DisplayCommand dc{};
         dc.type = DisplayCommand::Type::PairResult;
@@ -1615,11 +1635,8 @@ void NfcTask::runPair() {
       core::hw::safeSerial().printf("NFC-DEP pair: HMAC FAILED - partner %02X:%02X:%02X:%02X:%02X:%02X\r\n",
                                     partnerMac[0], partnerMac[1], partnerMac[2], partnerMac[3], partnerMac[4],
                                     partnerMac[5]);
-      LedCommand sc{};
-      sc.type = LedCommandType::ProgressFlash;
-      sc.pixelCount = 18;
-      sc.r = 255;
-      _ledQueue.send(sc, Milliseconds(0));
+
+      _controllerQueue.send(NfcPairResultEvent{2}, Milliseconds(0));
 
       DisplayCommand dc{};
       dc.type = DisplayCommand::Type::PairResult;
@@ -1634,5 +1651,7 @@ void NfcTask::runPair() {
     return;
   }
 }
+
+#endif  // NATIVE_BUILD
 
 }  // namespace core

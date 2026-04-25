@@ -7,8 +7,12 @@
 
 #include <Arduino.h>
 
+#include <cstring>
+
 #include <badge_config.h>
 #include <core.h>
+#include <animation/parser.h>
+#include <animation/storage.h>
 #include <hardware/line_buffered_stream.h>
 #include <hardware/light_sensor.h>
 #include <hardware/serial_mutex.h>
@@ -28,13 +32,10 @@ const std::string cleartextFirmwareFlg =
 
 void setup() {
   Serial.setTxBufferSize(4096);
+#ifndef NATIVE_BUILD
+  Serial.setRxBufferSize(4096);
+#endif
   Serial.begin(115200);
-
-  unsigned long start = millis();
-  while (!Serial && (millis() - start) < 5000) {
-    delay(100);
-  }
-  delay(500);  // Extra delay for stability
 
   // Send test pattern
   for (int i = 0; i < 10; i++) {
@@ -65,6 +66,12 @@ void setup() {
 
   core::storage::socialNvsInit();
   core::storage::configNvsInit();
+
+  if (core::animation::storageInit()) {
+    Serial.println("Animation filesystem initialized");
+  } else {
+    Serial.println("WARNING: Animation filesystem init failed");
+  }
 
   if (core::hw::nfcInit()) {
     Serial.println("NFC initialized");
@@ -134,7 +141,7 @@ void setup() {
   static core::ControllerTask controllerTask(controllerQueue, ledQueue, cliQueue, nfcQueue, displayQueue, portalQueue);
   static core::CliTask cliTask;
   static core::ButtonTask buttonTask(controllerQueue);
-  static core::NfcTask nfcTask(nfcQueue, ledQueue, displayQueue);
+  static core::NfcTask nfcTask(nfcQueue, controllerQueue, displayQueue);
   static core::DockTask dockTask(dockEventQueue, ledQueue);
   static core::DisplayTask displayTask(displayQueue);
   static core::LightTask lightTask;
@@ -151,7 +158,9 @@ void setup() {
   displayTask.start();
   portalTask.start();
 
-  // Show boot logo via DisplayTask (moved from einkInit)
+  // Show boot logo on the e-ink early so it's visible before the
+  // controller task's first frame. The controller will re-issue it on
+  // enterIdle but the duplicate is harmless.
   {
     core::DisplayCommand dc{};
     dc.type = core::DisplayCommand::Type::ShowLogo;

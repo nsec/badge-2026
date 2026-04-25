@@ -1,0 +1,55 @@
+{
+  "name": "wifi_portal",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "pingpong",
+        "a": [
+          0,
+          1
+        ],
+        "b": [
+          1,
+          1
+        ],
+        "period": 5
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.5,
+      "intensity": 1
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.5012510441686613,
+          0.027691805928369378
+        ]
+      },
+      "color": {
+        "type": "palette",
+        "colors": [
+          [
+            1,
+            0.6823529411764706,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "count": 2,
+        "period": 0.5
+      },
+      "radius": 0.3,
+      "intensity": 1
+    }
+  ]
+}
+

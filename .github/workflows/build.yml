@@ -42,22 +42,27 @@ jobs:
           python -m pip install --upgrade pip
           pip install platformio
 
-      # --- Build all three firmware variants ---
-      - name: Build conference firmware (for dual package — swapboot enabled)
-        run: pio run -e esp32-s3-devkitc-1-conference
+      # --- Build all firmware + SPIFFS in one pass ---
+      # Install mkspiffs first so the post-build script can produce
+      # spiffs.bin alongside firmware.bin in a single `pio run`.
+      # Avoids separate `buildfs` steps that wipe firmware outputs.
+      - name: Install mkspiffs tool
+        run: |
+          pio pkg install -g --tool "platformio/tool-mkspiffs@~2"
 
-      - name: Build conference-only firmware (swapboot disabled)
-        run: pio run -e esp32-s3-devkitc-1-conference-only
+      - name: Build all firmware variants
+        run: pio run
 
-      - name: Build CTF firmware
-        run: pio run -e esp32-s3-devkitc-1-ctf
-
-      # --- Build SPIFFS images (tool-mkspiffs not auto-installed in CI) ---
-      - name: Build SPIFFS image (conference-only, data/)
-        run: pio run -t buildfs -e esp32-s3-devkitc-1-conference-only
-
-      - name: Build SPIFFS image (CTF, data-ctf/)
-        run: pio run -t buildfs -e esp32-s3-devkitc-1-ctf
+      # --- Verify build outputs exist before packaging ---
+      - name: Verify build outputs
+        run: |
+          fail=0
+          for env in esp32-s3-devkitc-1-conference esp32-s3-devkitc-1-conference-only esp32-s3-devkitc-1-ctf; do
+            dir=".pio/build/${env}"
+            echo "=== ${env} ==="
+            ls -la "${dir}"/*.bin 2>/dev/null || { echo "ERROR: no .bin files in ${dir}"; fail=1; }
+          done
+          exit $fail
 
       # --- Determine version string ---
       - name: Set version

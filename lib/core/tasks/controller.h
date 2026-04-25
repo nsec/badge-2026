@@ -35,8 +35,16 @@ struct SocialSetRequest {
 /// Request the controller to start or stop the WiFi config portal.
 struct PortalToggleRequest {};
 
-using ControllerEvent =
-    std::variant<LedTestRequest, ButtonPressEvent, SocialSetRequest, PortalToggleRequest, ConfigChangedEvent>;
+/// NFC reader successfully scanned a tag — controller flashes the LEDs green.
+struct NfcScanResultEvent {};
+
+/// NFC-DEP pair sequence completed — controller flashes the LEDs accordingly.
+struct NfcPairResultEvent {
+  uint8_t outcome;  // 0 = new partner, 1 = duplicate, 2 = HMAC failed
+};
+
+using ControllerEvent = std::variant<LedTestRequest, ButtonPressEvent, SocialSetRequest, PortalToggleRequest,
+                                     ConfigChangedEvent, NfcScanResultEvent, NfcPairResultEvent>;
 
 extern Queue<ControllerEvent> *g_controllerQueue;
 

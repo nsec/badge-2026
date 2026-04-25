@@ -15,12 +15,12 @@ namespace hw {
 /*
  * Batched stream wrapper for ESP32-S3 USB CDC serial.
  *
- * The HWCDC driver seemingly has race conditions that silently discard data
- * during write bursts.
+ * The HWCDC driver has race conditions that silently discard data.
+ * In particular, HWCDC::flush() re-checks isCDC_Connected() and, when
+ * the SOF tick-hook races, discards the entire TX ring buffer.
  *
  * This wrapper accumulates output in a userspace buffer and drains
- * to HWCDC in batches, minimizing the number of racy
- * isCDC_Connected() checks. HWCDC::flush() is never called.
+ * to HWCDC in batches via write() only — HWCDC::flush() is never called.
  *
  * Drain triggers:
  *   - flush(): unconditional (echo, prompt, end of command)
@@ -42,6 +42,10 @@ public:
   }
 
   size_t write(uint8_t c) override {
+#ifdef NATIVE_BUILD
+    // No buffering needed on native — no USB CDC race conditions.
+    return _inner.write(c);
+#else
     lock();
     if (_pos < sizeof(_buf)) {
       _buf[_pos++] = c;
@@ -54,9 +58,13 @@ public:
     updateLastWriteTimestamp();
     unlock();
     return 1;
+#endif
   }
 
   size_t write(const uint8_t *buf, size_t len) override {
+#ifdef NATIVE_BUILD
+    return _inner.write(buf, len);
+#else
     lock();
     bool hasNewline = false;
 
@@ -75,12 +83,17 @@ public:
     updateLastWriteTimestamp();
     unlock();
     return len;
+#endif
   }
 
   void flush() override {
+#ifdef NATIVE_BUILD
+    _inner.flush();
+#else
     lock();
     drain();
     unlock();
+#endif
   }
 
   int available() override {
@@ -139,7 +152,9 @@ private:
   void drain() {
     if (_pos > 0) {
       _inner.write(_buf, _pos);
-      _inner.flush();  // block until HWCDC TX ring is fully sent to USB host
+      // Never call _inner.flush() here.  HWCDC::flush() re-checks
+      // isCDC_Connected() and, if the SOF tick-hook races, discards the
+      // entire TX ring buffer — destroying the bytes write() just enqueued.
       _pos = 0;
       _lastDrainMs = millis();
     }

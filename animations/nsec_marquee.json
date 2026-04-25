@@ -1,0 +1,90 @@
+{
+  "name": "nsec_marquee",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.2,
+          1
+        ]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.13,
+      "intensity": {
+        "type": "breathe",
+        "base": 0,
+        "amplitude": 1,
+        "period": 2.4,
+        "phase": 0
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.42,
+          1
+        ]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_analogous1"
+      },
+      "radius": 0.13,
+      "intensity": {
+        "type": "breathe",
+        "base": 0,
+        "amplitude": 1,
+        "period": 2.4,
+        "phase": -1.5708
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.62,
+          1
+        ]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "theme_white"
+      },
+      "radius": 0.13,
+      "intensity": {
+        "type": "breathe",
+        "base": 0,
+        "amplitude": 1,
+        "period": 2.4,
+        "phase": -3.1416
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.82,
+          1
+        ]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_complement"
+      },
+      "radius": 0.13,
+      "intensity": {
+        "type": "breathe",
+        "base": 0,
+        "amplitude": 1,
+        "period": 2.4,
+        "phase": -4.7124
+      }
+    }
+  ]
+}

@@ -41,6 +41,7 @@ void onReceive(int numBytes) {
   g_lastDockActivityMs = millis();
 
   uint8_t cmd = Wire.read();
+  ets_printf("Dock ISR: onReceive cmd=0x%02X bytes=%d\n", cmd, numBytes);
   core::DockEvent evt;
   bool sendEvent = false;
 
@@ -90,8 +91,13 @@ void onReceive(int numBytes) {
 
   if (sendEvent && g_dockEventQueue) {
     BaseType_t woken = pdFALSE;
-    xQueueSendFromISR(g_dockEventQueue, &evt, &woken);
+    BaseType_t sent = xQueueSendFromISR(g_dockEventQueue, &evt, &woken);
+    if (sent != pdTRUE) {
+      ets_printf("Dock ISR: queue full, event dropped (type=%d)\n", (int)evt.type);
+    }
     portYIELD_FROM_ISR(woken);
+  } else if (sendEvent) {
+    ets_printf("Dock ISR: no queue handle!\n");
   }
 }
 

@@ -9,7 +9,7 @@ namespace storage {
 
 struct UserConfig {
   ContactProfile profile;
-  uint8_t brightness = 128;  // default: 50%
+  uint8_t brightness = 255;  // default: 100%
   bool share = false;
 };
 

@@ -1,0 +1,102 @@
+{
+  "name": "comet",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.5,
+          0.5
+        ]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_dark"
+      },
+      "radius": 200,
+      "intensity": {
+        "type": "noise",
+        "base": 0.8,
+        "amplitude": 0.2,
+        "speed": 2
+      }
+    },
+    {
+      "motion": {
+        "type": "orbit",
+        "center": [
+          0.5,
+          0.5
+        ],
+        "rx": 0.55,
+        "ry": 0.55,
+        "period": 4,
+        "phase": 0
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "theme_white"
+      },
+      "radius": 0.18,
+      "intensity": 1
+    },
+    {
+      "motion": {
+        "type": "orbit",
+        "center": [
+          0.5,
+          0.5
+        ],
+        "rx": 0.55,
+        "ry": 0.55,
+        "period": 4,
+        "phase": -0.35
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.22,
+      "intensity": 0.7
+    },
+    {
+      "motion": {
+        "type": "orbit",
+        "center": [
+          0.5,
+          0.5
+        ],
+        "rx": 0.55,
+        "ry": 0.55,
+        "period": 4,
+        "phase": -0.7
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.25,
+      "intensity": 0.45
+    },
+    {
+      "motion": {
+        "type": "orbit",
+        "center": [
+          0.5,
+          0.5
+        ],
+        "rx": 0.55,
+        "ry": 0.55,
+        "period": 4,
+        "phase": -1.05
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_dark"
+      },
+      "radius": 0.3,
+      "intensity": 0.28
+    }
+  ]
+}

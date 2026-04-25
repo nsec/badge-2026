@@ -10,12 +10,25 @@ HEADER_OUTPUT = os.path.join("lib", "core", "network", "web_page.h")
 with open(HTML_SOURCE, "r") as f:
     html = f.read()
 
-with open(HEADER_OUTPUT, "w") as f:
-    f.write("#pragma once\n\n")
-    f.write("namespace web_page {\n\n")
-    f.write('inline const char HTML[] PROGMEM = R"rawhtml(\n')
-    f.write(html)
-    f.write(')rawhtml";\n\n')
-    f.write("}  // namespace web_page\n")
+new_content = (
+    "#pragma once\n\n"
+    "namespace web_page {\n\n"
+    'inline const char HTML[] PROGMEM = R"rawhtml(\n'
+    + html
+    + ')rawhtml";\n\n'
+    "}\n"
+)
 
-print(f"Generated {HEADER_OUTPUT} from {HTML_SOURCE}")
+# Only write if content changed — avoids invalidating PlatformIO build cache.
+if os.path.exists(HEADER_OUTPUT):
+    with open(HEADER_OUTPUT, "r") as f:
+        if f.read() == new_content:
+            print(f"{HEADER_OUTPUT} is up to date")
+        else:
+            with open(HEADER_OUTPUT, "w") as f:
+                f.write(new_content)
+            print(f"Generated {HEADER_OUTPUT} from {HTML_SOURCE}")
+else:
+    with open(HEADER_OUTPUT, "w") as f:
+        f.write(new_content)
+    print(f"Generated {HEADER_OUTPUT} from {HTML_SOURCE}")

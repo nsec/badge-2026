@@ -1,0 +1,116 @@
+{
+  "name": "flow",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "noise_drift",
+        "center": [
+          0.4860892673322844,
+          0.5164302087719378
+        ],
+        "amplitude": 0.62,
+        "speed": 0.54
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.3,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.8,
+        "amplitude": 0.2,
+        "period": 3,
+        "phase": 0
+      }
+    },
+    {
+      "motion": {
+        "type": "noise_drift",
+        "center": [
+          0.5,
+          0.5
+        ],
+        "amplitude": 0.62,
+        "speed": 0.3
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.3,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.8,
+        "amplitude": 0.2,
+        "period": 2,
+        "phase": 0
+      }
+    },
+    {
+      "motion": {
+        "type": "noise_drift",
+        "center": [
+          0.5,
+          0.5
+        ],
+        "amplitude": 0.67,
+        "speed": 0.7
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.3,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.8,
+        "amplitude": 0.2,
+        "period": 4,
+        "phase": 0
+      }
+    },
+    {
+      "motion": {
+        "type": "noise_drift",
+        "center": [
+          0.5,
+          0.5
+        ],
+        "amplitude": 0.64,
+        "speed": 0.45
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.3,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.8,
+        "amplitude": 0.2,
+        "period": 4,
+        "phase": 0
+      }
+    },
+    {
+      "motion": {
+        "type": "noise_drift",
+        "center": [
+          0.5,
+          0.5
+        ],
+        "amplitude": 0.61,
+        "speed": 0.5
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_complement"
+      },
+      "radius": 0.3,
+      "intensity": 1
+    }
+  ]
+}
+

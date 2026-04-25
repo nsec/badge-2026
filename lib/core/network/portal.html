@@ -226,7 +226,6 @@ input[type=color] {
 .bar-social     { background: linear-gradient(90deg, #2a5a1a, #5a9a3a); }
 .bar-sponsor    { background: linear-gradient(90deg, #8a7a1a, #c8b030); }
 .bar-light      { background: linear-gradient(90deg, #1a5a5a, #30a8a0); }
-.bar-attraction { background: linear-gradient(90deg, #6a4a1a, #c87830); }
 
 /* --- Toggle switch --- */
 
@@ -369,8 +368,6 @@ input[type=color] {
   <div class="bar-wrap"><div class="bar bar-sponsor" id="b-sponsor" style="width:0%"></div></div>
   <label>Light <span class="val" id="v-light">0</span></label>
   <div class="bar-wrap"><div class="bar bar-light" id="b-light" style="width:0%"></div></div>
-  <label>Attraction <span class="val" id="v-attraction">0</span></label>
-  <div class="bar-wrap"><div class="bar bar-attraction" id="b-attraction" style="width:0%"></div></div>
 </div>
 
 <div class="card">
@@ -559,7 +556,7 @@ async function load() {
       $('profile-fields').classList.add('visible');
     }
 
-    for (const key of ['social', 'sponsor', 'light', 'attraction']) {
+    for (const key of ['social', 'sponsor', 'light']) {
       const pct = Math.round(soc[key] / 255 * 100);
       $('b-' + key).style.width = pct + '%';
       $('v-' + key).textContent = soc[key] + ' / 255';

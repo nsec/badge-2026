@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "animation/engine.h"
 #include "rtos/queue.hpp"
 
 namespace core {
@@ -18,6 +19,8 @@ enum class LedCommandType : uint8_t {
   Off,
   ProgressFlash,  // show social-progress animation
   SolidColor,     // set all LEDs to the r/g/b fields and hold
+  Animation,      // play a field-based animation from a heap-allocated AnimationDef
+  PaletteUpdate,  // update the palette of the running animation (uses r/g/b as new user color)
 };
 
 struct LedCommand {
@@ -30,6 +33,10 @@ struct LedCommand {
   uint8_t pixelCount = 1;       // how many of the 18 LEDs to light (1-18)
   uint8_t r = 0, g = 0, b = 0;  // colour
   bool hold = false;            // if true, keep LEDs on after animation (double-press)
+  // For Animation type: heap-allocated AnimationDef.
+  // Ownership is transferred to the LedTask when the command is received.
+  // The sender must allocate with new (e.g. via unique_ptr::release()).
+  animation::AnimationDef *animation = nullptr;
 };
 
 extern Queue<LedCommand> *g_ledQueue;
