@@ -14,10 +14,10 @@
 #include "tasks/controller.h"
 #include "tasks/cli_queue.h"
 #include "storage/nvs_social.h"
+#include "storage/nvs_contacts.h"
 
 #include <nvs_flash.h>
 #include <nvs.h>
-#include "storage/nvs_contacts.h"
 #include "tasks/nfc.h"
 #include "hardware/eink.h"
 #include <Fonts/FreeMonoBold9pt7b.h>
@@ -137,22 +137,9 @@ std::string nextToken(const std::string &s, size_t &idx) {
 void cmdHelp() {
   g_io->print("Commands:\r\n"
               "  help                 - show this help\r\n"
-              "  info                 - print current boot/partition info\r\n"
-              "  hwid                 - print unique hardware ID\r\n"
-              "  ledtest [N]          - run RGB LED test suite (N=test# or all)\r\n"
-              "  einktest             - e-ink display test pattern\r\n"
-              "  buttontest           - interactive button test (press all 6)\r\n"
-              "  nvstest <key> <val>  - set social NVS\r\n"
-              "  pairtest [reset]     - show/reset paired partners\r\n");
-  g_io->flush();
-  g_io->print("  contactadd <MAC> ... - add a test contact\r\n"
-              "  contactlist          - list stored contacts\r\n"
-              "  contactdel <MAC|all> - delete one or all contacts\r\n"
-              "  docktest [reset]     - show/reset seen dock stations\r\n"
-              "  lighttest [reset]    - show light sensor / reset NVS\r\n"
               "  ndef [text|reset]    - show/set/reset NFC emulator text\r\n"
+              "  list-contacts        - list stored contacts\r\n"
               "  status               - show social NVS values\r\n"
-              "  wifitest             - toggle WiFi config portal on/off\r\n"
               "  clear                - clear the screen\r\n"
 #ifndef CONFERENCE_ONLY
               "  swapboot             - switch to other firmware and reboot\r\n"
@@ -373,127 +360,6 @@ void cmdPairTest(const std::string &args) {
   g_io->printf("Social value: %d\r\n", core::storage::socialRead(core::storage::SocialKey::Social));
 }
 
-// Parse a MAC string like "AA:BB:CC:DD:EE:FF". Returns false on bad format.
-bool parseMac(const std::string &s, core::storage::MacAddress &mac) {
-  if (s.size() != 17)
-    return false;
-  for (int i = 0; i < 6; i++) {
-    char *end;
-    unsigned long val = strtoul(s.c_str() + i * 3, &end, 16);
-    if (val > 255)
-      return false;
-    if (i < 5 && *end != ':')
-      return false;
-    mac[i] = static_cast<uint8_t>(val);
-  }
-  return true;
-}
-
-// contactadd AA:BB:CC:DD:EE:FF "Name" "pronouns" "affil" "contact" RRGGBB
-// This command is there for debug only to add test contacts without needing to go through the
-// NFC pairing process. It does not validate or sanitize input and won't be part of the final
-// CLI command set.
-void cmdContactAdd(const std::string &args) {
-  size_t idx = 0;
-  std::string macStr = nextToken(args, idx);
-  std::string name = nextToken(args, idx);
-  std::string pronouns = nextToken(args, idx);
-  std::string affiliation = nextToken(args, idx);
-  std::string contact = nextToken(args, idx);
-  std::string colorStr = nextToken(args, idx);
-
-  if (macStr.empty() || name.empty()) {
-    g_io->println("Usage: contactadd <MAC> <name> [pronouns] [affiliation] [contact] [RRGGBB]");
-    g_io->println("  e.g. contactadd AA:BB:CC:DD:EE:FF Alice she/her CorpSec @alice FF3278");
-    return;
-  }
-
-  core::storage::ContactProfile c;
-  if (!parseMac(macStr, c.mac)) {
-    g_io->println("Bad MAC format. Use AA:BB:CC:DD:EE:FF");
-    return;
-  }
-
-  strncpy(c.name, name.c_str(), badge::config::profile::name_max_len);
-  strncpy(c.pronouns, pronouns.c_str(), badge::config::profile::pronouns_max_len);
-  strncpy(c.affiliation, affiliation.c_str(), badge::config::profile::affiliation_max_len);
-  strncpy(c.contact, contact.c_str(), badge::config::profile::contact_max_len);
-
-  if (colorStr.size() == 6) {
-    const auto rgb = strtoul(colorStr.c_str(), nullptr, 16);
-
-    c.r = static_cast<uint8_t>((rgb >> 16) & 0xFF);
-    c.g = static_cast<uint8_t>((rgb >> 8) & 0xFF);
-    c.b = static_cast<uint8_t>(rgb & 0xFF);
-  }
-
-  core::storage::contactWrite(c);
-  g_io->printf("Contact '%s' stored.\r\n", c.name);
-}
-
-void cmdContactDel(const std::string &args) {
-  size_t idx = 0;
-  std::string arg = nextToken(args, idx);
-
-  if (arg.empty()) {
-    g_io->println("Usage: contactdel <MAC|all>");
-    return;
-  }
-
-  std::string lower = arg;
-  toLower(lower);
-
-  if (lower == "all") {
-    core::storage::contactReset();
-    g_io->println("All contacts cleared.");
-    return;
-  }
-
-  core::storage::MacAddress mac;
-  if (!parseMac(arg, mac)) {
-    g_io->println("Bad MAC format. Use AA:BB:CC:DD:EE:FF or 'all'.");
-    return;
-  }
-
-  if (core::storage::contactDelete(mac)) {
-    g_io->printf("Contact %s deleted.\r\n", arg.c_str());
-  } else {
-    g_io->printf("No contact found for %s.\r\n", arg.c_str());
-  }
-}
-
-void cmdContactList() {
-  uint16_t count = core::storage::contactCount();
-  g_io->printf("Stored contacts: %d\r\n", count);
-
-  for (uint16_t i = 0; i < count; i++) {
-    core::storage::ContactProfile profile;
-    if (!core::storage::contactGet(i, profile)) {
-      continue;
-    }
-
-    g_io->printf("  %3d: %02X:%02X:%02X:%02X:%02X:%02X  %s", i + 1, profile.mac[0], profile.mac[1], profile.mac[2],
-                 profile.mac[3], profile.mac[4], profile.mac[5], profile.name);
-    if (profile.pronouns[0]) {
-      g_io->printf(" (%s)", profile.pronouns);
-    }
-    g_io->printf("  #%02X%02X%02X", profile.r, profile.g, profile.b);
-    g_io->println();
-
-    if (profile.affiliation[0]) {
-      g_io->printf("       affil: %s\r\n", profile.affiliation);
-    }
-    if (profile.contact[0]) {
-      g_io->printf("       contact: %s\r\n", profile.contact);
-    }
-  }
-}
-
-void cmdWifiTest() {
-  core::g_controllerQueue->send(core::PortalToggleRequest{});
-  g_io->println("WiFi portal toggled.");
-}
-
 void cmdReboot() {
   g_io->println("Rebooting...");
   delay(50);
@@ -575,6 +441,33 @@ void cmdBoot() {
 }
 #endif
 
+void cmdContactList() {
+  uint16_t count = core::storage::contactCount();
+  g_io->printf("Stored contacts: %d\r\n", count);
+
+  for (uint16_t i = 0; i < count; i++) {
+    core::storage::ContactProfile profile;
+    if (!core::storage::contactGet(i, profile)) {
+      continue;
+    }
+
+    g_io->printf("  %3d: %02X:%02X:%02X:%02X:%02X:%02X  %s", i + 1, profile.mac[0], profile.mac[1], profile.mac[2],
+                 profile.mac[3], profile.mac[4], profile.mac[5], profile.name);
+    if (profile.pronouns[0]) {
+      g_io->printf(" (%s)", profile.pronouns);
+    }
+    g_io->printf("  #%02X%02X%02X", profile.r, profile.g, profile.b);
+    g_io->println();
+
+    if (profile.affiliation[0]) {
+      g_io->printf("       affil: %s\r\n", profile.affiliation);
+    }
+    if (profile.contact[0]) {
+      g_io->printf("       contact: %s\r\n", profile.contact);
+    }
+  }
+}
+
 void handleLine(const std::string &line) {
   size_t i = 0;
   std::string cmd = nextToken(line, i);
@@ -619,18 +512,6 @@ void handleLine(const std::string &line) {
     trim(arg);
     return cmdPairTest(arg);
   }
-  if (cmd == "contactadd") {
-    std::string arg = (i < line.length()) ? line.substr(i) : "";
-    trim(arg);
-    return cmdContactAdd(arg);
-  }
-  if (cmd == "contactlist")
-    return cmdContactList();
-  if (cmd == "contactdel") {
-    std::string arg = (i < line.length()) ? line.substr(i) : "";
-    trim(arg);
-    return cmdContactDel(arg);
-  }
   if (cmd == "status")
     return cmdStatus();
   if (cmd == "lighttest") {
@@ -659,8 +540,6 @@ void handleLine(const std::string &line) {
     }
     return;
   }
-  if (cmd == "wifitest")
-    return cmdWifiTest();
   if (cmd == "clear") {
     g_io->print("\033[2J\033[H");
     g_io->flush();
@@ -700,6 +579,8 @@ void handleLine(const std::string &line) {
     }
     return;
   }
+  if (cmd == "list-contacts")
+    return cmdContactList();
 
 #ifndef CONFERENCE_ONLY
   if (cmd == "swapboot") {
