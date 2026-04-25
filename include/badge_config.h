@@ -42,9 +42,9 @@ inline constexpr UBaseType_t priority_cli = 1;
 inline constexpr UBaseType_t priority_display = 1;
 inline constexpr UBaseType_t priority_portal = 1;
 inline constexpr UBaseType_t priority_controller = 2;
-inline constexpr UBaseType_t priority_led = 3;
+inline constexpr UBaseType_t priority_led = 1;
 inline constexpr UBaseType_t priority_nfc = 3;
-inline constexpr UBaseType_t priority_dock = 1;
+inline constexpr UBaseType_t priority_dock = 3;
 inline constexpr UBaseType_t priority_light = 1;
 inline constexpr UBaseType_t priority_button = 5;
 }  // namespace tasks

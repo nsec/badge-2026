@@ -413,7 +413,7 @@ def request_blob(sub_opcode, size):
         pass
     try:
         i2c.writeto(BADGE_I2C_ADDR, bytes([CMD_CHALLENGE_DATA, sub_opcode]))
-        time.sleep(0.15)
+        time.sleep(0.3)
         buf = bytearray(size)
         i2c.readfrom_into(BADGE_I2C_ADDR, buf)
         return buf
