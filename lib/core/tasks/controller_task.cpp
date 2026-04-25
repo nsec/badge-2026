@@ -147,12 +147,9 @@ void ControllerTask::enumerateIdleAnimations() {
     if (isReservedAnimation(name)) {
       continue;
     }
-    core::hw::safeSerial().printf("[controller] Discovered animation '%s'\r\n", name.c_str());
+
     _idleAnimations.push_back(name);
   }
-
-  core::hw::safeSerial().printf("[controller] %u idle animations available\r\n",
-                                static_cast<unsigned>(_idleAnimations.size()));
 }
 
 void ControllerTask::enterIdle(uint32_t deferMs) {
