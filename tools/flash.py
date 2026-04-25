@@ -22,7 +22,6 @@ Requires: esptool  (pip install esptool)
 """
 
 import argparse
-import json
 import os
 import subprocess
 import sys
@@ -462,7 +461,7 @@ Utility:
     cmd = build_esptool_cmd(port, args.baud, entries)
 
     if args.dry_run:
-        print(f"\n[DRY RUN] Would execute:")
+        print("\n[DRY RUN] Would execute:")
         print(f"  {' '.join(cmd)}")
         return
 
