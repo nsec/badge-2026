@@ -1,0 +1,116 @@
+{
+  "name": "nsec_glow",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "static",
+        "pos": [0.5, 0.5]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_dark"
+      },
+      "radius": 1.0,
+      "intensity": 0.12
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [0.20, 1.0]
+      },
+      "color": {
+        "type": "hue_cycle",
+        "from_hue": 0.08,
+        "to_hue": 0.18,
+        "period": 14,
+        "ping_pong": true
+      },
+      "radius": 0.14,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.7,
+        "amplitude": 0.25,
+        "period": 5,
+        "phase": 0
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [0.42, 1.0]
+      },
+      "color": {
+        "type": "hue_cycle",
+        "from_hue": 0.08,
+        "to_hue": 0.18,
+        "period": 14,
+        "ping_pong": true
+      },
+      "radius": 0.14,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.7,
+        "amplitude": 0.25,
+        "period": 5,
+        "phase": 0.7
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [0.62, 1.0]
+      },
+      "color": {
+        "type": "hue_cycle",
+        "from_hue": 0.08,
+        "to_hue": 0.18,
+        "period": 14,
+        "ping_pong": true
+      },
+      "radius": 0.14,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.7,
+        "amplitude": 0.25,
+        "period": 5,
+        "phase": 1.4
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [0.82, 1.0]
+      },
+      "color": {
+        "type": "hue_cycle",
+        "from_hue": 0.08,
+        "to_hue": 0.18,
+        "period": 14,
+        "ping_pong": true
+      },
+      "radius": 0.14,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.7,
+        "amplitude": 0.25,
+        "period": 5,
+        "phase": 2.1
+      }
+    },
+    {
+      "motion": {
+        "type": "pingpong",
+        "a": [0.0, 0.5],
+        "b": [1.0, 0.5],
+        "period": 18
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "theme_gold"
+      },
+      "radius": 0.35,
+      "intensity": 0.25
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "name": "nsec_wave",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "static",
+        "pos": [0.20, 1.0]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_dark"
+      },
+      "radius": 0.13,
+      "intensity": 0.45
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [0.42, 1.0]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_dark"
+      },
+      "radius": 0.13,
+      "intensity": 0.45
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [0.62, 1.0]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_dark"
+      },
+      "radius": 0.13,
+      "intensity": 0.45
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [0.82, 1.0]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_dark"
+      },
+      "radius": 0.13,
+      "intensity": 0.45
+    },
+    {
+      "motion": {
+        "type": "pingpong",
+        "a": [-0.05, 1.0],
+        "b": [1.05, 1.0],
+        "period": 4
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "theme_gold"
+      },
+      "radius": 0.18,
+      "intensity": 1.0
+    },
+    {
+      "motion": {
+        "type": "pingpong",
+        "a": [1.05, 1.0],
+        "b": [-0.05, 1.0],
+        "period": 6.5
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_complement"
+      },
+      "radius": 0.15,
+      "intensity": 0.7
+    }
+  ]
+}
