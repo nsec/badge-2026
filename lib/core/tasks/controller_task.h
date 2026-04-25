@@ -29,6 +29,8 @@ private:
   void handle(const SocialSetRequest &request);
   void handle(const PortalToggleRequest &request);
   void handle(const ConfigChangedEvent &event);
+  void handle(const NfcScanResultEvent &event);
+  void handle(const NfcPairResultEvent &event);
 
   /// Get colour for a social category.
   static void socialColor(storage::SocialKey key, uint8_t &r, uint8_t &g, uint8_t &b);

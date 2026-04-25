@@ -4,16 +4,16 @@
 
 #include "rtos/task.hpp"
 #include "rtos/queue.hpp"
+#include "tasks/controller.h"
 #include "tasks/display.h"
 #include "tasks/nfc.h"
-#include "tasks/led.h"
 
 namespace core {
 
 class NfcTask : public Task {
 public:
-  NfcTask(Queue<NfcCommand> &nfcQueue, Queue<LedCommand> &ledQueue, Queue<DisplayCommand> &displayQueue)
-      : Task("nfc", badge::config::tasks::priority_nfc, 8192), _nfcQueue(nfcQueue), _ledQueue(ledQueue),
+  NfcTask(Queue<NfcCommand> &nfcQueue, Queue<ControllerEvent> &controllerQueue, Queue<DisplayCommand> &displayQueue)
+      : Task("nfc", badge::config::tasks::priority_nfc, 8192), _nfcQueue(nfcQueue), _controllerQueue(controllerQueue),
         _displayQueue(displayQueue) {}
 
 protected:
@@ -28,7 +28,7 @@ private:
   bool checkCommand(NfcCommand &out);
 
   Queue<NfcCommand> &_nfcQueue;
-  Queue<LedCommand> &_ledQueue;
+  Queue<ControllerEvent> &_controllerQueue;
   Queue<DisplayCommand> &_displayQueue;
 };
 

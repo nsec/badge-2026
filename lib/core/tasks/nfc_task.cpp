@@ -1070,7 +1070,6 @@ void NfcTask::run() {
         stopAndFlush(hw::nfcInstance());
       cur = NfcMode::Off;
       digitalWrite(badge::pins::NFC_LED, LOW);
-      _ledQueue.send(LedCommand(LedCommandType::Off), Milliseconds(0));
       core::hw::safeSerial().print("> ");
       continue;
     }
@@ -1120,13 +1119,11 @@ void NfcTask::runReader() {
     return;
   }
   core::hw::safeSerial().println("NFC reader: scanning... (press A to stop)");
-  _ledQueue.send(LedCommand(LedCommandType::SolidWhite), Milliseconds(0));
 
   for (;;) {
     NfcCommand cmd;
     if (checkCommand(cmd)) {
       stopAndFlush(nfc);
-      _ledQueue.send(LedCommand(LedCommandType::Off), Milliseconds(0));
       if (cmd.mode != NfcMode::Off && cmd.mode != NfcMode::Reader)
         _nfcQueue.send(cmd, Milliseconds(0));
       core::hw::safeSerial().print("> ");
@@ -1190,11 +1187,7 @@ void NfcTask::runReader() {
       _displayQueue.send(dc, Milliseconds(0));
     }
 
-    LedCommand lc{};
-    lc.type = LedCommandType::ProgressFlash;
-    lc.pixelCount = 18;
-    lc.g = 255;
-    _ledQueue.send(lc, Milliseconds(0));
+    _controllerQueue.send(NfcScanResultEvent{}, Milliseconds(0));
     digitalWrite(badge::pins::NFC_LED, LOW);
     stopAndFlush(nfc);
     core::hw::safeSerial().println("---");
@@ -1240,15 +1233,11 @@ void NfcTask::runEmulator() {
   g_wasEverActivated = false;
   g_lastActivityMs = millis();
 
-  LedCommand lc(LedCommandType::SolidCyan);
-  _ledQueue.send(lc, Milliseconds(0));
-
   for (;;) {
     NfcCommand cmd;
     if (checkCommand(cmd)) {
       hw.rfalListenStop();
       digitalWrite(badge::pins::NFC_LED, LOW);
-      _ledQueue.send(LedCommand(LedCommandType::Off), Milliseconds(0));
       if (cmd.mode != NfcMode::Off && cmd.mode != NfcMode::Emulator && cmd.mode != NfcMode::WifiEmulator)
         _nfcQueue.send(cmd, Milliseconds(0));
       core::hw::safeSerial().println("NFC emu: stopped");
@@ -1311,7 +1300,6 @@ void NfcTask::runPair() {
   const storage::UserConfig myCfg = storage::configRead();
 
   core::hw::safeSerial().println("NFC-DEP pair: searching... (press A/B to stop)");
-  _ledQueue.send(LedCommand(LedCommandType::SolidOrange), Milliseconds(0));
 
   // Break symmetry with true hardware RNG - different on every attempt
   bool preferPoll = (esp_random() & 0x01) != 0;
@@ -1322,7 +1310,6 @@ void NfcTask::runPair() {
   for (;;) {
     NfcCommand cmd;
     if (checkCommand(cmd)) {
-      _ledQueue.send(LedCommand(LedCommandType::Off), Milliseconds(0));
       if (cmd.mode != NfcMode::Off && cmd.mode != NfcMode::Pair)
         _nfcQueue.send(cmd, Milliseconds(0));
       core::hw::safeSerial().println("NFC-DEP pair: cancelled");
@@ -1379,7 +1366,6 @@ void NfcTask::runPair() {
     while (millis() - startMs < cycleTimeout) {
       if (checkCommand(cmd)) {
         stopAndFlush(nfc);
-        _ledQueue.send(LedCommand(LedCommandType::Off), Milliseconds(0));
         if (cmd.mode != NfcMode::Off && cmd.mode != NfcMode::Pair)
           _nfcQueue.send(cmd, Milliseconds(0));
         core::hw::safeSerial().println("NFC-DEP pair: cancelled");
@@ -1604,12 +1590,7 @@ void NfcTask::runPair() {
             "NFC-DEP pair: NEW partner %02X:%02X:%02X:%02X:%02X:%02X (%s) - social=%d (+3)\r\n", partnerMac[0],
             partnerMac[1], partnerMac[2], partnerMac[3], partnerMac[4], partnerMac[5], role, newVal);
 
-        // Green flash - new partner
-        LedCommand sc{};
-        sc.type = LedCommandType::ProgressFlash;
-        sc.pixelCount = 18;
-        sc.g = 255;
-        _ledQueue.send(sc, Milliseconds(0));
+        _controllerQueue.send(NfcPairResultEvent{0}, Milliseconds(0));
 
         DisplayCommand dc{};
         dc.type = DisplayCommand::Type::PairResult;
@@ -1620,13 +1601,7 @@ void NfcTask::runPair() {
                                       partnerMac[0], partnerMac[1], partnerMac[2], partnerMac[3], partnerMac[4],
                                       partnerMac[5], role);
 
-        // Yellow flash - already paired before
-        LedCommand sc{};
-        sc.type = LedCommandType::ProgressFlash;
-        sc.pixelCount = 18;
-        sc.r = 255;
-        sc.g = 255;
-        _ledQueue.send(sc, Milliseconds(0));
+        _controllerQueue.send(NfcPairResultEvent{1}, Milliseconds(0));
 
         DisplayCommand dc{};
         dc.type = DisplayCommand::Type::PairResult;
@@ -1637,11 +1612,8 @@ void NfcTask::runPair() {
       core::hw::safeSerial().printf("NFC-DEP pair: HMAC FAILED - partner %02X:%02X:%02X:%02X:%02X:%02X\r\n",
                                     partnerMac[0], partnerMac[1], partnerMac[2], partnerMac[3], partnerMac[4],
                                     partnerMac[5]);
-      LedCommand sc{};
-      sc.type = LedCommandType::ProgressFlash;
-      sc.pixelCount = 18;
-      sc.r = 255;
-      _ledQueue.send(sc, Milliseconds(0));
+
+      _controllerQueue.send(NfcPairResultEvent{2}, Milliseconds(0));
 
       DisplayCommand dc{};
       dc.type = DisplayCommand::Type::PairResult;

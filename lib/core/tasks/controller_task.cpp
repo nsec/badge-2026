@@ -92,6 +92,21 @@ static constexpr storage::SocialKey SOCIAL_ORDER[] = {
 };
 static constexpr uint8_t SOCIAL_COUNT = sizeof(SOCIAL_ORDER) / sizeof(SOCIAL_ORDER[0]);
 
+// LED indicator shown while a given NFC mode is active. WifiEmulator is driven
+// by the portal handler (custom animation), so it returns Off here.
+static LedCommandType ledForNfcMode(NfcMode mode) {
+  switch (mode) {
+    case NfcMode::Reader:
+      return LedCommandType::SolidWhite;
+    case NfcMode::Emulator:
+      return LedCommandType::SolidCyan;
+    case NfcMode::Pair:
+      return LedCommandType::SolidOrange;
+    default:
+      return LedCommandType::Off;
+  }
+}
+
 void ControllerTask::socialColor(storage::SocialKey key, uint8_t &r, uint8_t &g, uint8_t &b) {
   switch (key) {
     case storage::SocialKey::Social:
@@ -171,6 +186,8 @@ void ControllerTask::handle(const ButtonPressEvent &event) {
         dc.socialKey = static_cast<uint8_t>(SOCIAL_ORDER[_socialIndex]);
         dc.socialValue = storage::socialRead(SOCIAL_ORDER[_socialIndex]);
         _displayQueue.send(dc, Milliseconds(0));
+      } else {
+        _ledQueue.send(LedCommand{LedCommandType::Off}, Milliseconds(0));
       }
       break;
     }
@@ -206,6 +223,8 @@ void ControllerTask::handle(const ButtonPressEvent &event) {
       NfcMode target = (_nfcMode == NfcMode::Reader) ? NfcMode::Off : NfcMode::Reader;
       _nfcMode = target;
       _nfcQueue.send(NfcCommand{target}, Milliseconds(0));
+      _ledQueue.send(LedCommand{ledForNfcMode(target)}, Milliseconds(0));
+
       DisplayCommand dc{};
       if (target == NfcMode::Off) {
         dc.type = DisplayCommand::Type::ShowLogo;
@@ -223,6 +242,8 @@ void ControllerTask::handle(const ButtonPressEvent &event) {
       NfcMode target = (_nfcMode == NfcMode::Emulator) ? NfcMode::Off : NfcMode::Emulator;
       _nfcMode = target;
       _nfcQueue.send(NfcCommand{target}, Milliseconds(0));
+      _ledQueue.send(LedCommand{ledForNfcMode(target)}, Milliseconds(0));
+
       DisplayCommand dc{};
       if (target == NfcMode::Off) {
         dc.type = DisplayCommand::Type::ShowLogo;
@@ -240,6 +261,8 @@ void ControllerTask::handle(const ButtonPressEvent &event) {
       NfcMode target = (_nfcMode == NfcMode::Pair) ? NfcMode::Off : NfcMode::Pair;
       _nfcMode = target;
       _nfcQueue.send(NfcCommand{target}, Milliseconds(0));
+      _ledQueue.send(LedCommand{ledForNfcMode(target)}, Milliseconds(0));
+
       DisplayCommand dc{};
       if (target == NfcMode::Off) {
         dc.type = DisplayCommand::Type::ShowLogo;
@@ -332,6 +355,43 @@ void ControllerTask::handle(const ConfigChangedEvent &event) {
 
   Serial.printf("[controller] Config updated: name=%s bright=%u color=(%u,%u,%u)\r\n", cfg.profile.name, cfg.brightness,
                 cfg.profile.r, cfg.profile.g, cfg.profile.b);
+}
+
+// ---------------------------------------------------------------------------
+// NFC reader scan complete — flash green progress
+// ---------------------------------------------------------------------------
+
+void ControllerTask::handle(const NfcScanResultEvent &) {
+  LedCommand cmd{};
+  cmd.type = LedCommandType::ProgressFlash;
+  cmd.pixelCount = 18;
+  cmd.g = 255;
+  _ledQueue.send(cmd, Milliseconds(0));
+}
+
+// ---------------------------------------------------------------------------
+// NFC-DEP pair complete — flash colour by outcome
+// ---------------------------------------------------------------------------
+
+void ControllerTask::handle(const NfcPairResultEvent &event) {
+  LedCommand cmd{};
+  cmd.type = LedCommandType::ProgressFlash;
+  cmd.pixelCount = 18;
+  switch (event.outcome) {
+    case 0:  // new partner — green
+      cmd.g = 255;
+      break;
+    case 1:  // duplicate — yellow
+      cmd.r = 255;
+      cmd.g = 255;
+      break;
+    case 2:  // HMAC failed — red
+      cmd.r = 255;
+      break;
+    default:
+      break;
+  }
+  _ledQueue.send(cmd, Milliseconds(0));
 }
 
 }  // namespace core

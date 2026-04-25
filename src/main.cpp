@@ -141,7 +141,7 @@ void setup() {
   static core::ControllerTask controllerTask(controllerQueue, ledQueue, cliQueue, nfcQueue, displayQueue, portalQueue);
   static core::CliTask cliTask;
   static core::ButtonTask buttonTask(controllerQueue);
-  static core::NfcTask nfcTask(nfcQueue, ledQueue, displayQueue);
+  static core::NfcTask nfcTask(nfcQueue, controllerQueue, displayQueue);
   static core::DockTask dockTask(dockEventQueue, ledQueue);
   static core::DisplayTask displayTask(displayQueue);
   static core::LightTask lightTask;
