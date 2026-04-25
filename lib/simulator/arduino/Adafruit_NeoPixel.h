@@ -96,5 +96,6 @@ private:
   uint16_t _numLeds;
   uint8_t _pixels[kMaxLeds * 3]{};
   int _sock = -1;
-  struct sockaddr_in _dest{};
+
+  struct sockaddr_in _dest {};
 };
