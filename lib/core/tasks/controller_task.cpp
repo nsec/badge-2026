@@ -81,7 +81,7 @@ bool ControllerTask::allSocialMaxed() {
 // DOWN  = NFC P2P pair
 // LEFT  = NFC read
 // RIGHT = NFC emulate
-// UP    = (reserved — not yet assigned)
+// UP    = toggle WiFi config portal
 // ---------------------------------------------------------------------------
 
 static constexpr storage::SocialKey SOCIAL_ORDER[] = {
@@ -149,9 +149,9 @@ void ControllerTask::showCurrentSocial(bool hold) {
 void ControllerTask::handle(const ButtonPressEvent &event) {
   switch (event.button) {
 
-    // --- UP: reserved (not yet assigned) ---
+    // --- UP: toggle WiFi config portal ---
     case hw::Button::Up: {
-      // TODO: assign a function to the UP button
+      handle(PortalToggleRequest{});
       break;
     }
 
