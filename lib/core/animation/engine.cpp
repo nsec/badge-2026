@@ -54,8 +54,16 @@ bool AnimationEngine::tick(float dt) {
     _lights[i].pos = evaluate(track.motion, trackTime);
     _lights[i].color = evaluate(track.color, trackTime, _palette);
     _lights[i].radius = evaluate(track.radius, trackTime);
-    _lights[i].intensity = powf(evaluate(track.intensity, trackTime),
-                                badge::config::animation::intensity_curve / badge::config::animation::gamma);
+
+    // Clamp before powf: a breathe with amplitude > base evaluates negative
+    // for part of its cycle, and powf() of a negative base with a fractional
+    // exponent returns NaN.
+    float rawIntensity = evaluate(track.intensity, trackTime);
+    if (rawIntensity < 0.0f) {
+      rawIntensity = 0.0f;
+    }
+    _lights[i].intensity =
+        powf(rawIntensity, badge::config::animation::intensity_curve / badge::config::animation::gamma);
 
     // Apply fade-in envelope. The linear ramp is raised to 1/gamma so
     // that after gamma correction in the output stage the perceived

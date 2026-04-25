@@ -1017,7 +1017,12 @@ function evaluateFrame(t) {
     const pos = evaluateMotion(track.motion, tt);
     const color = evaluateColor(track.color, tt, editor.palette);
     const radius = evaluateScalar(normalizeScalar(track.radius), tt);
-    let intensity = Math.pow(evaluateScalar(normalizeScalar(track.intensity), tt), INTENSITY_CURVE / GAMMA);
+    // Clamp before Math.pow: a breathe with amplitude > base evaluates negative
+    // for part of its cycle, and Math.pow() of a negative base with a fractional
+    // exponent returns NaN.
+    let rawIntensity = evaluateScalar(normalizeScalar(track.intensity), tt);
+    if (rawIntensity < 0) rawIntensity = 0;
+    let intensity = Math.pow(rawIntensity, INTENSITY_CURVE / GAMMA);
     const fadeIn = track.fadeIn || 0;
     if (fadeIn > 0 && tt < fadeIn) {
       const fade = tt / fadeIn;
