@@ -66,7 +66,7 @@ inline constexpr uint8_t passphrase_len = 10;  // alphanumeric chars (~59.5 bits
 }  // namespace wifi
 
 namespace animation {
-inline constexpr uint8_t max_lights = 16;
+inline constexpr uint8_t max_lights = 18;
 inline constexpr uint8_t target_fps = 60;
 inline constexpr uint32_t frame_interval_ms = 1000 / target_fps;  // ~16ms
 // Gamma correction for LED output. Higher values crush non-dominant channels,

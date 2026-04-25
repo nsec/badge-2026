@@ -4,6 +4,7 @@
 
 #include <Arduino.h>
 
+#include "animation/builders.h"
 #include "animation/palette.h"
 #include "animation/types.h"
 #include "hardware/rgb_led.h"
@@ -87,55 +88,14 @@ bool LedTask::sleepOrInterrupt(uint32_t ms, LedCommand &out) {
 }
 
 bool LedTask::runProgressFlash(const LedCommand &cmd, LedCommand &out) {
-  uint8_t ledCount = cmd.pixelCount;
+  // Capture the inputs before driveAnimation() writes through `out` (callers
+  // alias `cmd` and `out` to the same LedCommand).
+  const uint8_t pixelCount = cmd.pixelCount;
+  const animation::RGBF color{cmd.r / 255.0f, cmd.g / 255.0f, cmd.b / 255.0f};
+  const bool hold = cmd.hold;
 
-  if (ledCount == 0) {
-    ledCount = 1;
-  }
-
-  if (ledCount > hw::RGB_LED_COUNT) {
-    ledCount = hw::RGB_LED_COUNT;
-  }
-
-  // 3 flashes: 250 ms on, 250 ms off
-  for (int flash = 0; flash < 3; flash++) {
-    hw::rgbClear();
-
-    for (uint8_t i = 0; i < ledCount; i++) {
-      hw::rgbSetPixel(i, cmd.r, cmd.g, cmd.b);
-    }
-
-    hw::rgbShow();
-
-    if (sleepOrInterrupt(250, out)) {
-      return true;
-    }
-
-    hw::rgbClear();
-
-    if (sleepOrInterrupt(250, out)) {
-      return true;
-    }
-  }
-
-  // Solid for 3 seconds
-  for (uint8_t i = 0; i < ledCount; i++) {
-    hw::rgbSetPixel(i, cmd.r, cmd.g, cmd.b);
-  }
-
-  hw::rgbShow();
-
-  if (sleepOrInterrupt(3000, out)) {
-    return true;
-  }
-
-  // If hold, leave LEDs on (task will block on queue until next command).
-  // Otherwise turn off.
-  if (!cmd.hold) {
-    hw::rgbClear();
-  }
-
-  return false;
+  _currentAnimation = animation::buildProgressFlash(pixelCount, color, hold);
+  return driveAnimation(out);
 }
 
 bool LedTask::runRainbow(const LedCommand &cmd, LedCommand &out) {
@@ -197,7 +157,10 @@ bool LedTask::runAnimation(LedCommand &cmd, LedCommand &out) {
   // Take ownership of the heap-allocated AnimationDef from the command.
   _currentAnimation.reset(cmd.animation);
   cmd.animation = nullptr;
+  return driveAnimation(out);
+}
 
+bool LedTask::driveAnimation(LedCommand &out) {
   if (!_currentAnimation || _currentAnimation->trackCount == 0) {
     return false;
   }

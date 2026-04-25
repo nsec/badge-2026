@@ -34,6 +34,10 @@ private:
   /// Returns true if interrupted (next cmd in `out`).
   bool runAnimation(LedCommand &cmd, LedCommand &out);
 
+  /// Drive `_currentAnimation` to completion through the animation engine.
+  /// Returns true if interrupted (next cmd in `out`).
+  bool driveAnimation(LedCommand &out);
+
   Queue<LedCommand> &_queue;
   animation::AnimationEngine _animEngine;
   std::unique_ptr<animation::AnimationDef> _currentAnimation;
