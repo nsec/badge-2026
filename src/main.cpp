@@ -158,21 +158,13 @@ void setup() {
   displayTask.start();
   portalTask.start();
 
-  // Show boot logo via DisplayTask (moved from einkInit)
+  // Show boot logo on the e-ink early so it's visible before the
+  // controller task's first frame. The controller will re-issue it on
+  // enterIdle but the duplicate is harmless.
   {
     core::DisplayCommand dc{};
     dc.type = core::DisplayCommand::Type::ShowLogo;
     displayQueue.send(dc, core::Milliseconds(0));
-  }
-
-  // Play boot LED animation
-  {
-    auto result = core::animation::loadAndParseAnimation("boot");
-    if (result.ok) {
-      core::LedCommand lc(core::LedCommandType::Animation);
-      lc.animation = result.def.release();
-      ledQueue.send(lc, core::Milliseconds(0));
-    }
   }
 
   Serial.println("Setup complete!");

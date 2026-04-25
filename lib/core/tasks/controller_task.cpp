@@ -9,16 +9,82 @@
 #include "storage/nvs_wifi_creds.h"
 #include "hardware/rgb_led.h"
 #include "animation/parser.h"
+#include "animation/storage.h"
 
 namespace core {
 
 Queue<ControllerEvent> *g_controllerQueue = nullptr;
 
+namespace {
+
+// Reserved animation names — not eligible for the idle cycle. Boot is shown
+// only at startup; wifi_portal is driven by the portal handler.
+constexpr const char *kReservedAnimations[] = {"boot", "wifi_portal"};
+
+bool isReservedAnimation(const std::string &name) {
+  for (const char *reserved : kReservedAnimations) {
+    if (name == reserved) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Per-state timeouts (0 = no timeout). On expiry the controller returns to
+// Idle. Reader/Emulator are intentionally untimed — they are toggled off
+// explicitly by the user.
+constexpr uint32_t kSocialTimeoutMs = 5000;
+constexpr uint32_t kPairTimeoutMs = 20000;
+constexpr uint32_t kPortalTimeoutMs = 5UL * 60UL * 1000UL;  // 5 minutes
+
+// How long to wait after a result flash (scan/pair) before queuing the
+// idle animation. A touch longer than ProgressFlash's own duration so the
+// flash plays out cleanly.
+constexpr uint32_t kResultFlashMs = 4500;
+
+constexpr storage::SocialKey SOCIAL_ORDER[] = {
+    storage::SocialKey::Social,   // purple — citizens/players
+    storage::SocialKey::Sponsor,  // green — vendors
+    storage::SocialKey::Light,    // blue — light collection
+};
+constexpr uint8_t SOCIAL_COUNT = sizeof(SOCIAL_ORDER) / sizeof(SOCIAL_ORDER[0]);
+
+}  // namespace
+
+// ---------------------------------------------------------------------------
+// Run loop
+// ---------------------------------------------------------------------------
+
 void ControllerTask::run() {
+  enumerateIdleAnimations();
+
+  // Initial state: play the boot animation as the first idle.
+  enterIdle();
+
   for (;;) {
     ControllerEvent event;
-    if (!_inQueue.receive(event))
+    bool gotEvent;
+
+    if (_timeoutAt == 0) {
+      gotEvent = _inQueue.receive(event);
+    } else {
+      uint32_t now = millis();
+      uint32_t waitMs = (_timeoutAt > now) ? (_timeoutAt - now) : 0;
+      gotEvent = _inQueue.receive(event, Milliseconds(waitMs));
+    }
+
+    if (!gotEvent) {
+      // Timer fired.
+      if (_state == State::Idle) {
+        // Deferred post-flash idle animation.
+        _timeoutAt = 0;
+        sendCurrentIdleAnimation();
+      } else {
+        // State-specific timeout — return to Idle.
+        enterIdle();
+      }
       continue;
+    }
 
     std::visit(
         [this](const auto &data) {
@@ -29,7 +95,187 @@ void ControllerTask::run() {
 }
 
 // ---------------------------------------------------------------------------
-// LED test (existing)
+// State transitions
+// ---------------------------------------------------------------------------
+
+void ControllerTask::cleanupCurrent() {
+  switch (_state) {
+    case State::Idle:
+    case State::Social:
+      // No external resources to release.
+      break;
+    case State::NfcReader:
+    case State::NfcEmulator:
+    case State::NfcPair:
+      _nfcQueue.send(NfcCommand{NfcMode::Off}, Milliseconds(0));
+      break;
+    case State::Portal: {
+      _nfcQueue.send(NfcCommand{NfcMode::Off}, Milliseconds(0));
+
+      PortalCommand pcmd{};
+      pcmd.type = PortalCommand::Type::Stop;
+      _portalQueue.send(pcmd);
+      break;
+    }
+  }
+}
+
+void ControllerTask::sendNamedAnimation(const char *name) {
+  auto result = animation::loadAndParseAnimation(name);
+  if (!result.ok) {
+    core::hw::safeSerial().printf("[controller] failed to load animation '%s'\r\n", name);
+    return;
+  }
+
+  LedCommand cmd(LedCommandType::Animation);
+  cmd.animation = result.def.release();
+  _ledQueue.send(cmd, Milliseconds(0));
+}
+
+void ControllerTask::sendCurrentIdleAnimation() {
+  if (!_idleIndex || _idleAnimations.empty()) {
+    sendNamedAnimation("boot");
+  } else {
+    sendNamedAnimation(_idleAnimations[*_idleIndex].c_str());
+  }
+}
+
+void ControllerTask::enumerateIdleAnimations() {
+  _idleAnimations.clear();
+
+  for (const auto &name : animation::storageList()) {
+    if (isReservedAnimation(name)) {
+      continue;
+    }
+    core::hw::safeSerial().printf("[controller] Discovered animation '%s'\r\n", name.c_str());
+    _idleAnimations.push_back(name);
+  }
+
+  core::hw::safeSerial().printf("[controller] %u idle animations available\r\n",
+                                static_cast<unsigned>(_idleAnimations.size()));
+}
+
+void ControllerTask::enterIdle(uint32_t deferMs) {
+  cleanupCurrent();
+  _state = State::Idle;
+  _holdActive = false;
+
+  // Reset social-display tracking. _socialIndex is preserved so the user
+  // returns to the last category they cycled to.
+  _lastButton = hw::Button::COUNT;
+
+  // ShowLogo on the e-ink to match the LED transition.
+  DisplayCommand dc{};
+  dc.type = DisplayCommand::Type::ShowLogo;
+  _displayQueue.send(dc, Milliseconds(0));
+
+  if (deferMs > 0) {
+    _timeoutAt = millis() + deferMs;
+    // The idle animation will be queued when the timer fires; until then we
+    // let whatever is already on the LEDs (typically a result flash) play.
+  } else {
+    _timeoutAt = 0;
+    sendCurrentIdleAnimation();
+  }
+}
+
+void ControllerTask::enterSocial() {
+  cleanupCurrent();
+  _state = State::Social;
+  _timeoutAt = _holdActive ? 0 : millis() + kSocialTimeoutMs;
+
+  showCurrentSocial();
+
+  DisplayCommand dc{};
+  dc.type = DisplayCommand::Type::SocialProgress;
+  dc.socialKey = static_cast<uint8_t>(SOCIAL_ORDER[_socialIndex]);
+  dc.socialValue = storage::socialRead(SOCIAL_ORDER[_socialIndex]);
+  _displayQueue.send(dc, Milliseconds(0));
+}
+
+void ControllerTask::enterNfcMode(NfcMode mode) {
+  // Leaving boot for the first time? Pin the idle index so the next idle
+  // entry plays the cycle, not boot.
+  if (!_idleIndex) {
+    _idleIndex = 0;
+  }
+
+  cleanupCurrent();
+
+  switch (mode) {
+    case NfcMode::Reader:
+      _state = State::NfcReader;
+      _ledQueue.send(LedCommand{LedCommandType::SolidWhite}, Milliseconds(0));
+      _timeoutAt = 0;
+      break;
+    case NfcMode::Emulator:
+      _state = State::NfcEmulator;
+      _ledQueue.send(LedCommand{LedCommandType::SolidCyan}, Milliseconds(0));
+      _timeoutAt = 0;
+      break;
+    case NfcMode::Pair:
+      _state = State::NfcPair;
+      _ledQueue.send(LedCommand{LedCommandType::SolidOrange}, Milliseconds(0));
+      _timeoutAt = millis() + kPairTimeoutMs;
+      break;
+    default:
+      // Should not happen — WifiEmulator is driven by enterPortal.
+      _ledQueue.send(LedCommand{LedCommandType::Off}, Milliseconds(0));
+      _state = State::Idle;
+      _timeoutAt = 0;
+      return;
+  }
+
+  _nfcQueue.send(NfcCommand{mode}, Milliseconds(0));
+
+  DisplayCommand dc{};
+  dc.type = DisplayCommand::Type::ModeChange;
+  dc.nfcMode = static_cast<uint8_t>(mode);
+  _displayQueue.send(dc, Milliseconds(0));
+}
+
+void ControllerTask::enterPortal() {
+  if (!_idleIndex) {
+    _idleIndex = 0;
+  }
+
+  cleanupCurrent();
+  _state = State::Portal;
+  _timeoutAt = millis() + kPortalTimeoutMs;
+
+  auto creds = storage::wifiCredsGet();
+
+  PortalCommand pcmd{};
+  pcmd.type = PortalCommand::Type::Start;
+  strlcpy(pcmd.start.ssid, creds.ssid, sizeof(pcmd.start.ssid));
+  strlcpy(pcmd.start.passphrase, creds.passphrase, sizeof(pcmd.start.passphrase));
+  _portalQueue.send(pcmd);
+
+  // Phones can tap the badge for a "Connect to Wi-Fi?" prompt while the
+  // portal is up.
+  NfcCommand ncmd{};
+  ncmd.mode = NfcMode::WifiEmulator;
+  strlcpy(ncmd.wifi.ssid, creds.ssid, sizeof(ncmd.wifi.ssid));
+  strlcpy(ncmd.wifi.passphrase, creds.passphrase, sizeof(ncmd.wifi.passphrase));
+  _nfcQueue.send(ncmd, Milliseconds(0));
+
+  sendNamedAnimation("wifi_portal");
+
+  Serial.println("[controller] Portal starting");
+}
+
+void ControllerTask::cycleIdleAnimation() {
+  if (_idleAnimations.empty()) {
+    return;
+  }
+
+  // First press leaves boot at index 0. Otherwise step to the next animation.
+  _idleIndex = _idleIndex ? (*_idleIndex + 1) % _idleAnimations.size() : 0;
+  sendNamedAnimation(_idleAnimations[*_idleIndex].c_str());
+}
+
+// ---------------------------------------------------------------------------
+// LED test
 // ---------------------------------------------------------------------------
 
 void ControllerTask::handle(const LedTestRequest &req) {
@@ -74,39 +320,6 @@ bool ControllerTask::allSocialMaxed() {
          storage::socialRead(storage::SocialKey::Light) == 255;
 }
 
-// ---------------------------------------------------------------------------
-// Button handling
-//
-// A     = cycle through social categories
-// B     = show social progress (double-press = hold LEDs on)
-// DOWN  = NFC P2P pair
-// LEFT  = NFC read
-// RIGHT = NFC emulate
-// UP    = toggle WiFi config portal
-// ---------------------------------------------------------------------------
-
-static constexpr storage::SocialKey SOCIAL_ORDER[] = {
-    storage::SocialKey::Social,   // purple — citizens/players
-    storage::SocialKey::Sponsor,  // green — vendors
-    storage::SocialKey::Light,    // blue — light collection
-};
-static constexpr uint8_t SOCIAL_COUNT = sizeof(SOCIAL_ORDER) / sizeof(SOCIAL_ORDER[0]);
-
-// LED indicator shown while a given NFC mode is active. WifiEmulator is driven
-// by the portal handler (custom animation), so it returns Off here.
-static LedCommandType ledForNfcMode(NfcMode mode) {
-  switch (mode) {
-    case NfcMode::Reader:
-      return LedCommandType::SolidWhite;
-    case NfcMode::Emulator:
-      return LedCommandType::SolidCyan;
-    case NfcMode::Pair:
-      return LedCommandType::SolidOrange;
-    default:
-      return LedCommandType::Off;
-  }
-}
-
 void ControllerTask::socialColor(storage::SocialKey key, uint8_t &r, uint8_t &g, uint8_t &b) {
   switch (key) {
     case storage::SocialKey::Social:
@@ -132,16 +345,16 @@ void ControllerTask::socialColor(storage::SocialKey key, uint8_t &r, uint8_t &g,
   }
 }
 
-void ControllerTask::showCurrentSocial(bool hold) {
+void ControllerTask::showCurrentSocial() {
   storage::SocialKey key = SOCIAL_ORDER[_socialIndex];
   uint8_t r, g, b;
   socialColor(key, r, g, b);
 
-  // If all maxed, rainbow instead
+  // All-maxed → rainbow celebration.
   if (allSocialMaxed()) {
     LedCommand cmd{};
     cmd.type = LedCommandType::Rainbow;
-    cmd.hold = hold;
+    cmd.hold = true;
     _ledQueue.send(cmd);
     return;
   }
@@ -149,128 +362,115 @@ void ControllerTask::showCurrentSocial(bool hold) {
   uint8_t value = storage::socialRead(key);
   uint8_t pixels = valueToPixelCount(value);
 
-  // Serial.printf("[social] showing %s = %u → %u LEDs%s\r\n", SOCIAL_NAMES[_socialIndex], value, pixels,
-  //               hold ? " (hold)" : "");
-
   LedCommand cmd{};
   cmd.type = LedCommandType::ProgressFlash;
   cmd.pixelCount = pixels;
   cmd.r = r;
   cmd.g = g;
   cmd.b = b;
-  cmd.hold = hold;
+  // Always hold — the timeout (or another transition) drives the exit.
+  cmd.hold = true;
   _ledQueue.send(cmd);
 }
+
+// ---------------------------------------------------------------------------
+// Button handling
+//
+// A     = cycle social category (in Social) / cycle idle animation (in Idle)
+// B     = enter Social / toggle hold (B-double-press)
+// UP    = toggle WiFi config portal
+// DOWN  = toggle NFC P2P pair
+// LEFT  = toggle NFC reader
+// RIGHT = toggle NFC emulator
+// ---------------------------------------------------------------------------
 
 void ControllerTask::handle(const ButtonPressEvent &event) {
   switch (event.button) {
 
-    // --- UP: toggle WiFi config portal ---
     case hw::Button::Up: {
-      handle(PortalToggleRequest{});
+      _lastButton = hw::Button::Up;
+      if (_state == State::Portal) {
+        enterIdle();
+      } else {
+        enterPortal();
+      }
       break;
     }
 
-    // --- A: cycle through social categories ---
     case hw::Button::A: {
-      _nfcMode = NfcMode::Off;
-      _nfcQueue.send(NfcCommand{NfcMode::Off}, Milliseconds(0));
-      _socialIndex = (_socialIndex + 1) % SOCIAL_COUNT;
+      const hw::Button prev = _lastButton;
       _lastButton = hw::Button::A;
 
-      if (_socialActive) {
-        showCurrentSocial(_holdActive);
+      if (_state == State::Idle) {
+        cycleIdleAnimation();
+        break;
+      }
+
+      if (_state == State::Social) {
+        _socialIndex = (_socialIndex + 1) % SOCIAL_COUNT;
+        // Reset the social timeout on user activity (no-op when held).
+        if (!_holdActive) {
+          _timeoutAt = millis() + kSocialTimeoutMs;
+        }
+        showCurrentSocial();
 
         DisplayCommand dc{};
         dc.type = DisplayCommand::Type::SocialProgress;
         dc.socialKey = static_cast<uint8_t>(SOCIAL_ORDER[_socialIndex]);
         dc.socialValue = storage::socialRead(SOCIAL_ORDER[_socialIndex]);
         _displayQueue.send(dc, Milliseconds(0));
-      } else {
-        _ledQueue.send(LedCommand{LedCommandType::Off}, Milliseconds(0));
+        break;
       }
+
+      // From any other state (NFC modes, Portal): A returns to Idle.
+      (void)prev;
+      enterIdle();
       break;
     }
 
-    // --- B: show current social category (double-press = hold) ---
     case hw::Button::B: {
-      _nfcMode = NfcMode::Off;
-      _nfcQueue.send(NfcCommand{NfcMode::Off}, Milliseconds(0));
-      _socialActive = true;
-
-      bool hold = false;
-      if (_lastButton == hw::Button::B) {
-        _holdActive = !_holdActive;
-        hold = _holdActive;
-      } else {
-        _holdActive = false;
-      }
+      const bool wasB = (_lastButton == hw::Button::B);
       _lastButton = hw::Button::B;
 
-      showCurrentSocial(hold);
+      if (_state == State::Social && wasB) {
+        // B-double-press toggles hold.
+        _holdActive = !_holdActive;
+        _timeoutAt = _holdActive ? 0 : millis() + kSocialTimeoutMs;
+        showCurrentSocial();
+        break;
+      }
 
-      DisplayCommand dc{};
-      dc.type = DisplayCommand::Type::SocialProgress;
-      dc.socialKey = static_cast<uint8_t>(SOCIAL_ORDER[_socialIndex]);
-      dc.socialValue = storage::socialRead(SOCIAL_ORDER[_socialIndex]);
-      _displayQueue.send(dc, Milliseconds(0));
+      enterSocial();
       break;
     }
 
-    // --- LEFT: NFC read (toggle) ---
     case hw::Button::Left: {
       _lastButton = hw::Button::Left;
-      NfcMode target = (_nfcMode == NfcMode::Reader) ? NfcMode::Off : NfcMode::Reader;
-      _nfcMode = target;
-      _nfcQueue.send(NfcCommand{target}, Milliseconds(0));
-      _ledQueue.send(LedCommand{ledForNfcMode(target)}, Milliseconds(0));
-
-      DisplayCommand dc{};
-      if (target == NfcMode::Off) {
-        dc.type = DisplayCommand::Type::ShowLogo;
+      if (_state == State::NfcReader) {
+        enterIdle();
       } else {
-        dc.type = DisplayCommand::Type::ModeChange;
-        dc.nfcMode = static_cast<uint8_t>(target);
+        enterNfcMode(NfcMode::Reader);
       }
-      _displayQueue.send(dc, Milliseconds(0));
       break;
     }
 
-    // --- RIGHT: NFC emulate (toggle) ---
     case hw::Button::Right: {
       _lastButton = hw::Button::Right;
-      NfcMode target = (_nfcMode == NfcMode::Emulator) ? NfcMode::Off : NfcMode::Emulator;
-      _nfcMode = target;
-      _nfcQueue.send(NfcCommand{target}, Milliseconds(0));
-      _ledQueue.send(LedCommand{ledForNfcMode(target)}, Milliseconds(0));
-
-      DisplayCommand dc{};
-      if (target == NfcMode::Off) {
-        dc.type = DisplayCommand::Type::ShowLogo;
+      if (_state == State::NfcEmulator) {
+        enterIdle();
       } else {
-        dc.type = DisplayCommand::Type::ModeChange;
-        dc.nfcMode = static_cast<uint8_t>(target);
+        enterNfcMode(NfcMode::Emulator);
       }
-      _displayQueue.send(dc, Milliseconds(0));
       break;
     }
 
-    // --- DOWN: NFC P2P pair (toggle) ---
     case hw::Button::Down: {
       _lastButton = hw::Button::Down;
-      NfcMode target = (_nfcMode == NfcMode::Pair) ? NfcMode::Off : NfcMode::Pair;
-      _nfcMode = target;
-      _nfcQueue.send(NfcCommand{target}, Milliseconds(0));
-      _ledQueue.send(LedCommand{ledForNfcMode(target)}, Milliseconds(0));
-
-      DisplayCommand dc{};
-      if (target == NfcMode::Off) {
-        dc.type = DisplayCommand::Type::ShowLogo;
+      if (_state == State::NfcPair) {
+        enterIdle();
       } else {
-        dc.type = DisplayCommand::Type::ModeChange;
-        dc.nfcMode = static_cast<uint8_t>(target);
+        enterNfcMode(NfcMode::Pair);
       }
-      _displayQueue.send(dc, Milliseconds(0));
       break;
     }
 
@@ -293,52 +493,19 @@ void ControllerTask::handle(const SocialSetRequest &req) {
 }
 
 // ---------------------------------------------------------------------------
-// WiFi portal toggle (A+B or CLI)
+// WiFi portal toggle (CLI / external)
 // ---------------------------------------------------------------------------
 
 void ControllerTask::handle(const PortalToggleRequest &) {
-  _portalActive = !_portalActive;
-
-  if (_portalActive) {
-    auto creds = storage::wifiCredsGet();
-
-    PortalCommand pcmd{};
-    pcmd.type = PortalCommand::Type::Start;
-    strlcpy(pcmd.start.ssid, creds.ssid, sizeof(pcmd.start.ssid));
-    strlcpy(pcmd.start.passphrase, creds.passphrase, sizeof(pcmd.start.passphrase));
-    _portalQueue.send(pcmd);
-
-    // Start NFC WiFi emulation so phones can tap the badge to get a
-    // "Connect to Wi-Fi?" prompt.
-    NfcCommand ncmd{};
-    ncmd.mode = NfcMode::WifiEmulator;
-    strlcpy(ncmd.wifi.ssid, creds.ssid, sizeof(ncmd.wifi.ssid));
-    strlcpy(ncmd.wifi.passphrase, creds.passphrase, sizeof(ncmd.wifi.passphrase));
-    _nfcQueue.send(ncmd, Milliseconds(0));
-
-    // Play the wifi_portal LED animation
-    auto result = animation::loadAndParseAnimation("wifi_portal");
-    if (result.ok) {
-      LedCommand lc(LedCommandType::Animation);
-      lc.animation = result.def.release();
-      _ledQueue.send(lc, Milliseconds(0));
-    }
+  if (_state == State::Portal) {
+    enterIdle();
   } else {
-    PortalCommand pcmd{};
-    pcmd.type = PortalCommand::Type::Stop;
-    _portalQueue.send(pcmd);
-
-    _nfcQueue.send(NfcCommand{NfcMode::Off}, Milliseconds(0));
-
-    // Turn off the wifi_portal LED animation
-    _ledQueue.send(LedCommand(LedCommandType::Off), Milliseconds(0));
+    enterPortal();
   }
-
-  Serial.printf("[controller] Portal %s\r\n", _portalActive ? "starting" : "stopping");
 }
 
 // ---------------------------------------------------------------------------
-// Config changed (from WiFi portal) — update LEDs to reflect new settings
+// Config changed (from WiFi portal) — apply brightness/palette
 // ---------------------------------------------------------------------------
 
 void ControllerTask::handle(const ConfigChangedEvent &event) {
@@ -358,7 +525,7 @@ void ControllerTask::handle(const ConfigChangedEvent &event) {
 }
 
 // ---------------------------------------------------------------------------
-// NFC reader scan complete — flash green progress
+// NFC reader scan complete — flash green, then drift back to Idle
 // ---------------------------------------------------------------------------
 
 void ControllerTask::handle(const NfcScanResultEvent &) {
@@ -367,10 +534,14 @@ void ControllerTask::handle(const NfcScanResultEvent &) {
   cmd.pixelCount = 18;
   cmd.g = 255;
   _ledQueue.send(cmd, Milliseconds(0));
+
+  // The NFC task auto-exits Reader after a successful scan. Defer the
+  // idle animation so the green flash plays out first.
+  enterIdle(kResultFlashMs);
 }
 
 // ---------------------------------------------------------------------------
-// NFC-DEP pair complete — flash colour by outcome
+// NFC-DEP pair complete — flash by outcome, then drift back to Idle
 // ---------------------------------------------------------------------------
 
 void ControllerTask::handle(const NfcPairResultEvent &event) {
@@ -392,6 +563,8 @@ void ControllerTask::handle(const NfcPairResultEvent &event) {
       break;
   }
   _ledQueue.send(cmd, Milliseconds(0));
+
+  enterIdle(kResultFlashMs);
 }
 
 }  // namespace core

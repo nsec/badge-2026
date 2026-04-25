@@ -8,9 +8,59 @@
 #include "animation/palette.h"
 #include "animation/types.h"
 #include "hardware/rgb_led.h"
+#include "hardware/serial_mutex.h"
 #include "storage/nvs_config.h"
 
 namespace core {
+
+namespace {
+
+const char *ledCommandTypeName(LedCommandType type) {
+  switch (type) {
+    case LedCommandType::SolidRed:
+      return "SolidRed";
+    case LedCommandType::SolidGreen:
+      return "SolidGreen";
+    case LedCommandType::SolidBlue:
+      return "SolidBlue";
+    case LedCommandType::SolidWhite:
+      return "SolidWhite";
+    case LedCommandType::SolidOrange:
+      return "SolidOrange";
+    case LedCommandType::SolidCyan:
+      return "SolidCyan";
+    case LedCommandType::PixelWalk:
+      return "PixelWalk";
+    case LedCommandType::Rainbow:
+      return "Rainbow";
+    case LedCommandType::Off:
+      return "Off";
+    case LedCommandType::ProgressFlash:
+      return "ProgressFlash";
+    case LedCommandType::SolidColor:
+      return "SolidColor";
+    case LedCommandType::Animation:
+      return "Animation";
+    case LedCommandType::PaletteUpdate:
+      return "PaletteUpdate";
+  }
+
+  return "Unknown";
+}
+
+void logLedCommand(const LedCommand &cmd) {
+  const char *animationName = "none";
+
+  if (cmd.type == LedCommandType::Animation && cmd.animation != nullptr) {
+    animationName = cmd.animation->name;
+  }
+
+  core::hw::safeSerial().printf("[led] cmd=%s rgb=(%u,%u,%u) pixels=%u hold=%u animation=%s\r\n",
+                                ledCommandTypeName(cmd.type), cmd.r, cmd.g, cmd.b, cmd.pixelCount,
+                                static_cast<unsigned>(cmd.hold), animationName);
+}
+
+}  // namespace
 
 namespace led {
 
@@ -199,6 +249,8 @@ void LedTask::run() {
     }
 
     pending = false;
+
+    logLedCommand(cmd);
 
     switch (cmd.type) {
       case LedCommandType::SolidRed:
