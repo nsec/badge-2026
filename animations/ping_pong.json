@@ -1,0 +1,67 @@
+{
+  "name": "ping_pong",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "lissajous",
+        "center": [
+          0.4996243935060425,
+          0.30407075708765835
+        ],
+        "rx": 0.5,
+        "ry": 0.3,
+        "freq_a": 1,
+        "freq_b": 2,
+        "phase": 0,
+        "speed": 0.3
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.35,
+      "intensity": 1
+    },
+    {
+      "motion": {
+        "type": "pingpong",
+        "a": [
+          -0.006802188360442066,
+          0.9964393536761923
+        ],
+        "b": [
+          1.0122647841728878,
+          1.0021029239379666
+        ],
+        "period": 4
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_analogous2"
+      },
+      "radius": 0.3,
+      "intensity": 1
+    },
+    {
+      "motion": {
+        "type": "pingpong",
+        "a": [
+          1.0184786338377076,
+          1.0006869941268948
+        ],
+        "b": [
+          -0.01922984682562267,
+          0.9950234238651202
+        ],
+        "period": 4
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_analogous1"
+      },
+      "radius": 0.3,
+      "intensity": 1
+    }
+  ]
+}

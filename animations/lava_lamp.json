@@ -1,0 +1,98 @@
+{
+  "name": "lava_lamp",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "static",
+        "pos": [0.5, 0.5]
+      },
+      "color": {
+        "type": "static",
+        "color": [0.06, 0.0, 0.04]
+      },
+      "radius": 1.6,
+      "intensity": 1
+    },
+    {
+      "motion": {
+        "type": "noise_drift",
+        "center": [0.5, 0.5],
+        "amplitude": 0.4,
+        "speed": 0.08
+      },
+      "color": {
+        "type": "static",
+        "color": [1, 0.05, 0.0]
+      },
+      "radius": 0.45,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.85,
+        "amplitude": 0.15,
+        "period": 18,
+        "phase": 0
+      }
+    },
+    {
+      "motion": {
+        "type": "noise_drift",
+        "center": [0.5, 0.5],
+        "amplitude": 0.45,
+        "speed": 0.06
+      },
+      "color": {
+        "type": "static",
+        "color": [1, 0.55, 0.0]
+      },
+      "radius": 0.4,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.85,
+        "amplitude": 0.15,
+        "period": 22,
+        "phase": 1.5
+      }
+    },
+    {
+      "motion": {
+        "type": "noise_drift",
+        "center": [0.5, 0.5],
+        "amplitude": 0.4,
+        "speed": 0.07
+      },
+      "color": {
+        "type": "static",
+        "color": [0.95, 0.0, 0.4]
+      },
+      "radius": 0.45,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.85,
+        "amplitude": 0.15,
+        "period": 20,
+        "phase": 3
+      }
+    },
+    {
+      "motion": {
+        "type": "noise_drift",
+        "center": [0.5, 0.5],
+        "amplitude": 0.5,
+        "speed": 0.05
+      },
+      "color": {
+        "type": "static",
+        "color": [1, 0.3, 0.0]
+      },
+      "radius": 0.4,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.85,
+        "amplitude": 0.15,
+        "period": 25,
+        "phase": 4.5
+      }
+    }
+  ]
+}

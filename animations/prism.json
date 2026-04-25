@@ -1,0 +1,102 @@
+{
+  "name": "prism",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "orbit",
+        "center": [0.5, 0.5],
+        "rx": 0.55,
+        "ry": 0.55,
+        "period": 30,
+        "phase": 0
+      },
+      "color": {
+        "type": "static",
+        "color": [1, 0, 0]
+      },
+      "radius": 0.32,
+      "intensity": 0.95
+    },
+    {
+      "motion": {
+        "type": "orbit",
+        "center": [0.5, 0.5],
+        "rx": 0.55,
+        "ry": 0.55,
+        "period": 30,
+        "phase": 1.0472
+      },
+      "color": {
+        "type": "static",
+        "color": [1, 0.5, 0]
+      },
+      "radius": 0.32,
+      "intensity": 0.95
+    },
+    {
+      "motion": {
+        "type": "orbit",
+        "center": [0.5, 0.5],
+        "rx": 0.55,
+        "ry": 0.55,
+        "period": 30,
+        "phase": 2.0944
+      },
+      "color": {
+        "type": "static",
+        "color": [1, 1, 0]
+      },
+      "radius": 0.32,
+      "intensity": 0.95
+    },
+    {
+      "motion": {
+        "type": "orbit",
+        "center": [0.5, 0.5],
+        "rx": 0.55,
+        "ry": 0.55,
+        "period": 30,
+        "phase": 3.1416
+      },
+      "color": {
+        "type": "static",
+        "color": [0, 1, 0.1]
+      },
+      "radius": 0.32,
+      "intensity": 0.95
+    },
+    {
+      "motion": {
+        "type": "orbit",
+        "center": [0.5, 0.5],
+        "rx": 0.55,
+        "ry": 0.55,
+        "period": 30,
+        "phase": 4.1888
+      },
+      "color": {
+        "type": "static",
+        "color": [0, 0.4, 1]
+      },
+      "radius": 0.32,
+      "intensity": 0.95
+    },
+    {
+      "motion": {
+        "type": "orbit",
+        "center": [0.5, 0.5],
+        "rx": 0.55,
+        "ry": 0.55,
+        "period": 30,
+        "phase": 5.2360
+      },
+      "color": {
+        "type": "static",
+        "color": [0.7, 0, 1]
+      },
+      "radius": 0.32,
+      "intensity": 0.95
+    }
+  ]
+}

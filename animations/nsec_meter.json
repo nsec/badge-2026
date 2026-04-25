@@ -1,0 +1,86 @@
+{
+  "name": "nsec_meter",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "static",
+        "pos": [0.5, 1.0]
+      },
+      "color": {
+        "type": "static",
+        "color": [0.05, 0.05, 0.05]
+      },
+      "radius": 0.6,
+      "intensity": 0.4
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [0.20, 1.0]
+      },
+      "color": {
+        "type": "static",
+        "color": [0.0, 0.9, 0.15]
+      },
+      "radius": 0.13,
+      "intensity": {
+        "type": "noise",
+        "base": 0.55,
+        "amplitude": 0.45,
+        "speed": 1.4
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [0.42, 1.0]
+      },
+      "color": {
+        "type": "static",
+        "color": [0.55, 0.95, 0.0]
+      },
+      "radius": 0.13,
+      "intensity": {
+        "type": "noise",
+        "base": 0.5,
+        "amplitude": 0.5,
+        "speed": 1.7
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [0.62, 1.0]
+      },
+      "color": {
+        "type": "static",
+        "color": [1.0, 0.55, 0.0]
+      },
+      "radius": 0.13,
+      "intensity": {
+        "type": "noise",
+        "base": 0.45,
+        "amplitude": 0.55,
+        "speed": 2.1
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [0.82, 1.0]
+      },
+      "color": {
+        "type": "static",
+        "color": [1.0, 0.05, 0.0]
+      },
+      "radius": 0.13,
+      "intensity": {
+        "type": "noise",
+        "base": 0.4,
+        "amplitude": 0.6,
+        "speed": 2.5
+      }
+    }
+  ]
+}

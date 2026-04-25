@@ -1,0 +1,132 @@
+{
+  "name": "siren",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0,
+          0.5
+        ]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.95,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.2,
+        "amplitude": 0.9,
+        "period": 0.6,
+        "phase": 0
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.25,
+          0
+        ]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.55,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.2,
+        "amplitude": 0.9,
+        "period": 0.6,
+        "phase": 0
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.25,
+          1
+        ]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.55,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.2,
+        "amplitude": 0.9,
+        "period": 0.6,
+        "phase": 0
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          1,
+          0.5
+        ]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_complement"
+      },
+      "radius": 0.95,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.2,
+        "amplitude": 0.9,
+        "period": 0.6,
+        "phase": 3.1416
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.75,
+          0
+        ]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_complement"
+      },
+      "radius": 0.55,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.2,
+        "amplitude": 0.9,
+        "period": 0.6,
+        "phase": 3.1416
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.75,
+          1
+        ]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_complement"
+      },
+      "radius": 0.55,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.2,
+        "amplitude": 0.9,
+        "period": 0.6,
+        "phase": 3.1416
+      }
+    }
+  ]
+}

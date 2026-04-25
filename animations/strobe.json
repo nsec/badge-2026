@@ -1,0 +1,103 @@
+{
+  "name": "strobe",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "static",
+        "pos": [0.5, 0.5]
+      },
+      "color": {
+        "type": "palette",
+        "colors": [
+          [1, 1, 1],
+          [1, 0, 0],
+          [0, 1, 1],
+          [1, 1, 0]
+        ],
+        "count": 4,
+        "period": 1.6
+      },
+      "radius": 1.6,
+      "intensity": {
+        "type": "breathe",
+        "base": 0,
+        "amplitude": 1.2,
+        "period": 0.35,
+        "phase": 0
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [0.0, 0.5]
+      },
+      "color": {
+        "type": "static",
+        "color": [1, 0, 1]
+      },
+      "radius": 0.55,
+      "intensity": {
+        "type": "breathe",
+        "base": 0,
+        "amplitude": 1.2,
+        "period": 0.35,
+        "phase": 1.5708
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [1.0, 0.5]
+      },
+      "color": {
+        "type": "static",
+        "color": [0, 1, 1]
+      },
+      "radius": 0.55,
+      "intensity": {
+        "type": "breathe",
+        "base": 0,
+        "amplitude": 1.2,
+        "period": 0.35,
+        "phase": 1.5708
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [0.5, 0.0]
+      },
+      "color": {
+        "type": "static",
+        "color": [0.2, 1, 0]
+      },
+      "radius": 0.55,
+      "intensity": {
+        "type": "breathe",
+        "base": 0,
+        "amplitude": 1.2,
+        "period": 0.35,
+        "phase": 3.1416
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [0.5, 1.0]
+      },
+      "color": {
+        "type": "static",
+        "color": [1, 0.3, 0]
+      },
+      "radius": 0.55,
+      "intensity": {
+        "type": "breathe",
+        "base": 0,
+        "amplitude": 1.2,
+        "period": 0.35,
+        "phase": 3.1416
+      }
+    }
+  ]
+}
