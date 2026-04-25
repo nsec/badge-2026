@@ -14,11 +14,6 @@ namespace core {
 
 namespace led {
 
-void solidColor(uint8_t r, uint8_t g, uint8_t b) {
-  hw::rgbSetAll(r, g, b);
-  delay(1000);
-}
-
 void pixelWalk() {
   for (uint8_t i = 0; i < hw::RGB_LED_COUNT; i++) {
     hw::rgbClear();
@@ -95,6 +90,11 @@ bool LedTask::runProgressFlash(const LedCommand &cmd, LedCommand &out) {
   const bool hold = cmd.hold;
 
   _currentAnimation = animation::buildProgressFlash(pixelCount, color, hold);
+  return driveAnimation(out);
+}
+
+bool LedTask::runSolidBreathe(animation::RGBF color, LedCommand &out) {
+  _currentAnimation = animation::buildSolidBreathe(color);
   return driveAnimation(out);
 }
 
@@ -202,22 +202,22 @@ void LedTask::run() {
 
     switch (cmd.type) {
       case LedCommandType::SolidRed:
-        led::solidColor(255, 0, 0);
+        pending = runSolidBreathe({1.0f, 0.0f, 0.0f}, cmd);
         break;
       case LedCommandType::SolidGreen:
-        led::solidColor(0, 255, 0);
+        pending = runSolidBreathe({0.0f, 1.0f, 0.0f}, cmd);
         break;
       case LedCommandType::SolidBlue:
-        led::solidColor(0, 0, 255);
+        pending = runSolidBreathe({0.0f, 0.0f, 1.0f}, cmd);
         break;
       case LedCommandType::SolidWhite:
-        led::solidColor(255, 255, 255);
+        pending = runSolidBreathe({1.0f, 1.0f, 1.0f}, cmd);
         break;
       case LedCommandType::SolidOrange:
-        led::solidColor(255, 80, 0);
+        pending = runSolidBreathe({1.0f, 180.0f / 255.0f, 0.0f}, cmd);
         break;
       case LedCommandType::SolidCyan:
-        led::solidColor(0, 255, 255);
+        pending = runSolidBreathe({0.0f, 1.0f, 1.0f}, cmd);
         break;
       case LedCommandType::PixelWalk:
         led::pixelWalk();
@@ -232,7 +232,7 @@ void LedTask::run() {
         pending = runProgressFlash(cmd, cmd);
         break;
       case LedCommandType::SolidColor:
-        hw::rgbSetAll(cmd.r, cmd.g, cmd.b);
+        pending = runSolidBreathe({cmd.r / 255.0f, cmd.g / 255.0f, cmd.b / 255.0f}, cmd);
         break;
       case LedCommandType::Animation:
         pending = runAnimation(cmd, cmd);

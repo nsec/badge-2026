@@ -26,6 +26,9 @@ private:
   /// Run progress flash animation. Returns true if interrupted (next cmd in `out`).
   bool runProgressFlash(const LedCommand &cmd, LedCommand &out);
 
+  /// Run a per-LED breathing solid colour. Returns true if interrupted.
+  bool runSolidBreathe(animation::RGBF color, LedCommand &out);
+
   /// Run interruptible rainbow. Returns true if interrupted (next cmd in `out`).
   bool runRainbow(const LedCommand &cmd, LedCommand &out);
 
@@ -45,7 +48,6 @@ private:
 
 namespace led {
 
-void solidColor(uint8_t r, uint8_t g, uint8_t b);
 void pixelWalk();
 void rainbow();
 void off();

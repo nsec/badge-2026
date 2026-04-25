@@ -15,4 +15,9 @@ namespace core::animation {
 /// display). Otherwise it runs for a few seconds and stops, clearing the LEDs.
 std::unique_ptr<AnimationDef> buildProgressFlash(uint8_t pixelCount, RGBF color, bool loop);
 
+/// Build a "breathing solid colour" animation: one static light per LED with
+/// the requested colour, plus a per-LED phase offset on the breathe so the
+/// ring sparkles softly instead of pulsing in unison. Loops forever.
+std::unique_ptr<AnimationDef> buildSolidBreathe(RGBF color);
+
 }  // namespace core::animation
