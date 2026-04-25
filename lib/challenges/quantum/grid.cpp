@@ -394,6 +394,32 @@ void handleCommand(Stream &stream, const std::string &args) {
     stream.printf("Parameters: range [0, pi]\r\n");
     stream.printf("Solve: SOLVED! appears when all criteria are met.\r\n");
     stream.printf("\r\nHint: vary one param at a time. Use 'hist' to see the distribution.\r\n");
+    stream.printf("Type 'quantum grid circuit' to view the ansatz.\r\n");
+    return;
+  }
+
+  // --- circuit ---
+  if (sub == "circuit") {
+    // clang-format off
+    stream.printf("=== Grid Ansatz (QAOA p=2) ===\r\n\r\n");
+    stream.printf("         |H|           U_C(g1)       |RX(b1)|          U_C(g2)       |RX(b2)|\r\n");
+    stream.printf("q0  --[  H  ]--===+===============+--[RX(b1)]--===+===============+--[RX(b2)]--\r\n");
+    stream.printf("               |  :               :             |  :               :\r\n");
+    stream.printf("q1  --[  H  ]--===+ exp(-i*g*H_c) +--[RX(b1)]--===+ exp(-i*g*H_c) +--[RX(b2)]--\r\n");
+    stream.printf("               |  :               :             |  :               :\r\n");
+    stream.printf("q2  --[  H  ]--===+               +--[RX(b1)]--===+               +--[RX(b2)]--\r\n");
+    stream.printf("               |  :   (diagonal)  :             |  :   (diagonal)  :\r\n");
+    stream.printf("     :          :      :           :     :        :      :           :\r\n");
+    stream.printf("               |  :               :             |  :               :\r\n");
+    stream.printf("q9  --[  H  ]--===+===============+--[RX(b1)]--===+===============+--[RX(b2)]--\r\n");
+    stream.printf("                                    \r\n");
+    stream.printf("     |--init-|  |--- Layer 1 ---|   |--- Layer 2 ---|\r\n\r\n");
+    stream.printf("  * H gates create uniform superposition |+>^n\r\n");
+    stream.printf("  * U_C(g) = exp(-i*g*H_cost): encodes the optimization problem\r\n");
+    stream.printf("  * RX(b) = mixer: explores the solution space\r\n");
+    stream.printf("  * 4 params: g1, g2 (cost angles) + b1, b2 (mixer angles)\r\n");
+    stream.printf("  * Measurement: sample bitstrings, evaluate cost\r\n");
+    // clang-format on
     return;
   }
 

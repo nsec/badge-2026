@@ -63,11 +63,11 @@ bool einkInit() {
   // Detect whether a physical display is connected via the BUSY pin.
   g_available = detectDisplay();
   if (!g_available) {
-    Serial.println("E-Ink: no display detected (BUSY pin inactive) — display features disabled");
+    // Serial.println("E-Ink: no display detected (BUSY pin inactive) — display features disabled");
     return false;
   }
 
-  Serial.println("E-Ink: GDEH0154D67 200x200 initialized (shared SPI)");
+  // Serial.println("E-Ink: GDEH0154D67 200x200 initialized (shared SPI)");
   return true;
 }
 

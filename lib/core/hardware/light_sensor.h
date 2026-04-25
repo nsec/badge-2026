@@ -28,8 +28,8 @@ struct LightReading {
 bool lightSensorRead(LightReading &out);
 
 /// Lux threshold above which the badge is considered "in light".
-/// ~200 lux ≈ well-lit conference floor. Dim corridors (~100) don't count.
-static constexpr float LIGHT_LUX_THRESHOLD = 200.0f;
+/// ~600 lux ≈ bright conference floor under direct lighting.
+static constexpr float LIGHT_LUX_THRESHOLD = 600.0f;
 
 }  // namespace hw
 }  // namespace core

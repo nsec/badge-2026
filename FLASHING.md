@@ -95,7 +95,8 @@ python -m esptool --chip esp32s3 --port <PORT> --baud 460800 \
   --flash_mode dio --flash_freq 80m --flash_size 8MB \
   0x0 bootloader.bin \
   0x8000 partitions.bin \
-  0x10000 badge-conference.bin
+  0x10000 badge-conference.bin \
+  0x2A2000 spiffs-conference.bin
 ```
 
 ### Dual Firmware
@@ -107,20 +108,21 @@ python -m esptool --chip esp32s3 --port <PORT> --baud 460800 \
   0x0 bootloader.bin \
   0x8000 partitions.bin \
   0x10000 badge-conference.bin \
-  0x150000 badge-ctf.bin
+  0x150000 badge-ctf.bin \
+  0x2A2000 spiffs-ctf.bin
 ```
 
 ## Memory Map
 
-| Address    | Size   | Content              | Present In         |
-|------------|--------|----------------------|--------------------|
-| 0x0        | ~15KB  | bootloader.bin       | Both modes         |
-| 0x8000     | 3KB    | partitions.bin       | Both modes         |
-| 0xE000     | 8KB    | OTA data selector    | Auto               |
-| 0x10000    | 1.25MB | badge-conference.bin | Both modes         |
-| 0x150000   | 1.25MB | badge-ctf.bin        | Dual only          |
-| 0x290000   | 64KB   | Core dump partition  | Auto               |
-| 0x2A0000   | ~1.4MB | SPIFFS filesystem    | Auto               |
+| Address    | Size   | Content              | Present In          |
+|------------|--------|----------------------|---------------------|
+| 0x0        | ~15KB  | bootloader.bin       | Both modes          |
+| 0x8000     | 3KB    | partitions.bin       | Both modes          |
+| 0xE000     | 8KB    | OTA data selector    | Auto                |
+| 0x10000    | 1.25MB | badge-conference.bin | Both modes          |
+| 0x150000   | 1.25MB | badge-ctf.bin        | Dual only           |
+| 0x290000   | 64KB   | Core dump partition  | Auto                |
+| 0x2A2000   | ~1.4MB | SPIFFS filesystem    | Both (mode-specific)|
 
 ## Verification Checklists
 

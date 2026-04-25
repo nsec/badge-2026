@@ -121,6 +121,20 @@ def validate_package(pkg_dir):
     else:
         messages.append("WARN: badge-conference.bin not found in package")
 
+    # Scan the SPIFFS image
+    spiffs_path = os.path.join(pkg_dir, "spiffs-conference.bin")
+    if os.path.isfile(spiffs_path):
+        findings = scan_binary(spiffs_path)
+        if findings:
+            ok = False
+            messages.append(f"FAIL: spiffs-conference.bin contains {len(findings)} forbidden pattern(s):")
+            for f in findings:
+                messages.append(f"  pattern='{f['pattern']}' at {f['offset']}  context: {f['context']}")
+        else:
+            messages.append("OK: spiffs-conference.bin clean (no forbidden patterns)")
+    else:
+        messages.append("WARN: spiffs-conference.bin not found in package")
+
     return ok, messages
 
 

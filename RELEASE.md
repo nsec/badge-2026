@@ -44,7 +44,7 @@ Every release produces **two** packages:
 ### Step 1: Build and Package Locally (Optional)
 
 ```bash
-# Build all three environments
+# Build all three environments (SPIFFS images are built automatically)
 pio run -e esp32-s3-devkitc-1-conference-only
 pio run -e esp32-s3-devkitc-1-conference
 pio run -e esp32-s3-devkitc-1-ctf
@@ -68,7 +68,7 @@ git push origin v1.0.0
 ### Step 3: CI Builds Automatically
 
 The GitHub Actions workflow will:
-1. Build all three firmware environments
+1. Build all three firmware environments (SPIFFS images are built automatically)
 2. Package both release modes
 3. Validate conference-only package (no CTF leaks)
 4. Create GitHub Release with both archives
