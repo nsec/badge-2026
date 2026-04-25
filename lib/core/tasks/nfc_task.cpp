@@ -1284,16 +1284,23 @@ void NfcTask::runEmulator() {
 void NfcTask::runPair() {
   RfalNfcClass &nfc = hw::nfcInstance();
 
+  // --- Static buffers: keep off the stack to avoid overflow from RFAL's ---
+  // --- deep call chains.  runPair() is single-threaded (NfcTask only). ---
+  static uint8_t myMac[core::hw::MAC_LEN];
+  static uint8_t myKey[32];
+  static uint8_t myNonce[PAIR_NONCE_LEN];
+  static uint8_t txPayload[PAIR_DEP_MAX_LEN];
+  static rfalNfcDepBufFormat txBuf;
+  static uint8_t rxCopy[PAIR_DEP_MAX_LEN];
+  static rfalNfcDiscoverParam dp;
+
   // Prepare our identity
-  uint8_t myMac[core::hw::MAC_LEN];
   core::hw::getHwidMac(myMac);
 
   // Derive our per-badge key
-  uint8_t myKey[32];
   deriveKey(myMac, myKey);
 
   // Generate a fresh nonce for this session
-  uint8_t myNonce[PAIR_NONCE_LEN];
   fillRandom(myNonce, sizeof(myNonce));
 
   // Check if we should share our profile
@@ -1323,7 +1330,6 @@ void NfcTask::runPair() {
       continue;
     }
 
-    rfalNfcDiscoverParam dp;
     memset(&dp, 0, sizeof(dp));
     dp.compMode = RFAL_COMPLIANCE_MODE_NFC;
     dp.devLimit = 1;
@@ -1420,12 +1426,17 @@ void NfcTask::runPair() {
     }
 
     core::hw::safeSerial().printf("NFC-DEP pair: activated as %s\r\n", role);
+    core::hw::safeSerial().printf("  myNonce(GB):    %02X%02X%02X%02X%02X%02X%02X%02X...\r\n", myNonce[0], myNonce[1],
+                                  myNonce[2], myNonce[3], myNonce[4], myNonce[5], myNonce[6], myNonce[7]);
+    core::hw::safeSerial().printf("  partnerNonce:   %02X%02X%02X%02X%02X%02X%02X%02X...\r\n", partnerNonce[0],
+                                  partnerNonce[1], partnerNonce[2], partnerNonce[3], partnerNonce[4], partnerNonce[5],
+                                  partnerNonce[6], partnerNonce[7]);
+    core::hw::safeSerial().printf("  partnerGBLen:   %d\r\n", partnerGBLen);
     digitalWrite(badge::pins::NFC_LED, HIGH);
 
     // Build our DEP payload: MAC(6) + HMAC(32) [+ profile if sharing]
     // Proof = HMAC-SHA256(myKey, partnerNonce || myMac)
     // This proves we know the firmware secret + our identity
-    uint8_t txPayload[PAIR_DEP_MAX_LEN];
     memcpy(txPayload, myMac, core::hw::MAC_LEN);
     computeProof(myKey, partnerNonce, myMac, txPayload + core::hw::MAC_LEN);
 
@@ -1435,7 +1446,6 @@ void NfcTask::runPair() {
     }
 
     // NFC-DEP data exchange (asymmetric: initiator sends first, target receives first)
-    rfalNfcDepBufFormat txBuf;
     uint8_t *rxData = nullptr;
     uint16_t *rvdLen = nullptr;
     bool depDone = false;
@@ -1481,7 +1491,6 @@ void NfcTask::runPair() {
 
     // If target: we received initiator's data, now send our response
     uint16_t savedRxLen = 0;
-    uint8_t rxCopy[PAIR_DEP_MAX_LEN];
     if (!weAreInitiator) {
       // Save received data before starting response (buffer may be reused)
       const uint16_t rxLen = (rvdLen != nullptr) ? *rvdLen : 0;
@@ -1553,6 +1562,20 @@ void NfcTask::runPair() {
     computeProof(partnerKey, myNonce, partnerMac, expectedHmac);
 
     bool verified = (memcmp(partnerHmac, expectedHmac, PAIR_HMAC_LEN) == 0);
+
+    if (!verified) {
+      core::hw::safeSerial().printf("NFC-DEP pair: HMAC debug rxLen=%d\r\n", finalRxLen);
+      core::hw::safeSerial().printf("  partnerMAC: %02X:%02X:%02X:%02X:%02X:%02X\r\n", partnerMac[0], partnerMac[1],
+                                    partnerMac[2], partnerMac[3], partnerMac[4], partnerMac[5]);
+      core::hw::safeSerial().printf("  got  HMAC: %02X%02X%02X%02X...%02X%02X%02X%02X\r\n", partnerHmac[0],
+                                    partnerHmac[1], partnerHmac[2], partnerHmac[3], partnerHmac[28], partnerHmac[29],
+                                    partnerHmac[30], partnerHmac[31]);
+      core::hw::safeSerial().printf("  exp  HMAC: %02X%02X%02X%02X...%02X%02X%02X%02X\r\n", expectedHmac[0],
+                                    expectedHmac[1], expectedHmac[2], expectedHmac[3], expectedHmac[28],
+                                    expectedHmac[29], expectedHmac[30], expectedHmac[31]);
+      core::hw::safeSerial().printf("  myNonce:   %02X%02X%02X%02X%02X%02X%02X%02X...\r\n", myNonce[0], myNonce[1],
+                                    myNonce[2], myNonce[3], myNonce[4], myNonce[5], myNonce[6], myNonce[7]);
+    }
 
     // Clean session teardown
     nfc.rfalNfcDeactivate(RFAL_NFC_DEACTIVATE_IDLE);
