@@ -2,6 +2,8 @@
 
 #include <Arduino.h>
 #include "hardware/serial_mutex.h"
+#include <algorithm>
+#include <cstdint>
 
 #ifndef NATIVE_BUILD
   #include <cstring>
@@ -404,6 +406,62 @@ static constexpr size_t WIFI_NDEF_TLV_MAX = 3 + NDEF_RECORD_MAX;               /
 static_assert(WIFI_NDEF_TLV_MAX <= 128, "WiFi NDEF too large for g_ndefBuf — reduce ssid_max_len or passphrase_len");
 static_assert(WIFI_NDEF_TLV_MAX <= (NTAG213_PAGES - NTAG213_USER_START) * NTAG213_PAGE_SIZE,
               "WiFi NDEF too large for NTAG213 user memory — reduce ssid_max_len or passphrase_len");
+
+// NDEF URI well-known prefix codes (NFC Forum URI RTD).
+// Selects the longest matching scheme so the on-tag payload omits it.
+static uint8_t uriPrefixCode(const char *&url) {
+  struct {
+    uint8_t code;
+    const char *prefix;
+  } table[] = {
+      {0x02, "https://www."},
+      {0x01, "http://www."},
+      {0x04, "https://"},
+      {0x03, "http://"},
+  };
+
+  for (auto &e : table) {
+    size_t plen = strlen(e.prefix);
+    if (strncmp(url, e.prefix, plen) == 0) {
+      url += plen;
+      return e.code;
+    }
+  }
+  return 0x00;  // no abbreviation
+}
+
+void initTagMemoryUrl(const char *url) {
+  // Reuse the static UID/header bytes set up by initTagMemory(); just rewrite
+  // the user-data area with a URI NDEF record.
+  const char *uri = url;
+  const uint8_t prefixCode = uriPrefixCode(uri);
+  const uint8_t uriLen = std::min<uint8_t>(strlen(uri), 100);
+
+  uint8_t payloadLen = 1 + uriLen;  // prefix code + URI bytes
+
+  uint8_t ndefRecord[128];
+  uint8_t pos = 0;
+  ndefRecord[pos++] = 0xD1;        // MB|ME|SR, TNF=0x01 (well-known)
+  ndefRecord[pos++] = 0x01;        // type length
+  ndefRecord[pos++] = payloadLen;  // payload length
+  ndefRecord[pos++] = 'U';         // type = URI
+  ndefRecord[pos++] = prefixCode;
+  memcpy(&ndefRecord[pos], uri, uriLen);
+  pos += uriLen;
+
+  g_ndefLen = 0;
+  g_ndefBuf[g_ndefLen++] = 0x03;  // NDEF TLV type
+  g_ndefBuf[g_ndefLen++] = pos;   // NDEF record length
+  memcpy(&g_ndefBuf[g_ndefLen], ndefRecord, pos);
+  g_ndefLen += pos;
+  g_ndefBuf[g_ndefLen++] = 0xFE;  // Terminator TLV
+
+  memset(&tagMemory[NTAG213_USER_START * NTAG213_PAGE_SIZE], 0x00,
+         (NTAG213_PAGES - NTAG213_USER_START) * NTAG213_PAGE_SIZE);
+  memcpy(&tagMemory[NTAG213_USER_START * NTAG213_PAGE_SIZE], g_ndefBuf, g_ndefLen);
+
+  Serial.printf("NFC emu: URL NDEF \"%s\" (%u bytes)\r\n", url, g_ndefLen);
+}
 
 void initTagMemoryWifi(const char *ssid, const char *passphrase) {
   // Rebuild tag memory with a WiFi Simple Configuration NDEF record
@@ -1087,6 +1145,11 @@ void NfcTask::run() {
       initTagMemoryWifi(cmd.wifi.ssid, cmd.wifi.passphrase);
       runEmulator();
       initTagMemory();  // restore normal NDEF after WiFi emulation ends
+    } else if (cmd.mode == NfcMode::UrlEmulator) {
+      core::hw::safeSerial().println("NFC: === URL EMULATOR ===");
+      initTagMemoryUrl("https://nsec.io/badge");
+      runEmulator();
+      initTagMemory();  // restore default text NDEF after URL emulation ends
     } else if (cmd.mode == NfcMode::Pair) {
       core::hw::safeSerial().println("NFC: === PAIR ===");
       runPair();
@@ -1238,7 +1301,8 @@ void NfcTask::runEmulator() {
     if (checkCommand(cmd)) {
       hw.rfalListenStop();
       digitalWrite(badge::pins::NFC_LED, LOW);
-      if (cmd.mode != NfcMode::Off && cmd.mode != NfcMode::Emulator && cmd.mode != NfcMode::WifiEmulator)
+      if (cmd.mode != NfcMode::Off && cmd.mode != NfcMode::Emulator && cmd.mode != NfcMode::WifiEmulator &&
+          cmd.mode != NfcMode::UrlEmulator)
         _nfcQueue.send(cmd, Milliseconds(0));
       core::hw::safeSerial().println("NFC emu: stopped");
       core::hw::safeSerial().print("> ");

@@ -101,6 +101,9 @@ void ControllerTask::run() {
 void ControllerTask::cleanupCurrent() {
   switch (_state) {
     case State::Idle:
+      // Stop the idle URL emulator (started by enterIdle).
+      _nfcQueue.send(NfcCommand{NfcMode::Off}, Milliseconds(0));
+      break;
     case State::Social:
       // No external resources to release.
       break;
@@ -174,6 +177,9 @@ void ControllerTask::enterIdle(uint32_t deferMs) {
     _timeoutAt = 0;
     sendCurrentIdleAnimation();
   }
+
+  // Advertise an NDEF URI to phones tapping the badge while idle.
+  _nfcQueue.send(NfcCommand{NfcMode::UrlEmulator}, Milliseconds(0));
 }
 
 void ControllerTask::enterSocial() {
