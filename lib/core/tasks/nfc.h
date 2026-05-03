@@ -13,6 +13,7 @@ enum class NfcMode : uint8_t {
   Reader,
   Emulator,
   WifiEmulator,
+  UrlEmulator,
   Pair,
 };
 
