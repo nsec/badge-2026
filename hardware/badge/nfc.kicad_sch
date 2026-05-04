@@ -2364,8 +2364,8 @@
 	)
 	(text_box "Antenna Circuit"
 		(exclude_from_sim no)
-		(at 124.46 19.05 0)
-		(size 129.54 74.93)
+		(at 124.46 17.145 0)
+		(size 129.54 62.865)
 		(margins 0.9525 0.9525 0.9525 0.9525)
 		(stroke
 			(width 0)
@@ -2424,7 +2424,7 @@
 	)
 	(text_box "NFC IC"
 		(exclude_from_sim no)
-		(at 15.24 100.33 0)
+		(at 17.78 99.695 0)
 		(size 139.7 98.425)
 		(margins 0.9525 0.9525 0.9525 0.9525)
 		(stroke
@@ -3194,16 +3194,6 @@
 	)
 	(wire
 		(pts
-			(xy 34.925 168.275) (xy 34.925 180.975)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "2aceb209-67b8-444b-bb09-db33c934906f")
-	)
-	(wire
-		(pts
 			(xy 67.945 106.68) (xy 67.945 120.015)
 		)
 		(stroke
@@ -3934,6 +3924,16 @@
 	)
 	(wire
 		(pts
+			(xy 31.115 180.975) (xy 32.385 180.975)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "82ea8f9a-1d99-42ec-b2a0-8348ccee030e")
+	)
+	(wire
+		(pts
 			(xy 65.405 103.505) (xy 65.405 120.015)
 		)
 		(stroke
@@ -4001,16 +4001,6 @@
 			(type default)
 		)
 		(uuid "8a3a4f32-a10a-42cc-b00a-b236ec018327")
-	)
-	(wire
-		(pts
-			(xy 93.345 168.275) (xy 93.345 180.975)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8b58f3d4-9652-445c-84d4-b2d277c055e2")
 	)
 	(wire
 		(pts
@@ -4284,16 +4274,6 @@
 	)
 	(wire
 		(pts
-			(xy 37.465 180.975) (xy 34.925 180.975)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a40ecf93-5fe8-44c9-86ae-d2dc64911c18")
-	)
-	(wire
-		(pts
 			(xy 65.405 103.505) (xy 125.73 103.505)
 		)
 		(stroke
@@ -4361,6 +4341,16 @@
 			(type default)
 		)
 		(uuid "ae68194a-3ada-46db-9d86-feda5ad5dd7b")
+	)
+	(wire
+		(pts
+			(xy 34.925 180.975) (xy 37.465 180.975)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ae74a517-98dd-4bdb-8104-f296f1259d34")
 	)
 	(wire
 		(pts
@@ -4554,16 +4544,6 @@
 	)
 	(wire
 		(pts
-			(xy 32.385 180.34) (xy 32.385 180.975)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "c5df1ec4-38cb-4679-adad-ed5729242545")
-	)
-	(wire
-		(pts
 			(xy 211.455 71.12) (xy 203.835 71.12)
 		)
 		(stroke
@@ -4621,6 +4601,16 @@
 			(type default)
 		)
 		(uuid "d22c2473-2c3a-4a84-aeda-103ca2c8ec37")
+	)
+	(wire
+		(pts
+			(xy 34.925 168.275) (xy 34.925 180.975)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d26b8618-bde2-4943-bba4-f1fffc42cc21")
 	)
 	(wire
 		(pts
@@ -4894,6 +4884,16 @@
 	)
 	(wire
 		(pts
+			(xy 93.345 168.275) (xy 93.345 180.975)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f7aab98d-08b9-4b02-8773-d9524f3adc70")
+	)
+	(wire
+		(pts
 			(xy 128.905 191.135) (xy 133.985 191.135)
 		)
 		(stroke
@@ -4971,6 +4971,16 @@
 			(justify left bottom)
 		)
 		(uuid "17170206-773c-474e-8f84-23fedd04d22a")
+	)
+	(label "NFC_COIL"
+		(at 220.345 45.72 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "19039f22-5389-4552-b575-5ee00a8dc7b9")
 	)
 	(label "RFO2"
 		(at 137.795 71.12 0)
@@ -5062,6 +5072,16 @@
 		)
 		(uuid "7c3756ed-e0ae-413f-8c88-2f04347d8985")
 	)
+	(label "VDD"
+		(at 93.345 179.705 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "8aef2767-1a68-463f-a22e-349bea4e81c9")
+	)
 	(label "VDD_TX"
 		(at 118.745 180.975 90)
 		(effects
@@ -5071,6 +5091,16 @@
 			(justify left bottom)
 		)
 		(uuid "c026869f-11a6-478e-bc9b-008d8a16ab50")
+	)
+	(label "VDD"
+		(at 34.925 180.34 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "c2acd80f-7510-4f0f-bb3e-280168a3568d")
 	)
 	(label "AAT_P"
 		(at 75.565 111.125 0)
@@ -5132,17 +5162,6 @@
 		)
 		(uuid "f586cb76-c75f-4bff-a1cc-f82a5c0bcbbc")
 	)
-	(hierarchical_label "VDD"
-		(shape input)
-		(at 92.71 180.975 90)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "45ac4ea7-eec5-4439-b334-aa92e6f39f27")
-	)
 	(hierarchical_label "NFC_MISO"
 		(shape output)
 		(at 42.545 150.495 180)
@@ -5167,12 +5186,12 @@
 	)
 	(hierarchical_label "NFC_VDD"
 		(shape input)
-		(at 32.385 180.34 90)
+		(at 31.115 180.975 180)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify left)
+			(justify right)
 		)
 		(uuid "6a504d24-a153-411b-9ea1-19fc59863c03")
 	)

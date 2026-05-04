@@ -1894,7 +1894,7 @@
 	)
 	(text_box "UART Breakout"
 		(exclude_from_sim no)
-		(at 27.305 93.98 0)
+		(at -31.115 93.98 0)
 		(size 29.21 34.925)
 		(margins 0.9525 0.9525 0.9525 0.9525)
 		(stroke
