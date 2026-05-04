@@ -1,0 +1,10 @@
+Designator,Val,Package,Mid X,Mid Y,Rotation,Layer
+D1,LED,LED_1206_3216Metric,49.03644,-98.28153,90.0,bottom
+J1,SAO Connector SMD,SAO Connector SMD,51.981353,-74.306529,0.0,bottom
+J2,Conn_01x02_Socket,PinSocket_1x02_P2.00mm_Vertical,32.546353,-44.03153,0.0,top
+J3,Conn_01x02_Socket,PinSocket_1x02_P2.00mm_Vertical,53.146539,-32.847619,0.0,top
+J4,Conn_01x02_Socket,PinSocket_1x02_P2.00mm_Vertical,72.021353,-49.78153,0.0,top
+R1,330,R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal,44.616352,-62.581087,60.0,top
+R2,330,R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal,50.521354,-63.281529,90.0,top
+R3,330,R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal,55.021353,-63.47153,90.0,top
+R4,330,R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal,60.926353,-62.581087,120.0,top

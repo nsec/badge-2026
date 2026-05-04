@@ -1,0 +1,7 @@
+Designator,Val,Package,Mid X,Mid Y,Rotation,Layer
+D1,LED,LED_1206_3216Metric,43.159019,-32.58982,-45.0,top
+D2,LED,LED_D5.0mm,44.386653,-74.408718,180.0,top
+D3,LED,LED_0805_2012Metric,46.103349,-52.86596,90.0,top
+J2,Conn_01x02_Socket,PinSocket_1x02_P2.00mm_Vertical,41.051878,-58.570295,0.0,top
+J5,Conn_01x02_Socket,PinSocket_1x02_P2.00mm_Vertical,40.965488,-38.899991,0.0,top
+J6,Conn_01x02_Socket,PinSocket_1x02_P2.00mm_Vertical,41.156653,-80.408718,0.0,top

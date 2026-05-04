@@ -1,0 +1,7 @@
+Comment,Designator,Footprint,LCSC,Quantity
+LED,D3,LED_0805_2012Metric,,1
+Conn_01x02_Socket,,PinSocket_1x02_P2.00mm_Vertical,,0
+LED,D1,LED_1206_3216Metric,,1
+Conn_01x02_Socket,,PinSocket_1x02_P2.00mm_Vertical,,0
+Conn_01x02_Socket,,PinSocket_1x02_P2.00mm_Vertical,,0
+LED,D2,LED_D5.0mm,,1
