@@ -1,0 +1,4415 @@
+{
+  "board": {
+    "3dviewports": [],
+    "design_settings": {
+      "defaults": {
+        "apply_defaults_to_fp_barcodes": false,
+        "apply_defaults_to_fp_dimensions": false,
+        "apply_defaults_to_fp_fields": false,
+        "apply_defaults_to_fp_shapes": false,
+        "apply_defaults_to_fp_text": false,
+        "board_outline_line_width": 0.05,
+        "copper_line_width": 0.2,
+        "copper_text_italic": false,
+        "copper_text_size_h": 1.5,
+        "copper_text_size_v": 1.5,
+        "copper_text_thickness": 0.3,
+        "copper_text_upright": false,
+        "courtyard_line_width": 0.05,
+        "dimension_precision": 4,
+        "dimension_units": 3,
+        "dimensions": {
+          "arrow_length": 1270000,
+          "extension_offset": 500000,
+          "keep_text_aligned": true,
+          "suppress_zeroes": true,
+          "text_position": 0,
+          "units_format": 0
+        },
+        "fab_line_width": 0.1,
+        "fab_text_italic": false,
+        "fab_text_size_h": 1.0,
+        "fab_text_size_v": 1.0,
+        "fab_text_thickness": 0.15,
+        "fab_text_upright": false,
+        "other_line_width": 0.1,
+        "other_text_italic": false,
+        "other_text_size_h": 1.0,
+        "other_text_size_v": 1.0,
+        "other_text_thickness": 0.15,
+        "other_text_upright": false,
+        "pads": {
+          "drill": 0.8,
+          "height": 1.27,
+          "width": 2.54
+        },
+        "silk_line_width": 0.1,
+        "silk_text_italic": false,
+        "silk_text_size_h": 1.0,
+        "silk_text_size_v": 1.0,
+        "silk_text_thickness": 0.1,
+        "silk_text_upright": false,
+        "zones": {
+          "min_clearance": 0.01
+        }
+      },
+      "diff_pair_dimensions": [
+        {
+          "gap": 0.0,
+          "via_gap": 0.0,
+          "width": 0.0
+        }
+      ],
+      "drc_exclusions": [],
+      "meta": {
+        "version": 2
+      },
+      "rule_severities": {
+        "annular_width": "error",
+        "clearance": "error",
+        "connection_width": "warning",
+        "copper_edge_clearance": "error",
+        "copper_sliver": "warning",
+        "courtyards_overlap": "error",
+        "creepage": "error",
+        "diff_pair_gap_out_of_range": "error",
+        "diff_pair_uncoupled_length_too_long": "error",
+        "drill_out_of_range": "error",
+        "duplicate_footprints": "warning",
+        "extra_footprint": "warning",
+        "footprint": "error",
+        "footprint_filters_mismatch": "ignore",
+        "footprint_symbol_field_mismatch": "warning",
+        "footprint_symbol_mismatch": "warning",
+        "footprint_type_mismatch": "ignore",
+        "hole_clearance": "error",
+        "hole_to_hole": "warning",
+        "holes_co_located": "warning",
+        "invalid_outline": "error",
+        "isolated_copper": "warning",
+        "item_on_disabled_layer": "error",
+        "items_not_allowed": "error",
+        "length_out_of_range": "error",
+        "lib_footprint_issues": "warning",
+        "lib_footprint_mismatch": "warning",
+        "malformed_courtyard": "error",
+        "microvia_drill_out_of_range": "error",
+        "mirrored_text_on_front_layer": "warning",
+        "missing_courtyard": "ignore",
+        "missing_footprint": "warning",
+        "missing_tuning_profile": "warning",
+        "net_conflict": "warning",
+        "nonmirrored_text_on_back_layer": "warning",
+        "npth_inside_courtyard": "ignore",
+        "padstack": "warning",
+        "pth_inside_courtyard": "ignore",
+        "shorting_items": "error",
+        "silk_edge_clearance": "warning",
+        "silk_over_copper": "warning",
+        "silk_overlap": "warning",
+        "skew_out_of_range": "error",
+        "solder_mask_bridge": "warning",
+        "starved_thermal": "warning",
+        "text_height": "warning",
+        "text_on_edge_cuts": "error",
+        "text_thickness": "warning",
+        "through_hole_pad_without_hole": "error",
+        "too_many_vias": "error",
+        "track_angle": "error",
+        "track_dangling": "warning",
+        "track_not_centered_on_via": "ignore",
+        "track_on_post_machined_layer": "error",
+        "track_segment_length": "error",
+        "track_width": "error",
+        "tracks_crossing": "error",
+        "tuning_profile_track_geometries": "ignore",
+        "unconnected_items": "error",
+        "unresolved_variable": "error",
+        "via_dangling": "warning",
+        "zones_intersect": "error"
+      },
+      "rules": {
+        "max_error": 0.005,
+        "min_clearance": 0.0,
+        "min_connection": 0.0,
+        "min_copper_edge_clearance": 0.2,
+        "min_groove_width": 0.0,
+        "min_hole_clearance": 0.25,
+        "min_hole_to_hole": 0.25,
+        "min_microvia_diameter": 0.2,
+        "min_microvia_drill": 0.1,
+        "min_resolved_spokes": 2,
+        "min_silk_clearance": 0.0,
+        "min_text_height": 0.8,
+        "min_text_thickness": 0.08,
+        "min_through_hole_diameter": 0.3,
+        "min_track_width": 0.0,
+        "min_via_annular_width": 0.1,
+        "min_via_diameter": 0.5,
+        "solder_mask_to_copper_clearance": 0.0,
+        "use_height_for_length_calcs": true
+      },
+      "teardrop_options": [
+        {
+          "td_onpthpad": true,
+          "td_onroundshapesonly": false,
+          "td_onsmdpad": true,
+          "td_ontrackend": false,
+          "td_onvia": true
+        }
+      ],
+      "teardrop_parameters": [
+        {
+          "td_allow_use_two_tracks": true,
+          "td_curve_segcount": 0,
+          "td_height_ratio": 1.0,
+          "td_length_ratio": 0.5,
+          "td_maxheight": 2.0,
+          "td_maxlen": 1.0,
+          "td_on_pad_in_zone": false,
+          "td_target_name": "td_round_shape",
+          "td_width_to_size_filter_ratio": 0.9
+        },
+        {
+          "td_allow_use_two_tracks": true,
+          "td_curve_segcount": 0,
+          "td_height_ratio": 1.0,
+          "td_length_ratio": 0.5,
+          "td_maxheight": 2.0,
+          "td_maxlen": 1.0,
+          "td_on_pad_in_zone": false,
+          "td_target_name": "td_rect_shape",
+          "td_width_to_size_filter_ratio": 0.9
+        },
+        {
+          "td_allow_use_two_tracks": true,
+          "td_curve_segcount": 0,
+          "td_height_ratio": 1.0,
+          "td_length_ratio": 0.5,
+          "td_maxheight": 2.0,
+          "td_maxlen": 1.0,
+          "td_on_pad_in_zone": false,
+          "td_target_name": "td_track_end",
+          "td_width_to_size_filter_ratio": 0.9
+        }
+      ],
+      "track_widths": [
+        0.0,
+        0.2,
+        0.3,
+        0.4,
+        0.5
+      ],
+      "tuning_pattern_settings": {
+        "diff_pair_defaults": {
+          "corner_radius_percentage": 80,
+          "corner_style": 1,
+          "max_amplitude": 1.0,
+          "min_amplitude": 0.2,
+          "single_sided": false,
+          "spacing": 1.0
+        },
+        "diff_pair_skew_defaults": {
+          "corner_radius_percentage": 80,
+          "corner_style": 1,
+          "max_amplitude": 1.0,
+          "min_amplitude": 0.2,
+          "single_sided": false,
+          "spacing": 0.6
+        },
+        "single_track_defaults": {
+          "corner_radius_percentage": 80,
+          "corner_style": 1,
+          "max_amplitude": 1.0,
+          "min_amplitude": 0.2,
+          "single_sided": false,
+          "spacing": 0.6
+        }
+      },
+      "via_dimensions": [
+        {
+          "diameter": 0.0,
+          "drill": 0.0
+        },
+        {
+          "diameter": 0.6,
+          "drill": 0.3
+        },
+        {
+          "diameter": 0.8,
+          "drill": 0.4
+        }
+      ],
+      "zones_allow_external_fillets": false
+    },
+    "ipc2581": {
+      "dist": "",
+      "distpn": "",
+      "internal_id": "",
+      "mfg": "",
+      "mpn": ""
+    },
+    "layer_pairs": [],
+    "layer_presets": [],
+    "viewports": []
+  },
+  "boards": [],
+  "cvpcb": {
+    "equivalence_files": []
+  },
+  "libraries": {
+    "pinned_footprint_libs": [],
+    "pinned_symbol_libs": []
+  },
+  "meta": {
+    "filename": "nsec-badge-2026-panel.kicad_pro",
+    "version": 3
+  },
+  "net_settings": {
+    "classes": [
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "Default",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 2147483647,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.2,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "Board_0-Default",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 2147483647,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.2,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "Board_0-Power",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 0,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.4,
+        "via_diameter": 0.8,
+        "via_drill": 0.4,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "Board_0-USB",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 1,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.25,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "Board_1-Default",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 2147483647,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.2,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "Board_1-Power",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 0,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.4,
+        "via_diameter": 0.8,
+        "via_drill": 0.4,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "Board_1-USB",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 1,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.25,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "Board_2-Default",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 2147483647,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.2,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "Board_2-Power",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 0,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.4,
+        "via_diameter": 0.8,
+        "via_drill": 0.4,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "Board_2-USB",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 1,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.25,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "Board_3-Default",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 2147483647,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.2,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "Board_3-Power",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 0,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.4,
+        "via_diameter": 0.8,
+        "via_drill": 0.4,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "Board_3-USB",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 1,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.25,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "Power",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 0,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.4,
+        "via_diameter": 0.8,
+        "via_drill": 0.4,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "USB",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 1,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.25,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "wire_width": 6
+      }
+    ],
+    "meta": {
+      "version": 4
+    },
+    "net_colors": null,
+    "netclass_assignments": null,
+    "netclass_patterns": [
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(D1202-A)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-C{slash}BE#[3]-PadB26)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{RST#}-PadA15)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[02]-PadA57)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-RESERVED-PadA41)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(RGB503-DOUT)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{INTA#}-PadA6)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/e-ink display/PREVGH"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{PERR#}-PadB40)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[12]-PadB47)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(U401-SBU1-PadA8)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/ESP32-S3/GPIO12"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[30]-PadA20)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-RESERVED-PadA41)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/Buttons/BTN_LEFT"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{REQ64#}-PadA60)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{SERR#}-PadB42)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(C1025-Pt1)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{FRAME#}-PadA34)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/PCI Connector/SV6"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{LOCK#}-PadB39)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/RGB_END"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/NFC/AAT_S"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-PME#-PadA19)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(U1001-XTO)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{INTC#}-PadA7)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/PCI Connector/SV4"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(RGB517-DOUT)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[00]-PadA58)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[01]-PadB58)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{C{slash}BE#[0]}-PadA52)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/ESP32-S3/RGB_LED"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[15]-PadA44)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/ESP32-S3/GPIO39"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[23]-PadB27)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/PCI Connector/SV5"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(LED301-K)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(RGB514-DOUT)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-IDSEL-PadA26)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[02]-PadA57)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/ESP32-S3/RESET"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(C1026-Pt1)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[01]-PadB58)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[18]-PadA31)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-VIO-PadA59)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/NFC/AGDC"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/NFC/VDD_D"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(LED201-K)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-VIO-PadA16)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[15]-PadA44)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{DEVSEL#}-PadB37)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-RESERVED-PadA40)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/BTN_DOWN"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901--12V-PadB1)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[24]-PadA25)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(U301-NC-Pad4)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/ESP32-S3/GPIO40"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[10]-PadB48)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(U301-EN)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(U1202-Pad6)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-TDI-PadA4)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/I2C_SCL"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/NFC/EXT_LM"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-VIO-PadA16)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-CLK-PadB16)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(RGB512-DOUT)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[28]-PadA22)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/e-ink display/GDR"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[14]-PadB45)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(JP1201-A)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[08]-PadB52)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/Buttons/BTN_A"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-RESERVED-PadA40)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/ESP32-S3/GPIO47"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(U402-Pad3)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(RGB507-DOUT)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[12]-PadB47)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(LED1001-A)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(U401-CC2)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/e-ink display/PREVGL"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(RGB501-DOUT)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-3.3VAUX-PadA14)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[24]-PadA25)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{C{slash}BE#[0]}-PadA52)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{C{slash}BE#[1]}-PadB44)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[10]-PadB48)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-PAR-PadA43)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{PRSNT1#}-PadB9)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-RESERVED-PadB14)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[30]-PadA20)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[26]-PadA23)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-IDSEL-PadA26)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(RGB506-DOUT)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(KEY301-Pad1)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{SERR#}-PadB42)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(RGB505-DOUT)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[06]-PadA54)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(RGB510-DOUT)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{PRSNT2#}-PadB11)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/e-ink display/VSH"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{INTC#}-PadA7)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[18]-PadA31)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/Buttons/BTN_RIGHT"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/ESP32-S3/GPIO42"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[13]-PadA46)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-+12V-PadA2)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[03]-PadB56)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-VIO-PadA59)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[08]-PadB52)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/e-ink display/VDD"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/NFC/NFC_COIL"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/e-ink display/RESE"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{IRDY#}-PadB35)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{DEVSEL#}-PadB37)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/NFC/VDD_A"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/GPIO3"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/PCI Connector/SV3"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/NFC/RFO2"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(C1027-Pt2)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(U1001-TAD2)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/GPIO1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[07]-PadB53)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/ESP32-S3/BOOTSEL"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/e-ink display/VGH"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(U401-SBU2-PadB8)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/NFC/AAT_P"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(U1001-TAD1)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[22]-PadA28)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/ESP32-S3/GPIO48"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(LED801-K)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(JP1202-A)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/Buttons/BTN_B"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/ESP32-S3/PSRAM_2"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{PRSNT1#}-PadB9)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/ESP32-S3/MCU_LED"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(RGB508-DOUT)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{REQ64#}-PadA60)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/PCI Connector/SV1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(RGB515-DOUT)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-3.3VAUX-PadA14)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(U1001-XTI)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/ESP32-S3/GPIO46"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-RESERVED-PadA11)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{PERR#}-PadB40)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{LOCK#}-PadB39)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[16]-PadA32)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{C{slash}BE#[1]}-PadB44)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/NFC/RFI1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/Battery Charger/VBAT_DIV"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(U401-CC1)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901--12V-PadB1)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[04]-PadA55)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[06]-PadA54)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{RST#}-PadA15)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[28]-PadA22)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[20]-PadA29)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[05]-PadB55)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{REQ#}-PadB18)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(R802-Pad2)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(JP1202-B)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(LED302-K)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-RESERVED-PadB10)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/SPI_MOSI"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{IRDY#}-PadB35)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{PRSNT2#}-PadB11)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/ESP32-S3/PSRAM_3"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/ESP32-S3/GPIO21"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[16]-PadA32)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/NFC/RFO1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(C1025-Pt2)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[23]-PadB27)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(U402-Pad1)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/GPIO2"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(RGB502-DOUT)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/NFC/VDD_AM"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-+12V-PadA2)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/Battery Charger/RPROG"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{GNT#}-PadA17)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{GNT#}-PadA17)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-CLK-PadB16)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/NFC/VDD_DR"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/SPI_MISO"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/SPI_SCK"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-RESERVED-PadB10)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/PCI Connector/SV7"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[14]-PadB45)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(RGB511-DOUT)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/e-ink display/VCOM"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[07]-PadB53)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(C1027-Pt1)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-M66EN-PadB49)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[13]-PadA46)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-VIO-PadB59)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[03]-PadB56)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{FRAME#}-PadA34)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/e-ink display/VGL"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(U1202-Pad1)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{INTA#}-PadA6)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/NFC/RFI2"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-C{slash}BE#[3]-PadB26)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/PCI Connector/SV8"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[00]-PadA58)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-~{REQ#}-PadB18)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(RGB504-DOUT)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/BTN_UP"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[20]-PadA29)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(D1201-A)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/ESP32-S3/GPIO38"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-RESERVED-PadA11)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[26]-PadA23)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/Battery Charger/CHRG"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/PCI Connector/SV2"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/ESP32-S3/UART_RX"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(RGB509-DOUT)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(C1026-Pt2)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/ESP32-S3/PSRAM_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/ESP32-S3/GPIO45"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(RGB513-DOUT)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[22]-PadA28)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/e-ink display/VSL"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-RESERVED-PadB14)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-PME#-PadA19)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/ESP32-S3/UART_TX"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[04]-PadA55)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-M66EN-PadB49)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-TDI-PadA4)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-VIO-PadB59)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(U1001-MCU_CLK)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-AD[05]-PadB55)_1"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-Net-(RGB516-DOUT)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/I2C_SDA"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(J901-PAR-PadA43)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-unconnected-(U1202-Pad7)"
+      },
+      {
+        "netclass": "Board_0-Default",
+        "pattern": "Board_0-/ESP32-S3/GPIO41"
+      },
+      {
+        "netclass": "Board_0-Power",
+        "pattern": "Board_0-GND"
+      },
+      {
+        "netclass": "Board_0-Power",
+        "pattern": "Board_0-VDD"
+      },
+      {
+        "netclass": "Board_0-USB",
+        "pattern": "Board_0-VBUS"
+      },
+      {
+        "netclass": "Board_0-Power",
+        "pattern": "Board_0-VBAT"
+      },
+      {
+        "netclass": "Board_0-Power",
+        "pattern": "Board_0-+3V3"
+      },
+      {
+        "netclass": "Board_0-Power",
+        "pattern": "Board_0-*POWER_IN"
+      },
+      {
+        "netclass": "Board_0-USB",
+        "pattern": "Board_0-*USB_D*"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{PRSNT2#}-PadB11)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/PCI Connector/SV6"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(RGB515-DOUT)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-C{slash}BE#[3]-PadB26)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/ESP32-S3/UART_TX"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{DEVSEL#}-PadB37)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/PCI Connector/SV8"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/GPIO2"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(RGB510-DOUT)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-CLK-PadB16)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(RGB507-DOUT)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/PCI Connector/SV3"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(U1001-TAD1)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(LED302-K)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(JP1202-B)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{INTA#}-PadA6)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[14]-PadB45)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(RGB508-DOUT)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(U401-CC1)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[16]-PadA32)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-CLK-PadB16)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-RESERVED-PadB14)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/PCI Connector/SV5"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-PME#-PadA19)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{REQ64#}-PadA60)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[23]-PadB27)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/e-ink display/GDR"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/e-ink display/PREVGL"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-RESERVED-PadA41)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(JP1201-A)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901--12V-PadB1)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(RGB517-DOUT)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[02]-PadA57)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-M66EN-PadB49)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[20]-PadA29)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/ESP32-S3/GPIO38"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/SPI_SCK"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[28]-PadA22)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(U1001-XTI)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{C{slash}BE#[1]}-PadB44)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/PCI Connector/SV2"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/ESP32-S3/RESET"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/BTN_DOWN"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[23]-PadB27)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[07]-PadB53)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/ESP32-S3/GPIO47"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{PRSNT1#}-PadB9)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/ESP32-S3/RGB_LED"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(RGB513-DOUT)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-3.3VAUX-PadA14)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(U1202-Pad1)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[16]-PadA32)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/ESP32-S3/GPIO12"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901--12V-PadB1)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{REQ#}-PadB18)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{REQ64#}-PadA60)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[13]-PadA46)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(C1026-Pt1)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(D1202-A)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(C1025-Pt1)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(U301-NC-Pad4)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-PAR-PadA43)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{GNT#}-PadA17)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/Buttons/BTN_B"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(JP1202-A)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/ESP32-S3/GPIO40"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-M66EN-PadB49)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(U1202-Pad6)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[12]-PadB47)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-VIO-PadA16)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(RGB504-DOUT)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(U401-SBU1-PadA8)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{C{slash}BE#[1]}-PadB44)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[00]-PadA58)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[12]-PadB47)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{INTC#}-PadA7)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/NFC/RFI2"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/PCI Connector/SV1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[15]-PadA44)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[22]-PadA28)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[10]-PadB48)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/Buttons/BTN_RIGHT"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(U402-Pad1)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/ESP32-S3/GPIO42"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/NFC/VDD_DR"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-+12V-PadA2)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(RGB514-DOUT)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-RESERVED-PadA41)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[22]-PadA28)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[02]-PadA57)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[06]-PadA54)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[00]-PadA58)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{IRDY#}-PadB35)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/Battery Charger/VBAT_DIV"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{LOCK#}-PadB39)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[01]-PadB58)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/GPIO1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(U1001-XTO)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(U1001-MCU_CLK)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-RESERVED-PadA40)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-TDI-PadA4)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{INTC#}-PadA7)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/NFC/RFI1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/ESP32-S3/GPIO39"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/ESP32-S3/GPIO48"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(RGB511-DOUT)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/ESP32-S3/GPIO45"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/SPI_MOSI"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/I2C_SDA"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-VIO-PadA16)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(RGB502-DOUT)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/Battery Charger/CHRG"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(RGB516-DOUT)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[24]-PadA25)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-RESERVED-PadA11)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-TDI-PadA4)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[08]-PadB52)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(U1001-TAD2)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-VIO-PadA59)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/Battery Charger/RPROG"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[28]-PadA22)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{PERR#}-PadB40)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(LED1001-A)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(RGB505-DOUT)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(RGB503-DOUT)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/e-ink display/VCOM"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[30]-PadA20)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/SPI_MISO"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{RST#}-PadA15)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/NFC/EXT_LM"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/NFC/VDD_AM"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[10]-PadB48)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(KEY301-Pad1)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/ESP32-S3/BOOTSEL"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[04]-PadA55)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/Buttons/BTN_A"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[14]-PadB45)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[15]-PadA44)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[30]-PadA20)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/PCI Connector/SV7"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(U401-SBU2-PadB8)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{DEVSEL#}-PadB37)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{GNT#}-PadA17)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(U301-EN)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{IRDY#}-PadB35)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/ESP32-S3/MCU_LED"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/NFC/AAT_P"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-RESERVED-PadB10)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[08]-PadB52)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/e-ink display/RESE"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/NFC/RFO1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{PRSNT1#}-PadB9)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[04]-PadA55)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/RGB_END"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-IDSEL-PadA26)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{SERR#}-PadB42)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/ESP32-S3/PSRAM_3"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/e-ink display/VSL"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(C1027-Pt1)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[18]-PadA31)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-RESERVED-PadA11)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/NFC/AAT_S"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/ESP32-S3/GPIO41"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(RGB501-DOUT)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-+12V-PadA2)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[03]-PadB56)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(RGB506-DOUT)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/e-ink display/VGH"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/PCI Connector/SV4"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-RESERVED-PadB10)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/NFC/VDD_A"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{PRSNT2#}-PadB11)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/ESP32-S3/PSRAM_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-3.3VAUX-PadA14)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/e-ink display/VSH"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/Buttons/BTN_LEFT"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/ESP32-S3/UART_RX"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-VIO-PadA59)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(LED801-K)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{SERR#}-PadB42)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-PAR-PadA43)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/ESP32-S3/PSRAM_2"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{C{slash}BE#[0]}-PadA52)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(D1201-A)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{FRAME#}-PadA34)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[06]-PadA54)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[18]-PadA31)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[26]-PadA23)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(R802-Pad2)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/ESP32-S3/GPIO46"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[26]-PadA23)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{PERR#}-PadB40)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{RST#}-PadA15)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(U1202-Pad7)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/NFC/VDD_D"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-PME#-PadA19)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-C{slash}BE#[3]-PadB26)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/GPIO3"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[03]-PadB56)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{REQ#}-PadB18)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-RESERVED-PadB14)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[05]-PadB55)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/ESP32-S3/GPIO21"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/NFC/AGDC"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{C{slash}BE#[0]}-PadA52)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-IDSEL-PadA26)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/e-ink display/VDD"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(LED201-K)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{LOCK#}-PadB39)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-RESERVED-PadA40)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(C1027-Pt2)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(C1026-Pt2)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[01]-PadB58)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/BTN_UP"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/I2C_SCL"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[24]-PadA25)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-VIO-PadB59)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(RGB512-DOUT)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(U401-CC2)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[13]-PadA46)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[20]-PadA29)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{FRAME#}-PadA34)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[05]-PadB55)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/NFC/NFC_COIL"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/e-ink display/PREVGH"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-VIO-PadB59)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(U402-Pad3)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/NFC/RFO2"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-~{INTA#}-PadA6)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-unconnected-(J901-AD[07]-PadB53)_1"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(LED301-K)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(C1025-Pt2)"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-/e-ink display/VGL"
+      },
+      {
+        "netclass": "Board_1-Default",
+        "pattern": "Board_1-Net-(RGB509-DOUT)"
+      },
+      {
+        "netclass": "Board_1-Power",
+        "pattern": "Board_1-GND"
+      },
+      {
+        "netclass": "Board_1-Power",
+        "pattern": "Board_1-VDD"
+      },
+      {
+        "netclass": "Board_1-USB",
+        "pattern": "Board_1-VBUS"
+      },
+      {
+        "netclass": "Board_1-Power",
+        "pattern": "Board_1-VBAT"
+      },
+      {
+        "netclass": "Board_1-Power",
+        "pattern": "Board_1-+3V3"
+      },
+      {
+        "netclass": "Board_1-Power",
+        "pattern": "Board_1-*POWER_IN"
+      },
+      {
+        "netclass": "Board_1-USB",
+        "pattern": "Board_1-*USB_D*"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(U1001-MCU_CLK)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/e-ink display/PREVGL"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-TDI-PadA4)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[20]-PadA29)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/ESP32-S3/RESET"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[18]-PadA31)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[00]-PadA58)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[06]-PadA54)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-PAR-PadA43)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-RESERVED-PadA11)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-VIO-PadB59)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(JP1202-A)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{GNT#}-PadA17)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[23]-PadB27)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[03]-PadB56)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[10]-PadB48)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/e-ink display/VSL"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(RGB513-DOUT)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(RGB501-DOUT)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-PME#-PadA19)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[05]-PadB55)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/e-ink display/VDD"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/NFC/EXT_LM"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[13]-PadA46)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(U1202-Pad7)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(U402-Pad3)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/NFC/RFI1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(RGB510-DOUT)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{FRAME#}-PadA34)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/Battery Charger/CHRG"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/Buttons/BTN_LEFT"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(RGB502-DOUT)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{IRDY#}-PadB35)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[28]-PadA22)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/ESP32-S3/UART_TX"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/NFC/AGDC"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[30]-PadA20)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(RGB514-DOUT)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[28]-PadA22)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{C{slash}BE#[0]}-PadA52)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[07]-PadB53)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[07]-PadB53)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{LOCK#}-PadB39)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{PRSNT1#}-PadB9)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-RESERVED-PadB10)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/ESP32-S3/RGB_LED"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-PME#-PadA19)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(U1001-TAD1)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{C{slash}BE#[1]}-PadB44)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(U1202-Pad1)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-IDSEL-PadA26)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(U401-CC2)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(R802-Pad2)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{INTA#}-PadA6)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-VIO-PadA59)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/NFC/VDD_A"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-3.3VAUX-PadA14)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/PCI Connector/SV8"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/PCI Connector/SV7"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(RGB505-DOUT)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(U401-SBU1-PadA8)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-3.3VAUX-PadA14)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[24]-PadA25)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/NFC/RFO2"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/ESP32-S3/GPIO48"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(C1027-Pt1)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[15]-PadA44)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(LED201-K)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{INTA#}-PadA6)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-M66EN-PadB49)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(RGB506-DOUT)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[02]-PadA57)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[24]-PadA25)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{RST#}-PadA15)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/ESP32-S3/GPIO39"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/PCI Connector/SV2"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[16]-PadA32)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{FRAME#}-PadA34)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-+12V-PadA2)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{C{slash}BE#[1]}-PadB44)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/NFC/VDD_DR"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(C1025-Pt2)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[06]-PadA54)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/ESP32-S3/GPIO46"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/ESP32-S3/PSRAM_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{REQ64#}-PadA60)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(RGB515-DOUT)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/NFC/VDD_D"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[08]-PadB52)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/SPI_MISO"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(U401-SBU2-PadB8)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(D1201-A)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/NFC/RFO1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{REQ#}-PadB18)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(RGB503-DOUT)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/ESP32-S3/PSRAM_2"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-PAR-PadA43)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(JP1201-A)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[04]-PadA55)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[10]-PadB48)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-RESERVED-PadA41)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(RGB504-DOUT)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/ESP32-S3/BOOTSEL"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/ESP32-S3/PSRAM_3"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(LED801-K)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-RESERVED-PadA40)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/e-ink display/PREVGH"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(C1026-Pt2)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(KEY301-Pad1)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{C{slash}BE#[0]}-PadA52)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/PCI Connector/SV3"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(LED302-K)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{SERR#}-PadB42)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/NFC/RFI2"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{LOCK#}-PadB39)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/NFC/AAT_P"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/Battery Charger/VBAT_DIV"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/PCI Connector/SV6"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/ESP32-S3/GPIO40"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(C1026-Pt1)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/ESP32-S3/GPIO45"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[20]-PadA29)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[22]-PadA28)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/I2C_SCL"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/ESP32-S3/GPIO41"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/e-ink display/GDR"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/I2C_SDA"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(U1001-XTO)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-CLK-PadB16)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-IDSEL-PadA26)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-RESERVED-PadA40)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-VIO-PadA59)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(RGB507-DOUT)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/SPI_SCK"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{RST#}-PadA15)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[08]-PadB52)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/Battery Charger/RPROG"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-VIO-PadA16)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/ESP32-S3/GPIO21"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(U301-EN)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-CLK-PadB16)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/Buttons/BTN_B"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/NFC/AAT_S"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/ESP32-S3/GPIO42"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/GPIO3"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901--12V-PadB1)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[14]-PadB45)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-TDI-PadA4)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-M66EN-PadB49)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(RGB508-DOUT)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{GNT#}-PadA17)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[02]-PadA57)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[26]-PadA23)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-C{slash}BE#[3]-PadB26)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[23]-PadB27)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/BTN_DOWN"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[01]-PadB58)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/GPIO1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[30]-PadA20)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(U1001-XTI)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{REQ#}-PadB18)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/ESP32-S3/MCU_LED"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(U1202-Pad6)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/ESP32-S3/GPIO38"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(JP1202-B)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/BTN_UP"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{DEVSEL#}-PadB37)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(RGB509-DOUT)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[26]-PadA23)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[01]-PadB58)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-RESERVED-PadA11)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(LED301-K)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[13]-PadA46)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(C1025-Pt1)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/NFC/NFC_COIL"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[04]-PadA55)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(RGB517-DOUT)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(RGB511-DOUT)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(RGB512-DOUT)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/SPI_MOSI"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[16]-PadA32)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[22]-PadA28)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(D1202-A)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[15]-PadA44)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{PRSNT2#}-PadB11)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(C1027-Pt2)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[12]-PadB47)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(U401-CC1)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901--12V-PadB1)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/ESP32-S3/GPIO12"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/e-ink display/RESE"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-RESERVED-PadB10)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{SERR#}-PadB42)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[18]-PadA31)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/e-ink display/VCOM"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/Buttons/BTN_RIGHT"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[12]-PadB47)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{REQ64#}-PadA60)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/RGB_END"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-RESERVED-PadA41)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/e-ink display/VGL"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[03]-PadB56)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/NFC/VDD_AM"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{PERR#}-PadB40)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/PCI Connector/SV1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{PRSNT1#}-PadB9)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/e-ink display/VGH"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{PERR#}-PadB40)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-RESERVED-PadB14)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/e-ink display/VSH"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{INTC#}-PadA7)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[00]-PadA58)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(RGB516-DOUT)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-VIO-PadA16)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(U402-Pad1)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[14]-PadB45)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/PCI Connector/SV4"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-C{slash}BE#[3]-PadB26)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-AD[05]-PadB55)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-+12V-PadA2)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{IRDY#}-PadB35)_1"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/GPIO2"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-RESERVED-PadB14)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(U1001-TAD2)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/PCI Connector/SV5"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-VIO-PadB59)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{PRSNT2#}-PadB11)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{DEVSEL#}-PadB37)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/ESP32-S3/GPIO47"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-Net-(LED1001-A)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/Buttons/BTN_A"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-/ESP32-S3/UART_RX"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(J901-~{INTC#}-PadA7)"
+      },
+      {
+        "netclass": "Board_2-Default",
+        "pattern": "Board_2-unconnected-(U301-NC-Pad4)"
+      },
+      {
+        "netclass": "Board_2-Power",
+        "pattern": "Board_2-GND"
+      },
+      {
+        "netclass": "Board_2-Power",
+        "pattern": "Board_2-VDD"
+      },
+      {
+        "netclass": "Board_2-USB",
+        "pattern": "Board_2-VBUS"
+      },
+      {
+        "netclass": "Board_2-Power",
+        "pattern": "Board_2-VBAT"
+      },
+      {
+        "netclass": "Board_2-Power",
+        "pattern": "Board_2-+3V3"
+      },
+      {
+        "netclass": "Board_2-Power",
+        "pattern": "Board_2-*POWER_IN"
+      },
+      {
+        "netclass": "Board_2-USB",
+        "pattern": "Board_2-*USB_D*"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(RGB516-DOUT)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{C{slash}BE#[0]}-PadA52)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[05]-PadB55)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/I2C_SCL"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-RESERVED-PadB14)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(U1202-Pad1)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/ESP32-S3/GPIO48"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{REQ#}-PadB18)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(U402-Pad1)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{IRDY#}-PadB35)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[14]-PadB45)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(RGB501-DOUT)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[13]-PadA46)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{C{slash}BE#[1]}-PadB44)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[03]-PadB56)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-PME#-PadA19)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[10]-PadB48)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/ESP32-S3/PSRAM_2"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/Buttons/BTN_LEFT"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(LED301-K)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-RESERVED-PadA41)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(U401-SBU2-PadB8)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(RGB513-DOUT)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/Buttons/BTN_B"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/SPI_MISO"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/Buttons/BTN_A"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/BTN_DOWN"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-RESERVED-PadB10)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-3.3VAUX-PadA14)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/PCI Connector/SV8"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[20]-PadA29)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(U1001-XTO)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(KEY301-Pad1)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-VIO-PadB59)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/ESP32-S3/MCU_LED"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(RGB509-DOUT)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(JP1201-A)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-RESERVED-PadB14)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{C{slash}BE#[1]}-PadB44)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-+12V-PadA2)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/ESP32-S3/PSRAM_3"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/NFC/EXT_LM"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{PRSNT1#}-PadB9)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(RGB515-DOUT)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[18]-PadA31)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/NFC/AAT_S"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901--12V-PadB1)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(C1026-Pt1)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{PERR#}-PadB40)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-C{slash}BE#[3]-PadB26)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-M66EN-PadB49)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/ESP32-S3/GPIO12"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/ESP32-S3/GPIO46"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/NFC/VDD_D"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(U301-EN)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-RESERVED-PadA40)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-RESERVED-PadA11)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[23]-PadB27)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/ESP32-S3/GPIO45"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{IRDY#}-PadB35)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/PCI Connector/SV4"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/NFC/AAT_P"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[00]-PadA58)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[20]-PadA29)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[23]-PadB27)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{RST#}-PadA15)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{DEVSEL#}-PadB37)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/Battery Charger/RPROG"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{PRSNT1#}-PadB9)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{PRSNT2#}-PadB11)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/e-ink display/RESE"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-VIO-PadB59)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(D1201-A)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(RGB504-DOUT)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(U401-CC2)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/ESP32-S3/RESET"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(U1001-XTI)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/ESP32-S3/GPIO39"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/e-ink display/VDD"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[05]-PadB55)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[12]-PadB47)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(C1025-Pt1)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(C1027-Pt1)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[18]-PadA31)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/e-ink display/VCOM"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/Battery Charger/VBAT_DIV"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/ESP32-S3/GPIO41"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[26]-PadA23)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-RESERVED-PadB10)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[02]-PadA57)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(RGB507-DOUT)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/PCI Connector/SV1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{INTC#}-PadA7)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/SPI_MOSI"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{FRAME#}-PadA34)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{REQ64#}-PadA60)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/GPIO2"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/ESP32-S3/GPIO40"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/NFC/VDD_DR"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[22]-PadA28)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/NFC/RFI2"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[22]-PadA28)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(C1027-Pt2)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(C1025-Pt2)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/e-ink display/GDR"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(U401-SBU1-PadA8)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/ESP32-S3/RGB_LED"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[26]-PadA23)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[06]-PadA54)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(RGB505-DOUT)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/PCI Connector/SV5"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[30]-PadA20)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[16]-PadA32)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-IDSEL-PadA26)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(RGB508-DOUT)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901--12V-PadB1)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[08]-PadB52)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{REQ#}-PadB18)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{REQ64#}-PadA60)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[14]-PadB45)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(RGB510-DOUT)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/PCI Connector/SV2"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-CLK-PadB16)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-PAR-PadA43)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(RGB512-DOUT)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/RGB_END"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[15]-PadA44)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/Buttons/BTN_RIGHT"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{SERR#}-PadB42)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[30]-PadA20)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/NFC/VDD_AM"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(R802-Pad2)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/PCI Connector/SV3"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-RESERVED-PadA41)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/e-ink display/VSL"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/ESP32-S3/GPIO21"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[07]-PadB53)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{GNT#}-PadA17)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/NFC/RFI1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(JP1202-A)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[10]-PadB48)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-M66EN-PadB49)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/GPIO1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(LED801-K)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/NFC/AGDC"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/PCI Connector/SV6"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/ESP32-S3/BOOTSEL"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-VIO-PadA16)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/e-ink display/VGH"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(C1026-Pt2)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{PERR#}-PadB40)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(RGB511-DOUT)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/e-ink display/VGL"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(U402-Pad3)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[15]-PadA44)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(U401-CC1)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{DEVSEL#}-PadB37)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[08]-PadB52)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/ESP32-S3/GPIO38"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/ESP32-S3/GPIO42"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(U1001-TAD2)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[04]-PadA55)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{LOCK#}-PadB39)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{RST#}-PadA15)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[04]-PadA55)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[01]-PadB58)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[28]-PadA22)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-PAR-PadA43)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-C{slash}BE#[3]-PadB26)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(U301-NC-Pad4)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(JP1202-B)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(RGB502-DOUT)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-CLK-PadB16)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[24]-PadA25)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[01]-PadB58)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-TDI-PadA4)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-IDSEL-PadA26)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/GPIO3"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/SPI_SCK"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/e-ink display/PREVGH"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[12]-PadB47)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[16]-PadA32)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{INTA#}-PadA6)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-RESERVED-PadA11)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(LED302-K)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(RGB514-DOUT)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-VIO-PadA16)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(U1001-MCU_CLK)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/ESP32-S3/UART_TX"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[07]-PadB53)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-VIO-PadA59)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/NFC/RFO1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/NFC/VDD_A"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[13]-PadA46)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(LED201-K)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(U1001-TAD1)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/I2C_SDA"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-VIO-PadA59)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{GNT#}-PadA17)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-3.3VAUX-PadA14)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{PRSNT2#}-PadB11)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(U1202-Pad6)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(RGB503-DOUT)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{INTC#}-PadA7)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(RGB506-DOUT)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-+12V-PadA2)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[00]-PadA58)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[28]-PadA22)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/e-ink display/PREVGL"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/BTN_UP"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[24]-PadA25)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[06]-PadA54)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{C{slash}BE#[0]}-PadA52)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[02]-PadA57)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(D1202-A)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{SERR#}-PadB42)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-AD[03]-PadB56)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/ESP32-S3/PSRAM_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-RESERVED-PadA40)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{FRAME#}-PadA34)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-PME#-PadA19)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/NFC/NFC_COIL"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/Battery Charger/CHRG"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{INTA#}-PadA6)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-TDI-PadA4)_1"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/e-ink display/VSH"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/ESP32-S3/UART_RX"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/PCI Connector/SV7"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(J901-~{LOCK#}-PadB39)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-unconnected-(U1202-Pad7)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/ESP32-S3/GPIO47"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(RGB517-DOUT)"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-/NFC/RFO2"
+      },
+      {
+        "netclass": "Board_3-Default",
+        "pattern": "Board_3-Net-(LED1001-A)"
+      },
+      {
+        "netclass": "Board_3-Power",
+        "pattern": "Board_3-GND"
+      },
+      {
+        "netclass": "Board_3-Power",
+        "pattern": "Board_3-VDD"
+      },
+      {
+        "netclass": "Board_3-USB",
+        "pattern": "Board_3-VBUS"
+      },
+      {
+        "netclass": "Board_3-Power",
+        "pattern": "Board_3-VBAT"
+      },
+      {
+        "netclass": "Board_3-Power",
+        "pattern": "Board_3-+3V3"
+      },
+      {
+        "netclass": "Board_3-Power",
+        "pattern": "Board_3-*POWER_IN"
+      },
+      {
+        "netclass": "Board_3-USB",
+        "pattern": "Board_3-*USB_D*"
+      }
+    ]
+  },
+  "pcbnew": {
+    "last_paths": {
+      "gencad": "",
+      "idf": "",
+      "netlist": "",
+      "plot": "",
+      "pos_files": "",
+      "specctra_dsn": "",
+      "step": "",
+      "svg": "",
+      "vrml": ""
+    },
+    "page_layout_descr_file": ""
+  },
+  "schematic": {
+    "legacy_lib_dir": "",
+    "legacy_lib_list": []
+  },
+  "sheets": [],
+  "text_variables": {}
+}

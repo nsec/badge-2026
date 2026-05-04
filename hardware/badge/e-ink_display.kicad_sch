@@ -2306,6 +2306,12 @@
 		(uuid "be62b678-4e43-49fd-ad69-dd8430b8892f")
 	)
 	(junction
+		(at 78.105 83.185)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "c497ae2d-fa04-4f71-9f7a-8315421408b6")
+	)
+	(junction
 		(at 207.645 60.325)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -2577,7 +2583,7 @@
 	)
 	(wire
 		(pts
-			(xy 43.815 83.185) (xy 90.805 83.185)
+			(xy 43.815 83.185) (xy 78.105 83.185)
 		)
 		(stroke
 			(width 0.1524)
@@ -2624,6 +2630,16 @@
 			(type solid)
 		)
 		(uuid "56360a10-dd0f-4005-9f0a-70cb6f5f4c23")
+	)
+	(wire
+		(pts
+			(xy 78.105 83.82) (xy 78.105 83.185)
+		)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(uuid "571e30fc-e168-439f-a2b8-908822db0288")
 	)
 	(wire
 		(pts
@@ -3167,6 +3183,16 @@
 	)
 	(wire
 		(pts
+			(xy 78.105 83.185) (xy 90.805 83.185)
+		)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(uuid "d097a240-3628-4dff-aa6f-c714ec3d70a7")
+	)
+	(wire
+		(pts
 			(xy 90.805 70.485) (xy 86.995 70.485)
 		)
 		(stroke
@@ -3436,7 +3462,7 @@
 		(uuid "b739598f-b15a-4e03-a9b2-b83e10c387f8")
 	)
 	(label "VDD"
-		(at 78.105 83.185 0)
+		(at 78.105 83.82 0)
 		(effects
 			(font
 				(size 1.2446 1.2446)

@@ -1823,6 +1823,72 @@
 		)
 	)
 	(symbol
+		(lib_id "power:VBUS")
+		(at 212.725 109.855 0)
+		(mirror y)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "6eefec51-b076-407c-bb2b-197790a00fbc")
+		(property "Reference" "#PWR0104"
+			(at 212.725 113.665 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VBUS"
+			(at 212.725 104.775 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 212.725 109.855 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 212.725 109.855 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"VBUS\""
+			(at 212.725 109.855 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "58e0fe97-0d21-470a-99fa-2f524a0b1554")
+		)
+		(instances
+			(project "nsec-badge-2026"
+				(path "/4058d5ec-aa3f-4b7a-8f79-61676c76e695"
+					(reference "#PWR0104")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+3V3")
 		(at 250.825 78.74 0)
 		(unit 1)
@@ -1883,72 +1949,6 @@
 			(project ""
 				(path "/4058d5ec-aa3f-4b7a-8f79-61676c76e695"
 					(reference "#PWR0107")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:VDD")
-		(at 212.725 109.855 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "997095ac-5314-4376-a32a-b767a54d6e47")
-		(property "Reference" "#PWR0104"
-			(at 212.725 113.665 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "VDD"
-			(at 212.725 104.775 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 212.725 109.855 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 212.725 109.855 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"VDD\""
-			(at 212.725 109.855 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "b755701f-333d-4bf9-91f3-37173992c878")
-		)
-		(instances
-			(project "nsec-badge-2026"
-				(path "/4058d5ec-aa3f-4b7a-8f79-61676c76e695"
-					(reference "#PWR0104")
 					(unit 1)
 				)
 			)
@@ -2790,6 +2790,16 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+			)
+		)
+		(pin "VDD" input
+			(at 176.53 117.475 90)
+			(uuid "7034e313-135c-4486-8cdf-966928572973")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 			)
 		)
 		(instances

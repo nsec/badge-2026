@@ -778,6 +778,15 @@
 		(color 0 0 0 0)
 		(uuid "f913f0ec-aa22-4aa3-9f9c-0389fec9d12d")
 	)
+	(bus_entry
+		(at 332.74 88.9)
+		(size 2.54 2.54)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed2ea89-4cb7-47de-b16c-f126b49e9a6f")
+	)
 	(wire
 		(pts
 			(xy 84.455 52.705) (xy 88.265 52.705)
@@ -1733,7 +1742,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "RIGHT"
 			(at 90.805 92.075 0)
 			(effects
 				(font
@@ -1985,7 +1994,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "DOWN"
 			(at 90.805 57.785 0)
 			(effects
 				(font
@@ -2322,7 +2331,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "LEFT"
 			(at 90.805 74.93 0)
 			(effects
 				(font
@@ -2568,7 +2577,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "UP"
 			(at 90.805 41.275 0)
 			(effects
 				(font
@@ -2662,7 +2671,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "A"
 			(at 90.805 109.22 0)
 			(effects
 				(font
@@ -2750,7 +2759,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "B"
 			(at 90.805 127 0)
 			(effects
 				(font
