@@ -1,0 +1,816 @@
+#include "tasks/cli.h"
+
+#include <Arduino.h>
+#include <algorithm>
+#include <cctype>
+#include <cstdlib>
+#include <string>
+#include <vector>
+
+#include "system/ota_manager.h"
+#include "animation/parser.h"
+#include "animation/storage.h"
+#include "hardware/hwid.h"
+#include "hardware/buttons.h"
+#include "tasks/led.h"
+#include "tasks/controller.h"
+#include "tasks/cli_queue.h"
+#include "storage/nvs_social.h"
+#include "storage/nvs_contacts.h"
+
+#include <nvs_flash.h>
+#include <nvs.h>
+#include "tasks/nfc.h"
+#include "hardware/eink.h"
+#include <Fonts/FreeMonoBold9pt7b.h>
+#include "tasks/light_task.h"
+
+namespace {
+
+// Helper functions for std::string
+inline void toLower(std::string &s) {
+  std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) {
+    return std::tolower(c);
+  });
+}
+
+inline void trim(std::string &s) {
+  size_t start = s.find_first_not_of(" \t\r\n");
+  size_t end = s.find_last_not_of(" \t\r\n");
+  if (start == std::string::npos) {
+    s.clear();
+  } else {
+    s = s.substr(start, end - start + 1);
+  }
+}
+
+Stream *g_io = nullptr;
+std::string g_line;
+bool g_promptNeeded = true;  // deferred prompt flag
+
+// Command history
+static constexpr int HISTORY_SIZE = 16;
+std::string g_history[HISTORY_SIZE];
+int g_historyCount = 0;   // total items stored
+int g_historyIdx = -1;    // current browse position (-1 = not browsing)
+std::string g_savedLine;  // line saved when user starts browsing
+
+// ANSI escape sequence state machine
+enum class EscState { None, GotEsc, GotBracket };
+EscState g_escState = EscState::None;
+
+// Registered commands
+struct Command {
+  std::string name;
+  std::string help;
+  core::cli::CommandHandler handler;
+};
+
+std::vector<Command> g_commands;
+
+void prompt() {
+  if (!g_io)
+    return;
+  g_io->print("> ");
+  g_io->flush();
+}
+
+// Clear the current line on the terminal and replace with new text
+void replaceLine(const std::string &newLine) {
+  if (!g_io)
+    return;
+  // Erase current display: move cursor to start of input, overwrite with spaces, move back
+  for (size_t i = g_line.length(); i > 0; i--) {
+    g_io->print("\b \b");
+  }
+  g_line = newLine;
+  g_io->print(g_line.c_str());
+}
+
+void historyAdd(const std::string &line) {
+  if (line.length() == 0)
+    return;
+  // Don't add duplicates of the most recent entry
+  if (g_historyCount > 0 && g_history[(g_historyCount - 1) % HISTORY_SIZE] == line)
+    return;
+  g_history[g_historyCount % HISTORY_SIZE] = line;
+  g_historyCount++;
+}
+
+void historyBrowseUp() {
+  if (g_historyCount == 0)
+    return;
+  if (g_historyIdx == -1) {
+    // Starting to browse - save current input
+    g_savedLine = g_line;
+    g_historyIdx = g_historyCount - 1;
+  } else if (g_historyIdx > 0 && g_historyIdx > g_historyCount - HISTORY_SIZE) {
+    g_historyIdx--;
+  } else {
+    return;  // at oldest entry
+  }
+  replaceLine(g_history[g_historyIdx % HISTORY_SIZE]);
+}
+
+void historyBrowseDown() {
+  if (g_historyIdx == -1)
+    return;
+  g_historyIdx++;
+  if (g_historyIdx >= g_historyCount) {
+    // Back to current input
+    g_historyIdx = -1;
+    replaceLine(g_savedLine);
+  } else {
+    replaceLine(g_history[g_historyIdx % HISTORY_SIZE]);
+  }
+}
+
+std::string nextToken(const std::string &s, size_t &idx) {
+  while (idx < s.length() && std::isspace(static_cast<unsigned char>(s[idx])))
+    idx++;
+  size_t start = idx;
+  while (idx < s.length() && !std::isspace(static_cast<unsigned char>(s[idx])))
+    idx++;
+  if (start == idx)
+    return std::string();
+  return s.substr(start, idx - start);
+}
+
+void cmdHelp() {
+  g_io->print("Commands:\r\n"
+              "  help                 - show this help\r\n"
+              "  ndef [text|reset]    - show/set/reset NFC emulator text\r\n"
+              "  list-contacts        - list stored contacts\r\n"
+              "  status               - show social NVS values\r\n"
+              "  clear                - clear the screen\r\n"
+#ifndef CONFERENCE_ONLY
+              "  swapboot             - switch to other firmware and reboot\r\n"
+#endif
+              "  reboot               - reboot now\r\n");
+  g_io->flush();
+
+  // Show registered module commands
+  for (const auto &cmd : g_commands) {
+    g_io->printf("  %-20s - %s\r\n", cmd.name.c_str(), cmd.help.c_str());
+  }
+  g_io->flush();
+}
+
+void cmdInfo() {
+  core::ota::printBootInfo(*g_io);
+}
+
+void cmdHwid() {
+  core::hw::printHardwareId(*g_io);
+}
+
+const char *animationName(core::LedCommandType type) {
+  switch (type) {
+    case core::LedCommandType::SolidRed:
+      return "All RED";
+    case core::LedCommandType::SolidGreen:
+      return "All GREEN";
+    case core::LedCommandType::SolidBlue:
+      return "All BLUE";
+    case core::LedCommandType::SolidWhite:
+      return "All WHITE";
+    case core::LedCommandType::SolidOrange:
+      return "All ORANGE";
+    case core::LedCommandType::SolidCyan:
+      return "All CYAN";
+    case core::LedCommandType::PixelWalk:
+      return "Pixel walk";
+    case core::LedCommandType::Rainbow:
+      return "Rainbow";
+    case core::LedCommandType::Off:
+      return "All OFF";
+    case core::LedCommandType::ProgressFlash:
+      return "Progress flash";
+  }
+  return "Unknown";
+}
+
+void ledTestProgress(uint8_t step, uint8_t total, core::LedCommandType anim) {
+  g_io->printf("  [%d/%d] %s\n\r", step, total, animationName(anim));
+}
+
+void cmdLedTest(const std::string &arg) {
+  g_io->println("=== RGB LED Test Suite ===");
+  g_io->println();
+
+  int testNum = arg.empty() ? 0 : std::atoi(arg.c_str());
+  if (testNum < 0 || testNum > 7) {
+    g_io->println("Usage: ledtest [1-7]  (omit number to run all)");
+    return;
+  }
+
+  core::LedTestRequest req;
+  req.progress = ledTestProgress;
+  if (testNum > 0)
+    req.testNum = testNum;
+
+  // Request LED test from the controller, wait for completion.
+  core::g_controllerQueue->send(req);
+
+  core::CliResponse response;
+  core::g_cliQueue->receive(response);
+
+  g_io->println();
+  g_io->println("LED test complete.");
+}
+
+void cmdEinkTest() {
+  if (!core::hw::einkAvailable()) {
+    g_io->println("E-Ink: no display detected — test skipped");
+    return;
+  }
+  g_io->println("=== E-Ink Display Test ===");
+  auto &display = core::hw::einkDisplay();
+
+  display.setRotation(1);
+  display.setFont(&FreeMonoBold9pt7b);
+  display.setTextColor(GxEPD_BLACK);
+
+  const char *line1 = "NorthSec 2026";
+  const char *line2 = "Badge OK!";
+
+  int16_t tbx, tby;
+  uint16_t tbw, tbh;
+  display.getTextBounds(line1, 0, 0, &tbx, &tby, &tbw, &tbh);
+  uint16_t x1 = ((display.width() - tbw) / 2) - tbx;
+  uint16_t y1 = ((display.height() - tbh) / 2) - tby - tbh;
+
+  display.getTextBounds(line2, 0, 0, &tbx, &tby, &tbw, &tbh);
+  uint16_t x2 = ((display.width() - tbw) / 2) - tbx;
+  uint16_t y2 = ((display.height() - tbh) / 2) - tby + tbh;
+
+  display.setFullWindow();
+  display.firstPage();
+  do {
+    display.fillScreen(GxEPD_WHITE);
+    display.setCursor(x1, y1);
+    display.print(line1);
+    display.setCursor(x2, y2);
+    display.print(line2);
+  } while (display.nextPage());
+
+  g_io->println("Display updated.");
+}
+
+void cmdStatus() {
+  char buf[256];
+  int pos = 0;
+  pos += snprintf(buf + pos, sizeof(buf) - pos, "=== Social Status ===\r\n");
+  const core::storage::SocialKey keys[] = {
+      core::storage::SocialKey::Social,
+      core::storage::SocialKey::Sponsor,
+      core::storage::SocialKey::Light,
+  };
+  for (auto k : keys) {
+    uint8_t val = core::storage::socialRead(k);
+    pos += snprintf(buf + pos, sizeof(buf) - pos, "  %-12s = %u\r\n", core::storage::socialKeyName(k), val);
+  }
+  g_io->write(reinterpret_cast<const uint8_t *>(buf), pos);
+}
+
+void cmdNvsTest(const std::string &args) {
+  // Parse: nvstest <social|sponsor|light> <0-255>
+  size_t idx = 0;
+  std::string keyStr = nextToken(args, idx);
+  std::string valStr = nextToken(args, idx);
+  toLower(keyStr);
+
+  if (keyStr.empty() || valStr.empty()) {
+    cmdStatus();
+    return;
+  }
+
+  core::storage::SocialKey key;
+  bool setAll = false;
+  if (keyStr == "social")
+    key = core::storage::SocialKey::Social;
+  else if (keyStr == "sponsor")
+    key = core::storage::SocialKey::Sponsor;
+  else if (keyStr == "light")
+    key = core::storage::SocialKey::Light;
+  else if (keyStr == "all")
+    setAll = true;
+  else {
+    g_io->println("Unknown key. Use: social, sponsor, light, all");
+    return;
+  }
+
+  int v = std::atoi(valStr.c_str());
+  if (v < 0 || v > 255) {
+    g_io->println("Value must be 0-255.");
+    return;
+  }
+
+  uint8_t value = static_cast<uint8_t>(v);
+
+  if (setAll) {
+    const core::storage::SocialKey allKeys[] = {
+        core::storage::SocialKey::Social,
+        core::storage::SocialKey::Sponsor,
+        core::storage::SocialKey::Light,
+    };
+    for (auto k : allKeys) {
+      core::SocialSetRequest req{k, value};
+      core::g_controllerQueue->send(req);
+      core::CliResponse response;
+      core::g_cliQueue->receive(response);
+    }
+    g_io->printf("NVS all keys set to %u\r\n", value);
+    return;
+  }
+
+  // Send to controller task (which handles the NVS write in its own context)
+  core::SocialSetRequest req{key, value};
+  core::g_controllerQueue->send(req);
+
+  // Wait for confirmation
+  core::CliResponse response;
+  core::g_cliQueue->receive(response);
+
+  // Read back to confirm
+  uint8_t readback = core::storage::socialRead(key);
+  g_io->printf("NVS '%s' set to %u (readback: %u)\r\n", core::storage::socialKeyName(key), value, readback);
+}
+
+void cmdAnimateLoad(const std::string &jsonStr) {
+  if (jsonStr.empty()) {
+    g_io->println("Usage: animate load <json>");
+    return;
+  }
+
+  auto result = core::animation::parseAnimationJson(jsonStr);
+  if (!result.ok) {
+    g_io->printf("Parse error: %s\r\n", result.error.c_str());
+    return;
+  }
+
+  g_io->printf("Playing: %s (%u tracks)\r\n", result.def->name, result.def->trackCount);
+  core::LedCommand cmd(core::LedCommandType::Animation);
+  cmd.animation = result.def.release();
+  core::g_ledQueue->send(cmd);
+}
+
+void cmdAnimate(const std::string &arg) {
+  // Extract the first word to decide the subcommand.
+  size_t pos = 0;
+  std::string sub = nextToken(arg, pos);
+  toLower(sub);
+
+  if (sub.empty() || sub == "list") {
+    auto names = core::animation::storageList();
+    g_io->println("Animations:");
+    for (size_t i = 0; i < names.size(); i++) {
+      g_io->printf("  %u  %s\r\n", (unsigned)i, names[i].c_str());
+    }
+    g_io->println();
+    g_io->println("Usage: animate <name|number>");
+    g_io->println("       animate load <json>");
+    g_io->println("       animate off");
+    return;
+  }
+
+  if (sub == "off" || sub == "stop") {
+    core::LedCommand cmd(core::LedCommandType::Off);
+    core::g_ledQueue->send(cmd);
+    g_io->println("Animation stopped.");
+    return;
+  }
+
+  if (sub == "load") {
+    std::string rest = (pos < arg.length()) ? arg.substr(pos) : "";
+    trim(rest);
+    return cmdAnimateLoad(rest);
+  }
+
+  // Try numeric index first.
+  auto names = core::animation::storageList();
+
+  bool isNumber = true;
+  for (char c : sub) {
+    if (!isdigit(static_cast<unsigned char>(c))) {
+      isNumber = false;
+      break;
+    }
+  }
+
+  std::string matchedName;
+  if (isNumber) {
+    int idx = std::atoi(sub.c_str());
+    if (idx >= 0 && idx < (int)names.size())
+      matchedName = names[idx];
+  } else {
+    // Match by name (case-insensitive prefix).
+    for (const auto &name : names) {
+      std::string lower = name;
+      toLower(lower);
+      if (lower.find(sub) == 0 || lower == sub) {
+        matchedName = name;
+        break;
+      }
+    }
+  }
+
+  if (matchedName.empty()) {
+    g_io->println("Unknown animation. Type 'animate list' to see options.");
+    return;
+  }
+
+  auto result = core::animation::loadAndParseAnimation(matchedName.c_str());
+  if (!result.ok) {
+    g_io->printf("Error: %s\r\n", result.error.c_str());
+    return;
+  }
+
+  core::LedCommand cmd(core::LedCommandType::Animation);
+  cmd.animation = result.def.release();
+  core::g_ledQueue->send(cmd);
+  g_io->printf("Playing: %s\r\n", matchedName.c_str());
+}
+
+void cmdPairTest(const std::string &args) {
+  std::string arg = args;
+  toLower(arg);
+  trim(arg);
+
+  if (arg == "reset") {
+    core::storage::pairReset();
+    core::storage::socialWrite(core::storage::SocialKey::Social, 0);
+    g_io->println("Paired partners and social value reset to 0");
+    return;
+  }
+
+  uint16_t count = core::storage::pairCount();
+  g_io->printf("Paired partners: %d\r\n", count);
+
+  for (uint16_t i = 0; i < count; i++) {
+    uint8_t mac[6];
+    if (core::storage::pairGet(i, mac)) {
+      g_io->printf("  %3d: %02X:%02X:%02X:%02X:%02X:%02X\r\n", i + 1, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    }
+  }
+
+  g_io->printf("Social value: %d\r\n", core::storage::socialRead(core::storage::SocialKey::Social));
+}
+
+void cmdReboot() {
+  g_io->println("Rebooting...");
+  delay(50);
+  ESP.restart();
+}
+
+void cmdDockTest(const std::string &args) {
+  nvs_handle_t handle;
+  if (nvs_open("docks", NVS_READWRITE, &handle) != ESP_OK) {
+    g_io->println("Failed to open docks NVS");
+    return;
+  }
+
+  std::string arg = args;
+  toLower(arg);
+  trim(arg);
+
+  if (arg == "reset") {
+    nvs_set_u32(handle, "seen", 0);
+    nvs_commit(handle);
+    nvs_close(handle);
+    // Also reset sponsor value
+    core::storage::socialWrite(core::storage::SocialKey::Sponsor, 0);
+    g_io->println("Dock seen bitmask and sponsor value reset to 0");
+    return;
+  }
+
+  uint32_t mask = 0;
+  nvs_get_u32(handle, "seen", &mask);
+  nvs_close(handle);
+
+  // Count set bits
+  uint8_t count = 0;
+  uint32_t v = mask;
+  while (v) {
+    count += v & 1;
+    v >>= 1;
+  }
+
+  g_io->printf("Seen docks: %d/16\r\n", count);
+  g_io->printf("Bitmask: 0x%08X\r\n", mask);
+  g_io->print("Dock IDs: ");
+  bool first = true;
+  for (int i = 0; i < 32; i++) {
+    if (mask & (1u << i)) {
+      if (!first)
+        g_io->print(", ");
+      g_io->printf("%d", i + 1);
+      first = false;
+    }
+  }
+  if (first)
+    g_io->print("(none)");
+  g_io->println();
+  g_io->printf("Sponsor value: %d\r\n", core::storage::socialRead(core::storage::SocialKey::Sponsor));
+}
+
+#ifndef CONFERENCE_ONLY
+void cmdBoot() {
+  std::string current(core::ota::getRunningPartitionLabel().c_str());
+  core::ota::BootTarget target;
+  const char *targetName;
+
+  if (current == "ctf") {
+    target = core::ota::BootTarget::Conference;
+    targetName = "conference";
+  } else {
+    target = core::ota::BootTarget::Ctf;
+    targetName = "ctf";
+  }
+
+  g_io->print("Currently on: ");
+  g_io->println(current.c_str());
+  g_io->print("Switching to: ");
+  g_io->println(targetName);
+
+  if (core::ota::setNextBoot(target, *g_io))
+    cmdReboot();
+}
+#endif
+
+void cmdContactList() {
+  uint16_t count = core::storage::contactCount();
+  g_io->printf("Stored contacts: %d\r\n", count);
+
+  for (uint16_t i = 0; i < count; i++) {
+    core::storage::ContactProfile profile;
+    if (!core::storage::contactGet(i, profile)) {
+      continue;
+    }
+
+    g_io->printf("  %3d: %02X:%02X:%02X:%02X:%02X:%02X  %s", i + 1, profile.mac[0], profile.mac[1], profile.mac[2],
+                 profile.mac[3], profile.mac[4], profile.mac[5], profile.name);
+    if (profile.pronouns[0]) {
+      g_io->printf(" (%s)", profile.pronouns);
+    }
+    g_io->printf("  #%02X%02X%02X", profile.r, profile.g, profile.b);
+    g_io->println();
+
+    if (profile.affiliation[0]) {
+      g_io->printf("       affil: %s\r\n", profile.affiliation);
+    }
+    if (profile.contact[0]) {
+      g_io->printf("       contact: %s\r\n", profile.contact);
+    }
+  }
+}
+
+void handleLine(const std::string &line) {
+  size_t i = 0;
+  std::string cmd = nextToken(line, i);
+  toLower(cmd);
+
+  if (cmd.length() == 0)
+    return;
+
+  // These commands are available through both firmware versions, and include test
+  // commands meant to facilitate development. They should be commented out/removed
+  // before the final release.
+
+  // Built-in commands
+  if (cmd == "help" || cmd == "?")
+    return cmdHelp();
+  // if (cmd == "info")
+  //   return cmdInfo();
+  // if (cmd == "hwid")
+  //  return cmdHwid();
+  // if (cmd == "ledtest") {
+  //  std::string arg = nextToken(line, i);
+  //  return cmdLedTest(arg);
+  //}
+  // if (cmd == "einktest")
+  //  return cmdEinkTest();
+  // if (cmd == "buttontest") {
+  //  core::hw::buttonTestInteractive(*g_io);
+  //  return;
+  //}
+  // if (cmd == "nvstest") {
+  //  std::string arg = (i < line.length()) ? line.substr(i) : "";
+  //  trim(arg);
+  //  return cmdNvsTest(arg);
+  //}
+  if (cmd == "docktest") {
+    std::string arg = (i < line.length()) ? line.substr(i) : "";
+    trim(arg);
+    return cmdDockTest(arg);
+  }
+  if (cmd == "animate") {
+    std::string rest = (i < line.length()) ? line.substr(i) : "";
+    trim(rest);
+    return cmdAnimate(rest);
+  }
+  if (cmd == "pairtest") {
+    std::string arg = (i < line.length()) ? line.substr(i) : "";
+    trim(arg);
+    return cmdPairTest(arg);
+  }
+  if (cmd == "status")
+    return cmdStatus();
+  if (cmd == "lighttest") {
+    std::string arg = (i < line.length()) ? line.substr(i) : "";
+    trim(arg);
+    toLower(arg);
+    if (arg == "reset") {
+      core::storage::socialWrite(core::storage::SocialKey::Light, 0);
+      g_io->println("Light NVS value reset to 0");
+      return;
+    }
+    core::hw::LightReading lr;
+    if (core::lightLastReading(lr)) {
+      char buf[256];
+      int pos = 0;
+      pos += snprintf(buf + pos, sizeof(buf) - pos, "=== Light Sensor ===\r\n");
+      pos += snprintf(buf + pos, sizeof(buf) - pos, "  R:%5u G:%5u B:%5u W:%5u\r\n", lr.r, lr.g, lr.b, lr.w);
+      pos += snprintf(buf + pos, sizeof(buf) - pos, "  Lux: %.1f  CCT: %.0fK\r\n", lr.lux, lr.cct);
+      pos += snprintf(buf + pos, sizeof(buf) - pos, "  Threshold: %.0f lux  Above: %s\r\n",
+                      core::hw::LIGHT_LUX_THRESHOLD, lr.lux >= core::hw::LIGHT_LUX_THRESHOLD ? "YES" : "no");
+      pos += snprintf(buf + pos, sizeof(buf) - pos, "  NVS light = %u\r\n",
+                      core::storage::socialRead(core::storage::SocialKey::Light));
+      g_io->write(reinterpret_cast<const uint8_t *>(buf), pos);
+    } else {
+      g_io->println("Light sensor: no reading yet (wait 5s)");
+    }
+    return;
+  }
+  if (cmd == "clear") {
+    g_io->print("\033[2J\033[H");
+    g_io->flush();
+    delay(50);  // give the terminal time to process the clear
+    return;
+  }
+  if (cmd == "reboot")
+    return cmdReboot();
+
+  if (cmd == "ndef") {
+    std::string arg = (i < line.length()) ? line.substr(i) : "";
+    trim(arg);
+    if (arg.empty()) {
+      const char *custom = core::ndefGetText();
+      if (custom) {
+        g_io->printf("NDEF text: %s\r\n", custom);
+      } else {
+        g_io->println("NDEF text: (default - NSEC Badge <HWID>)");
+      }
+      return;
+    }
+    std::string lower = arg;
+    toLower(lower);
+    if (lower == "reset") {
+      core::ndefReset();
+      g_io->println("NDEF text reset to default");
+      return;
+    }
+    if (arg.length() > 100) {
+      g_io->println("Error: text too long (max 100 chars)");
+      return;
+    }
+    if (core::ndefSetText(arg.c_str())) {
+      g_io->printf("NDEF text set: %s\r\n", arg.c_str());
+    } else {
+      g_io->println("Error: failed to set NDEF text");
+    }
+    return;
+  }
+  if (cmd == "list-contacts")
+    return cmdContactList();
+
+#ifndef CONFERENCE_ONLY
+  if (cmd == "swapboot") {
+    return cmdBoot();
+  }
+#endif
+
+  // Check registered module commands
+  for (const auto &registeredCmd : g_commands) {
+    if (cmd == registeredCmd.name) {
+      // Get remaining arguments
+      std::string args = (i < line.length()) ? line.substr(i) : "";
+      trim(args);
+      registeredCmd.handler(*g_io, args);
+      return;
+    }
+  }
+
+  g_io->print("Unknown command: ");
+  g_io->println(cmd.c_str());
+  g_io->println("Type 'help' for commands.");
+}
+}  // namespace
+
+namespace core {
+namespace cli {
+
+void init(Stream &io) {
+  g_io = &io;
+  g_line.reserve(2048);
+  // Don't print prompt here - main.cpp still has boot messages to print.
+  // Set flag so poll() prints it once everything is ready.
+  g_promptNeeded = true;
+}
+
+void poll() {
+  if (!g_io)
+    return;
+
+  // Deferred prompt: print once when poll is first called (after all boot messages)
+  if (g_promptNeeded) {
+    g_promptNeeded = false;
+    prompt();
+    g_io->flush();
+  }
+
+  while (g_io->available() > 0) {
+    const char c = (char)g_io->read();
+
+    // ANSI escape sequence handling (arrow keys send ESC [ A/B/C/D)
+    if (g_escState == EscState::GotEsc) {
+      if (c == '[') {
+        g_escState = EscState::GotBracket;
+        continue;
+      }
+      g_escState = EscState::None;
+      // Not an escape sequence, fall through
+    } else if (g_escState == EscState::GotBracket) {
+      g_escState = EscState::None;
+      if (c == 'A') {
+        historyBrowseUp();
+        continue;
+      }  // Up arrow
+      if (c == 'B') {
+        historyBrowseDown();
+        continue;
+      }  // Down arrow
+      // C = Right, D = Left — ignore for now
+      continue;
+    }
+
+    if (c == 0x1B) {  // ESC
+      g_escState = EscState::GotEsc;
+      continue;
+    }
+
+    // Handle both \r and \n as line endings (but avoid duplicate processing on \r\n)
+    if (c == '\r' || c == '\n') {
+      g_io->println();
+      if (g_line.length() > 0) {
+        historyAdd(g_line);
+        handleLine(g_line);
+        g_line.clear();
+        g_io->flush();  // ensure all command output is sent before prompt
+      }
+      g_historyIdx = -1;  // reset history browsing
+      prompt();
+      continue;
+    }
+
+    // Backspace
+    if (c == 0x08 || c == 0x7F) {
+      if (g_line.length() > 0) {
+        g_line.pop_back();
+        g_io->print("\b \b");
+      }
+      continue;
+    }
+
+    // Ctrl+C - cancel current line
+    if (c == 0x03) {
+      g_io->println("^C");
+      g_line.clear();
+      g_historyIdx = -1;
+      prompt();
+      continue;
+    }
+
+    if (isPrintable((unsigned char)c)) {
+      if (g_line.length() < 4095) {
+        g_line += c;
+        g_io->print(c);
+      }
+    }
+  }
+
+  // Flush any accumulated output (echo, prompt, backspace, etc.).
+  // Command output is already flushed in bulk after handleLine().
+  g_io->flush();
+}
+
+void registerCommand(const std::string &name, const std::string &help, CommandHandler handler) {
+  Command cmd;
+  cmd.name = name;
+  cmd.help = help;
+  cmd.handler = handler;
+  g_commands.push_back(cmd);
+}
+
+}  // namespace cli
+}  // namespace core

@@ -1,0 +1,65 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+
+# Line width
+ColumnLimit: 120
+
+# Indentation
+IndentWidth: 2
+TabWidth: 2
+UseTab: Never
+ContinuationIndentWidth: 4
+IndentCaseLabels: true
+IndentPPDirectives: BeforeHash
+NamespaceIndentation: None
+
+# Braces
+BreakBeforeBraces: Attach
+
+# Pointers and references — `int *p`, `const Foo &ref`
+DerivePointerAlignment: false
+PointerAlignment: Right
+
+# Short statements
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: true
+AllowShortLambdasOnASingleLine: None
+
+# Spaces
+SpaceBeforeParens: ControlStatements
+SpaceAfterCStyleCast: false
+SpacesBeforeTrailingComments: 2
+SpaceBeforeAssignmentOperators: true
+
+# Alignment
+AlignTrailingComments: true
+AlignAfterOpenBracket: Align
+AlignOperands: Align
+AlignConsecutiveMacros: Consecutive
+
+# Includes — don't reorder; project uses intentional grouping
+SortIncludes: Never
+
+# Namespaces
+FixNamespaceComments: true
+
+# Separation
+SeparateDefinitionBlocks: Always
+
+# Breaking
+BreakConstructorInitializers: BeforeColon
+BinPackArguments: true
+BinPackParameters: true
+AllowAllParametersOfDeclarationOnNextLine: true
+
+# Penalties — prefer keeping return type on same line
+PenaltyReturnTypeOnItsOwnLine: 1000
+
+# C++ standard
+Standard: c++17
+...

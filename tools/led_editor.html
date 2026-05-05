@@ -1,0 +1,2173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>LED Animation Editor</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #1e1e1e;
+  color: #ccc;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: 13px;
+  overflow: hidden;
+  height: 100vh;
+}
+
+#app {
+  display: grid;
+  grid-template-rows: 44px 1fr auto;
+  grid-template-columns: 1fr 310px;
+  grid-template-areas:
+    "transport transport"
+    "canvas    props"
+    "timeline  timeline";
+  height: 100vh;
+}
+
+/* ── Transport bar ── */
+#transport {
+  grid-area: transport;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  background: #2d2d2d;
+  border-bottom: 1px solid #3c3c3c;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+#transport button {
+  background: #3c3c3c;
+  border: 1px solid #555;
+  color: #ccc;
+  padding: 3px 10px;
+  cursor: pointer;
+  border-radius: 3px;
+  font-size: 15px;
+  line-height: 1;
+}
+#transport button:hover { background: #505050; }
+#transport button.active { background: #4ec9b0; color: #1e1e1e; }
+
+.transport-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.transport-sep {
+  width: 1px;
+  height: 24px;
+  background: #555;
+}
+
+#time-display {
+  font-family: monospace;
+  font-size: 14px;
+  min-width: 60px;
+  color: #4ec9b0;
+}
+
+#time-scrub { width: 120px; }
+#speed-slider { width: 60px; }
+#hue-slider { width: 80px; }
+
+.transport-label {
+  font-size: 11px;
+  color: #888;
+}
+
+#hue-swatch {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid #555;
+  vertical-align: middle;
+}
+
+#fps-display {
+  font-size: 11px;
+  color: #555;
+  margin-left: auto;
+}
+
+/* ── Canvas panel ── */
+#canvas-panel {
+  grid-area: canvas;
+  display: flex;
+  flex-direction: column;
+  background: #0a0a0a;
+  overflow: hidden;
+}
+
+#palette-bar {
+  display: flex;
+  gap: 3px;
+  padding: 5px 8px;
+  background: #151515;
+  border-bottom: 1px solid #2a2a2a;
+  flex-shrink: 0;
+}
+
+.swatch {
+  width: 28px;
+  height: 20px;
+  border-radius: 2px;
+  border: 1px solid #444;
+  cursor: pointer;
+  position: relative;
+}
+.swatch:hover { border-color: #888; }
+.swatch .swatch-label {
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 7px;
+  color: #555;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+#canvas-svg-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#badge-svg {
+  width: 100%;
+  height: 100%;
+  max-width: 800px;
+  cursor: crosshair;
+}
+
+/* ── Property panel ── */
+#props {
+  grid-area: props;
+  background: #252526;
+  border-left: 1px solid #3c3c3c;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+#props-empty {
+  color: #666;
+  text-align: center;
+  margin-top: 40px;
+  font-size: 12px;
+}
+
+.prop-section {
+  margin-bottom: 10px;
+}
+
+.prop-section-header {
+  font-size: 11px;
+  font-weight: 600;
+  color: #4ec9b0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid #3c3c3c;
+}
+
+.prop-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.prop-label {
+  min-width: 65px;
+  font-size: 11px;
+  color: #888;
+  text-align: right;
+}
+
+.prop-row input[type="number"] {
+  background: #3c3c3c;
+  border: 1px solid #555;
+  color: #ccc;
+  padding: 2px 4px;
+  border-radius: 2px;
+  width: 70px;
+  font-size: 12px;
+  font-family: monospace;
+}
+
+.prop-row input[type="color"] {
+  width: 32px;
+  height: 22px;
+  border: 1px solid #555;
+  border-radius: 2px;
+  cursor: pointer;
+  padding: 0;
+  background: transparent;
+}
+
+.prop-row select {
+  background: #3c3c3c;
+  border: 1px solid #555;
+  color: #ccc;
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-size: 12px;
+}
+
+.prop-row button {
+  background: #3c3c3c;
+  border: 1px solid #555;
+  color: #ccc;
+  padding: 1px 8px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 11px;
+}
+.prop-row button:hover { background: #505050; }
+
+.spline-point-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 2px;
+  margin-left: 71px;
+}
+
+.palette-color-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 2px;
+  margin-left: 71px;
+}
+
+/* ── Timeline panel ── */
+#timeline {
+  grid-area: timeline;
+  background: #252526;
+  border-top: 1px solid #3c3c3c;
+  display: flex;
+  flex-direction: column;
+  max-height: 240px;
+}
+
+#timeline-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  background: #2d2d2d;
+  border-bottom: 1px solid #3c3c3c;
+  flex-wrap: wrap;
+}
+
+#timeline-header input[type="text"] {
+  background: #3c3c3c;
+  border: 1px solid #555;
+  color: #ccc;
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-size: 12px;
+  width: 110px;
+}
+
+#timeline-header input[type="number"] {
+  background: #3c3c3c;
+  border: 1px solid #555;
+  color: #ccc;
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-size: 12px;
+  width: 50px;
+  font-family: monospace;
+}
+
+#timeline-header select {
+  background: #3c3c3c;
+  border: 1px solid #555;
+  color: #ccc;
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-size: 12px;
+}
+
+#timeline-header button {
+  background: #3c3c3c;
+  border: 1px solid #555;
+  color: #ccc;
+  padding: 2px 10px;
+  cursor: pointer;
+  border-radius: 2px;
+  font-size: 12px;
+}
+#timeline-header button:hover { background: #505050; }
+#btn-export { color: #4ec9b0; }
+#btn-send { color: #e8a838; }
+
+.tl-sep {
+  width: 1px;
+  height: 20px;
+  background: #444;
+}
+
+#track-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.track-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border-bottom: 1px solid #2a2a2a;
+  cursor: pointer;
+  user-select: none;
+}
+.track-row:hover { background: #2a2d2e; }
+.track-row.selected { background: #094771; border-left: 3px solid #4ec9b0; padding-left: 7px; }
+
+.track-idx {
+  width: 18px;
+  font-weight: bold;
+  color: #4ec9b0;
+  font-size: 12px;
+}
+
+.track-info {
+  flex: 1;
+  font-size: 11px;
+  color: #999;
+}
+.track-info .motion-type { color: #ccc; }
+
+.track-color-preview {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  border: 1px solid #555;
+  flex-shrink: 0;
+}
+
+.track-timing {
+  font-size: 10px;
+  color: #666;
+  font-family: monospace;
+}
+
+.track-delete {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0 2px;
+  line-height: 1;
+}
+.track-delete:hover { color: #f44336; }
+
+/* ── JSON modal ── */
+#json-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+#json-modal.open { display: flex; }
+
+#json-modal-content {
+  background: #2d2d2d;
+  border: 1px solid #555;
+  border-radius: 6px;
+  padding: 16px;
+  width: 600px;
+  max-width: 90vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#json-modal-content h3 { color: #4ec9b0; font-size: 14px; }
+
+#json-textarea {
+  background: #1e1e1e;
+  border: 1px solid #555;
+  color: #ccc;
+  font-family: monospace;
+  font-size: 12px;
+  padding: 8px;
+  border-radius: 3px;
+  resize: vertical;
+  min-height: 200px;
+  flex: 1;
+}
+
+#json-modal-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+#json-modal-buttons button {
+  background: #3c3c3c;
+  border: 1px solid #555;
+  color: #ccc;
+  padding: 4px 16px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 13px;
+}
+#json-modal-buttons button:hover { background: #505050; }
+#json-modal-buttons button.primary { background: #4ec9b0; color: #1e1e1e; }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+<!-- ── Transport bar ── -->
+<div id="transport">
+  <div class="transport-group">
+    <button id="btn-play" title="Play (Space)">&#9654;</button>
+    <button id="btn-pause" title="Pause (Space)">&#10074;&#10074;</button>
+    <button id="btn-stop" title="Stop (Escape)">&#9632;</button>
+    <label style="font-size:12px;cursor:pointer;">
+      <input type="checkbox" id="chk-loop" checked> Loop
+    </label>
+  </div>
+
+  <div class="transport-sep"></div>
+
+  <div class="transport-group">
+    <span id="time-display">0.00s</span>
+    <input type="range" id="time-scrub" min="0" max="30" step="0.02" value="0">
+  </div>
+
+  <div class="transport-sep"></div>
+
+  <div class="transport-group">
+    <span class="transport-label">Speed</span>
+    <input type="range" id="speed-slider" min="0.25" max="4" step="0.25" value="1">
+    <span id="speed-val" class="transport-label">1x</span>
+  </div>
+
+  <div class="transport-sep"></div>
+
+  <div class="transport-group">
+    <span class="transport-label">Hue</span>
+    <input type="range" id="hue-slider" min="0" max="360" step="1" value="180">
+    <span id="hue-swatch"></span>
+  </div>
+
+  <span id="fps-display">-- fps</span>
+</div>
+
+<!-- ── Canvas ── -->
+<div id="canvas-panel">
+  <div id="palette-bar"></div>
+  <div id="canvas-svg-wrap">
+    <svg id="badge-svg" xmlns="http://www.w3.org/2000/svg" viewBox="14 15 192 170">
+      <defs>
+        <radialGradient id="g0"><stop offset="0%" stop-color="#000" stop-opacity="0.9"/><stop offset="60%" stop-color="#000" stop-opacity="0.2"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="g1"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="g2"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="g3"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="g4"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="g5"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="g6"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="g7"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="g8"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="g9"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="g10"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="g11"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="g12"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="g13"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="g14"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="g15"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="g16"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="g17"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+      </defs>
+
+      <!-- Badge outline -->
+      <polygon points="83.967,30.082 80.804,37.962 73.852,37.962 73.493,37.773 73.121,37.599 72.736,37.439 72.34,37.292 71.932,37.158 71.514,37.038 71.085,36.929 70.647,36.832 70.2,36.748 69.744,36.674 69.28,36.611 68.809,36.558 68.332,36.516 67.847,36.483 67.358,36.46 66.863,36.446 66.364,36.44 65.86,36.442 65.354,36.452 64.844,36.469 64.333,36.494 63.819,36.525 63.305,36.562 62.79,36.606 62.275,36.654 61.761,36.708 61.247,36.767 60.736,36.829 60.227,36.896 59.721,36.967 59.557,36.99 59.535,37.156 59.524,37.336 59.523,37.529 59.532,37.736 59.55,37.954 59.576,38.184 59.611,38.425 59.654,38.675 59.704,38.934 59.761,39.201 59.825,39.475 59.895,39.755 59.971,40.041 60.052,40.332 60.138,40.627 60.228,40.925 60.322,41.225 60.42,41.527 60.521,41.83 60.625,42.132 60.731,42.434 60.839,42.734 60.948,43.031 61.059,43.325 61.17,43.615 61.281,43.899 61.392,44.178 61.502,44.451 61.611,44.716 61.718,44.973 61.824,45.22 61.927,45.458 62.027,45.685 62.124,45.901 62.217,46.104 62.307,46.295 62.391,46.471 62.471,46.633 62.545,46.779 62.613,46.909 62.676,47.021 62.725,47.106 62.977,47.51 63.238,47.899 63.508,48.274 63.787,48.635 64.074,48.979 64.37,49.308 64.675,49.621 64.989,49.917 65.311,50.196 65.642,50.458 65.698,50.5 62.296,56.827 62.047,56.563 61.783,56.309 61.505,56.065 61.213,55.831 60.91,55.605 60.596,55.388 60.273,55.178 59.941,54.976 59.602,54.78 59.258,54.591 58.909,54.407 58.557,54.228 58.203,54.054 57.848,53.884 57.493,53.717 57.139,53.553 56.789,53.392 56.442,53.232 56.101,53.074 55.766,52.917 55.439,52.76 55.12,52.603 54.812,52.445 54.515,52.286 54.23,52.125 54.02,51.998 53.659,52.408 53.787,52.843 53.924,53.269 54.071,53.684 54.226,54.09 54.39,54.485 54.563,54.869 54.745,55.242 54.935,55.604 55.134,55.954 55.341,56.292 55.557,56.617 55.78,56.929 56.012,57.228 56.252,57.514 56.5,57.785 56.756,58.043 57.019,58.286 57.29,58.514 57.569,58.726 57.855,58.924 58.148,59.105 58.449,59.27 58.756,59.418 59.071,59.549 59.393,59.663 59.722,59.76 60.057,59.838 60.399,59.898 60.626,59.927 56.383,67.817 56.208,67.59 56.028,67.376 55.844,67.174 55.656,66.987 55.465,66.815 55.271,66.66 55.076,66.523 54.889,66.411 54.801,66.366 54.695,66.322 54.573,66.278 54.435,66.233 54.282,66.189 54.115,66.145 53.934,66.102 53.741,66.059 53.535,66.016 53.319,65.974 53.091,65.932 52.854,65.892 52.608,65.852 52.353,65.812 52.091,65.774 51.822,65.737 51.546,65.701 51.266,65.666 50.98,65.632 50.691,65.6 50.398,65.569 50.104,65.54 49.807,65.512 49.509,65.486 49.211,65.461 48.914,65.438 48.618,65.418 48.323,65.399 48.032,65.382 47.744,65.367 47.46,65.354 47.181,65.344 46.907,65.336 46.64,65.33 46.381,65.327 46.129,65.327 45.885,65.329 45.651,65.334 45.427,65.342 45.214,65.352 45.013,65.366 44.823,65.382 44.647,65.402 44.485,65.425 44.337,65.451 44.204,65.48 44.087,65.513 43.987,65.55 43.904,65.59 43.84,65.633 43.796,65.679 43.837,65.962 43.881,66.253 43.928,66.549 43.979,66.85 44.033,67.156 44.091,67.466 44.152,67.78 44.218,68.097 44.288,68.417 44.362,68.739 44.44,69.062 44.524,69.387 44.612,69.712 44.704,70.037 44.802,70.362 44.905,70.685 45.014,71.008 45.128,71.328 45.248,71.645 45.373,71.959 45.505,72.27 45.643,72.577 45.787,72.879 45.937,73.175 46.094,73.466 46.258,73.751 46.429,74.029 46.607,74.3 46.792,74.563 46.984,74.818 47.184,75.064 47.392,75.3 47.607,75.526 47.831,75.743 48.062,75.948 48.302,76.142 48.551,76.323 48.807,76.493 49.073,76.649 49.348,76.791 49.632,76.92 49.924,77.034 50.227,77.133 50.538,77.216 50.86,77.283 51.191,77.334 51.261,77.342 46.306,86.555 46.143,86.378 45.977,86.217 45.809,86.074 45.64,85.948 45.47,85.841 45.447,85.828 45.358,85.783 45.253,85.739 45.131,85.695 44.993,85.65 44.84,85.606 44.673,85.562 44.493,85.519 44.3,85.476 44.094,85.433 43.877,85.391 43.65,85.349 43.413,85.308 43.167,85.268 42.912,85.229 42.65,85.191 42.381,85.153 42.106,85.117 41.825,85.082 41.54,85.048 41.251,85.016 40.959,84.985 40.664,84.955 40.367,84.927 40.07,84.9 39.772,84.876 39.474,84.853 39.178,84.832 38.884,84.813 38.593,84.796 38.305,84.781 38.021,84.768 37.742,84.758 37.469,84.749 37.202,84.744 36.942,84.74 36.69,84.74 36.447,84.742 36.213,84.747 35.989,84.754 35.776,84.765 35.575,84.778 35.385,84.794 35.209,84.814 35.047,84.837 34.899,84.863 34.766,84.892 34.65,84.925 34.55,84.962 34.467,85.002 34.403,85.045 34.359,85.091 34.401,85.386 34.447,85.687 34.496,85.995 34.549,86.309 34.606,86.628 34.667,86.951 34.731,87.278 34.801,87.608 34.875,87.941 34.953,88.276 35.036,88.613 35.125,88.95 35.219,89.288 35.318,89.625 35.422,89.962 35.533,90.297 35.649,90.631 35.771,90.961 35.9,91.289 36.035,91.613 36.177,91.932 36.325,92.247 36.481,92.556 36.643,92.859 36.813,93.155 36.99,93.444 37.175,93.725 37.368,93.998 37.569,94.261 37.777,94.515 37.994,94.759 38.22,94.992 38.454,95.214 38.698,95.424 38.95,95.621 39.211,95.805 39.482,95.975 39.762,96.131 40.052,96.272 40.352,96.398 40.661,96.507 40.916,96.583 29.345,118.095 68.662,159.071 69.211,159.071 69.221,168.65 69.721,169.15 131.521,169.15 132.021,168.65 132.011,160.775 133.921,160.775 133.921,168.65 134.421,169.15 147.961,169.15 148.461,168.65 148.461,159.075 149.004,159.071 189.18,118.095 177.467,96.744 177.792,96.669 178.107,96.578 178.411,96.47 178.706,96.347 178.992,96.209 179.268,96.056 179.535,95.89 179.793,95.71 180.042,95.518 180.282,95.313 180.513,95.097 180.737,94.87 180.951,94.632 181.158,94.384 181.357,94.127 181.549,93.861 181.732,93.586 181.908,93.304 182.077,93.015 182.239,92.719 182.394,92.417 182.542,92.11 182.684,91.797 182.819,91.48 182.948,91.16 183.07,90.836 183.187,90.509 183.298,90.18 183.404,89.85 183.503,89.518 183.598,89.186 183.688,88.854 183.772,88.523 183.852,88.192 183.927,87.864 183.997,87.538 184.064,87.214 184.126,86.894 184.184,86.578 184.238,86.267 184.289,85.96 184.336,85.66 184.371,85.427 184.374,85.34 184.359,85.258 184.328,85.181 184.281,85.113 184.221,85.056 184.148,85.012 184.098,84.993 183.97,84.959 183.826,84.929 183.664,84.903 183.487,84.88 183.294,84.861 183.088,84.845 182.868,84.832 182.636,84.823 182.392,84.817 182.138,84.814 181.874,84.814 181.601,84.817 181.32,84.822 181.032,84.831 180.737,84.841 180.437,84.855 180.133,84.871 179.824,84.889 179.513,84.909 179.2,84.932 178.886,84.957 178.572,84.983 178.258,85.012 177.946,85.042 177.636,85.074 177.329,85.107 177.027,85.142 176.729,85.179 176.437,85.217 176.152,85.256 175.875,85.296 175.606,85.337 175.346,85.379 175.097,85.422 174.858,85.466 174.631,85.511 174.418,85.556 174.217,85.601 174.032,85.647 173.861,85.694 173.707,85.74 173.57,85.787 173.452,85.834 173.351,85.88 173.323,85.896 173.156,85.999 172.989,86.12 172.824,86.26 172.661,86.416 172.499,86.588 172.341,86.774 172.185,86.974 172.141,87.033 166.893,77.464 167.133,77.448 167.39,77.424 167.474,77.415 167.808,77.37 168.132,77.308 168.446,77.23 168.751,77.136 169.047,77.027 169.333,76.903 169.61,76.765 169.878,76.613 170.138,76.448 170.388,76.271 170.631,76.081 170.865,75.88 171.09,75.667 171.308,75.445 171.518,75.212 171.72,74.969 171.915,74.718 172.102,74.458 172.282,74.19 172.455,73.915 172.621,73.633 172.78,73.344 172.932,73.05 173.078,72.75 173.218,72.445 173.351,72.136 173.479,71.823 173.6,71.507 173.716,71.189 173.826,70.868 173.931,70.545 174.031,70.221 174.125,69.897 174.215,69.572 174.299,69.247 174.379,68.924 174.455,68.602 174.526,68.282 174.593,67.964 174.656,67.649 174.715,67.338 174.77,67.031 174.822,66.728 174.87,66.431 174.915,66.139 174.934,66.016 174.937,65.929 174.921,65.846 174.89,65.769 174.843,65.7 174.782,65.642 174.71,65.597 174.655,65.576 174.528,65.542 174.383,65.512 174.221,65.486 174.044,65.463 173.851,65.444 173.645,65.428 173.425,65.416 173.193,65.407 172.949,65.401 172.694,65.398 172.43,65.398 172.157,65.401 171.876,65.407 171.588,65.415 171.293,65.426 170.993,65.44 170.689,65.456 170.38,65.474 170.069,65.495 169.756,65.517 169.442,65.542 169.127,65.569 168.814,65.598 168.501,65.628 168.191,65.66 167.885,65.694 167.582,65.729 167.284,65.766 166.993,65.804 166.708,65.843 166.43,65.883 166.161,65.925 165.901,65.967 165.652,66.01 165.413,66.054 165.187,66.099 164.973,66.144 164.773,66.19 164.587,66.236 164.417,66.282 164.263,66.329 164.126,66.376 164.008,66.423 163.908,66.47 163.88,66.484 163.682,66.604 163.485,66.743 163.29,66.9 163.097,67.073 162.908,67.262 162.722,67.466 162.541,67.683 162.365,67.913 162.196,68.154 162.034,68.405 161.976,68.501 157.45,60.25 157.796,60.196 158.135,60.124 158.467,60.034 158.792,59.926 159.11,59.8 159.421,59.657 159.725,59.497 160.022,59.321 160.311,59.129 160.593,58.921 160.867,58.698 161.134,58.459 161.393,58.206 161.644,57.938 161.887,57.656 162.123,57.36 162.35,57.052 162.568,56.73 162.779,56.395 162.981,56.048 163.174,55.689 163.359,55.318 163.535,54.936 163.703,54.543 163.861,54.14 164.01,53.726 164.151,53.302 164.256,52.955 164.271,52.869 164.267,52.783 164.245,52.7 164.206,52.622 164.173,52.579 164.109,52.521 164.036,52.478 163.957,52.452 163.875,52.444 163.792,52.453 163.711,52.481 163.68,52.497 163.391,52.658 163.089,52.818 162.776,52.977 162.453,53.135 162.121,53.293 161.783,53.451 161.437,53.611 161.087,53.772 160.734,53.935 160.377,54.101 160.02,54.27 159.663,54.442 159.307,54.619 158.953,54.801 158.603,54.987 158.258,55.18 157.92,55.38 157.589,55.586 157.267,55.799 156.954,56.021 156.653,56.251 156.365,56.491 156.09,56.74 155.83,56.999 155.727,57.11 152.393,51.032 152.732,50.816 153.063,50.583 153.386,50.332 153.701,50.065 154.008,49.781 154.306,49.481 154.596,49.166 154.878,48.835 155.152,48.49 155.417,48.132 155.674,47.759 155.923,47.373 156.044,47.175 156.101,47.078 156.163,46.964 156.232,46.832 156.307,46.684 156.388,46.521 156.473,46.343 156.562,46.151 156.656,45.946 156.754,45.729 156.854,45.501 156.958,45.262 157.064,45.013 157.171,44.755 157.281,44.489 157.391,44.216 157.502,43.937 157.613,43.651 157.724,43.361 157.835,43.067 157.944,42.769 158.052,42.469 158.158,42.167 158.261,41.865 158.362,41.562 158.459,41.261 158.553,40.961 158.643,40.663 158.729,40.368 158.809,40.078 158.884,39.793 158.953,39.513 159.017,39.239 159.073,38.973 159.123,38.715 159.164,38.466 159.198,38.227 159.224,37.999 159.241,37.781 159.249,37.576 159.247,37.395 159.235,37.309 159.205,37.23 159.159,37.16 159.1,37.1 159.03,37.054 158.95,37.024 158.905,37.015 158.395,36.945 157.881,36.879 157.366,36.817 156.849,36.759 156.331,36.707 155.812,36.66 155.294,36.618 154.777,36.583 154.26,36.554 153.746,36.532 153.234,36.517 152.725,36.51 152.22,36.51 151.719,36.52 151.223,36.538 150.732,36.565 150.247,36.602 149.769,36.649 149.298,36.706 148.835,36.774 148.379,36.853 147.933,36.943 147.496,37.046 147.069,37.161 146.653,37.288 146.247,37.429 145.854,37.583 145.473,37.751 145.105,37.933 145.05,37.962 137.003,37.962 133.932,30.248 109.263,30.082 83.972,30.082"
+        fill="#1a2e1a" stroke="#2d5a2d" stroke-width="0.5"/>
+
+      <!-- Lanyard holes -->
+      <circle cx="89.4" cy="37.5" r="3" fill="#0d1a0d" stroke="#2d5a2d" stroke-width="0.3"/>
+      <circle cx="128.5" cy="37.5" r="3" fill="#0d1a0d" stroke="#2d5a2d" stroke-width="0.3"/>
+
+      <!-- LED glow circles -->
+      <g id="glows" style="mix-blend-mode: screen;">
+        <circle id="glow0"  cx="63.80"  cy="99.37"  r="12" fill="url(#g0)"/>
+        <circle id="glow1"  cx="62.78"  cy="90.66"  r="12" fill="url(#g1)"/>
+        <circle id="glow2"  cx="68.78"  cy="70.69"  r="12" fill="url(#g2)"/>
+        <circle id="glow3"  cx="78.86"  cy="58.46"  r="12" fill="url(#g3)"/>
+        <circle id="glow4"  cx="90.43"  cy="48.99"  r="12" fill="url(#g4)"/>
+        <circle id="glow5"  cx="97.08"  cy="51.79"  r="12" fill="url(#g5)"/>
+        <circle id="glow6"  cx="109.13" cy="52.60"  r="12" fill="url(#g6)"/>
+        <circle id="glow7"  cx="121.19" cy="52.03"  r="12" fill="url(#g7)"/>
+        <circle id="glow8"  cx="129.64" cy="50.66"  r="12" fill="url(#g8)"/>
+        <circle id="glow9"  cx="139.71" cy="58.23"  r="12" fill="url(#g9)"/>
+        <circle id="glow10" cx="156.13" cy="91.78"  r="12" fill="url(#g10)"/>
+        <circle id="glow11" cx="155.21" cy="99.75"  r="12" fill="url(#g11)"/>
+        <circle id="glow12" cx="143.06" cy="151.41" r="12" fill="url(#g12)"/>
+        <circle id="glow13" cx="127.80" cy="151.30" r="12" fill="url(#g13)"/>
+        <circle id="glow14" cx="112.83" cy="151.20" r="12" fill="url(#g14)"/>
+        <circle id="glow15" cx="99.43"  cy="151.30" r="12" fill="url(#g15)"/>
+        <circle id="glow16" cx="88.53"  cy="151.10" r="12" fill="url(#g16)"/>
+        <circle id="glow17" cx="75.53"  cy="151.10" r="12" fill="url(#g17)"/>
+      </g>
+
+      <!-- LED dots -->
+      <g id="dots">
+        <circle id="dot0"  cx="63.80"  cy="99.37"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+        <circle id="dot1"  cx="62.78"  cy="90.66"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+        <circle id="dot2"  cx="68.78"  cy="70.69"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+        <circle id="dot3"  cx="78.86"  cy="58.46"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+        <circle id="dot4"  cx="90.43"  cy="48.99"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+        <circle id="dot5"  cx="97.08"  cy="51.79"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+        <circle id="dot6"  cx="109.13" cy="52.60"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+        <circle id="dot7"  cx="121.19" cy="52.03"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+        <circle id="dot8"  cx="129.64" cy="50.66"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+        <circle id="dot9"  cx="139.71" cy="58.23"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+        <circle id="dot10" cx="156.13" cy="91.78"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+        <circle id="dot11" cx="155.21" cy="99.75"  r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+        <circle id="dot12" cx="143.06" cy="151.41" r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+        <circle id="dot13" cx="127.80" cy="151.30" r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+        <circle id="dot14" cx="112.83" cy="151.20" r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+        <circle id="dot15" cx="99.43"  cy="151.30" r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+        <circle id="dot16" cx="88.53"  cy="151.10" r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+        <circle id="dot17" cx="75.53"  cy="151.10" r="1.8" fill="#000" stroke="#333" stroke-width="0.2"/>
+      </g>
+
+      <!-- LED index labels -->
+      <g font-family="monospace" font-size="3" fill="#555" text-anchor="middle" dominant-baseline="central">
+        <text x="63.80"  y="99.37">0</text>
+        <text x="62.78"  y="90.66">1</text>
+        <text x="68.78"  y="70.69">2</text>
+        <text x="78.86"  y="58.46">3</text>
+        <text x="90.43"  y="48.99">4</text>
+        <text x="97.08"  y="51.79">5</text>
+        <text x="109.13" y="52.60">6</text>
+        <text x="121.19" y="52.03">7</text>
+        <text x="129.64" y="50.66">8</text>
+        <text x="139.71" y="58.23">9</text>
+        <text x="156.13" y="91.78">10</text>
+        <text x="155.21" y="99.75">11</text>
+        <text x="143.06" y="151.41">12</text>
+        <text x="127.80" y="151.30">13</text>
+        <text x="112.83" y="151.20">14</text>
+        <text x="99.43"  y="151.30">15</text>
+        <text x="88.53"  y="151.10">16</text>
+        <text x="75.53"  y="151.10">17</text>
+      </g>
+
+      <!-- Path overlays (populated dynamically) -->
+      <g id="paths"></g>
+      <!-- Light source markers (populated dynamically) -->
+      <g id="lights"></g>
+    </svg>
+  </div>
+</div>
+
+<!-- ── Property panel ── -->
+<div id="props">
+  <div id="props-empty">Select or add a track to edit its properties.</div>
+  <div id="props-content" style="display:none;"></div>
+</div>
+
+<!-- ── Timeline ── -->
+<div id="timeline">
+  <div id="timeline-header">
+    <span class="transport-label">Name</span>
+    <input type="text" id="anim-name" value="untitled">
+    <span class="transport-label">Dur</span>
+    <input type="number" id="anim-duration" value="0" step="0.1" min="0" title="0 = loop forever">
+    <div class="tl-sep"></div>
+    <span class="transport-label">Preset</span>
+    <select id="preset-select">
+      <option value="">-- load preset --</option>
+      <option value="solar_flow">Solar Flow</option>
+      <option value="verdant_pulse">Verdant Pulse</option>
+      <option value="firefly_drift">Firefly Drift</option>
+      <option value="canopy_sweep">Canopy Sweep</option>
+      <option value="boot">Boot</option>
+    </select>
+    <div class="tl-sep"></div>
+    <button id="btn-add-track">+ Track</button>
+    <button id="btn-import">Import</button>
+    <button id="btn-export">Export</button>
+    <button id="btn-send">Send</button>
+  </div>
+  <div id="track-list"></div>
+</div>
+</div>
+
+<!-- JSON modal -->
+<div id="json-modal">
+  <div id="json-modal-content">
+    <h3 id="json-modal-title">Import JSON</h3>
+    <textarea id="json-textarea" spellcheck="false"></textarea>
+    <div id="json-modal-buttons">
+      <label id="json-compact-label" style="display:none;font-size:12px;cursor:pointer;margin-right:auto;">
+        <input type="checkbox" id="json-compact"> Compact (single line)
+      </label>
+      <button id="json-modal-cancel">Cancel</button>
+      <button id="json-modal-ok" class="primary">Load</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// =========================================================================
+// CONSTANTS
+// =========================================================================
+const NUM_LEDS = 18;
+const MAX_LIGHTS = 16;
+const MAX_SPLINE_POINTS = 8;
+const MAX_PALETTE_COLORS = 4;
+const GAMMA = 2.6;
+const INTENSITY_CURVE = 1.5;
+const WB_R = 0.85;
+const WB_G = 0.55;
+const WB_B = 1.0;
+const SAT_FLOOR = 0.35;
+const TWO_PI = 2 * Math.PI;
+
+const LED_POS = [
+  [0.011, 0.492], [0.000, 0.407], [0.064, 0.212], [0.172, 0.092],
+  [0.296, 0.000], [0.367, 0.027], [0.497, 0.035], [0.626, 0.030],
+  [0.716, 0.016], [0.824, 0.090], [1.000, 0.418], [0.990, 0.495],
+  [0.860, 1.000], [0.697, 0.999], [0.536, 0.998], [0.393, 0.999],
+  [0.276, 0.997], [0.137, 0.997],
+];
+
+const SVG_X_MIN = 62.78, SVG_X_RANGE = 93.35;
+const SVG_Y_MIN = 48.99, SVG_Y_RANGE = 102.42;
+
+const PALETTE_SLOT_NAMES = [
+  'user_primary', 'user_light', 'user_dark', 'user_complement',
+  'user_analogous1', 'user_analogous2', 'theme_green', 'theme_gold', 'theme_white'
+];
+
+const PALETTE_LABELS = [
+  'Primary', 'Light', 'Dark', 'Compl.', 'Ana.1', 'Ana.2', 'Green', 'Gold', 'White'
+];
+
+// =========================================================================
+// MATH UTILITIES
+// =========================================================================
+function dist(ax, ay, bx, by) {
+  const dx = ax - bx, dy = ay - by;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+
+function hsvToRgb(h, s, v) {
+  h = h - Math.floor(h);
+  const c = v * s;
+  const x = c * (1 - Math.abs((h * 6) % 2 - 1));
+  const m = v - c;
+  let r, g, b;
+  const region = Math.floor(h * 6) % 6;
+  switch (region) {
+    case 0: r=c; g=x; b=0; break;
+    case 1: r=x; g=c; b=0; break;
+    case 2: r=0; g=c; b=x; break;
+    case 3: r=0; g=x; b=c; break;
+    case 4: r=x; g=0; b=c; break;
+    default: r=c; g=0; b=x; break;
+  }
+  return [r+m, g+m, b+m];
+}
+
+function rgbToOklab(r, g, b) {
+  let l = 0.4122214708*r + 0.5363325363*g + 0.0514459929*b;
+  let m = 0.2119034982*r + 0.6806995451*g + 0.1073969566*b;
+  let s = 0.0883024619*r + 0.2024326100*g + 0.7092749381*b;
+  l = Math.cbrt(l); m = Math.cbrt(m); s = Math.cbrt(s);
+  return [
+    0.2104542553*l + 0.7936177850*m - 0.0040720468*s,
+    1.9779984951*l - 2.4285922050*m + 0.4505937099*s,
+    0.0259040371*l + 0.7827717662*m - 0.8086757660*s,
+  ];
+}
+
+function oklabToRgb(L, a, b) {
+  let l_ = L + 0.3963377774*a + 0.2158037573*b;
+  let m_ = L - 0.1055613458*a - 0.0638541728*b;
+  let s_ = L - 0.0894841775*a - 1.2914855480*b;
+  let l = l_*l_*l_, m = m_*m_*m_, s = s_*s_*s_;
+  return [
+    +4.0767416621*l - 3.3077115913*m + 0.2309699292*s,
+    -1.2684380046*l + 2.6097574011*m - 0.3413193965*s,
+    -0.0041960863*l - 0.7034186147*m + 1.7076147010*s,
+  ];
+}
+
+function catmullRom(p0, p1, p2, p3, t) {
+  const t2 = t*t, t3 = t2*t;
+  return [
+    0.5*(2*p1[0] + (-p0[0]+p2[0])*t + (2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*t2 + (-p0[0]+3*p1[0]-3*p2[0]+p3[0])*t3),
+    0.5*(2*p1[1] + (-p0[1]+p2[1])*t + (2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*t2 + (-p0[1]+3*p1[1]-3*p2[1]+p3[1])*t3),
+  ];
+}
+
+function normToSvg(nx, ny) {
+  return [SVG_X_MIN + nx * SVG_X_RANGE, SVG_Y_MIN + ny * SVG_Y_RANGE];
+}
+
+function svgToNorm(sx, sy) {
+  return [(sx - SVG_X_MIN) / SVG_X_RANGE, (sy - SVG_Y_MIN) / SVG_Y_RANGE];
+}
+
+// Linear light [0,1] → sRGB byte [0,255] for accurate monitor display.
+// The field evaluator applies badge gamma + WB so its output represents the
+// light the WS2812 LEDs actually emit. sRGB encoding maps that linear light
+// to monitor values, giving a WYSIWYG preview.
+function linearToSRGB8(v) {
+  v = clamp01(v);
+  const s = v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1/2.4) - 0.055;
+  return Math.round(s * 255);
+}
+
+function rgbfToCss(r, g, b) {
+  return `rgb(${linearToSRGB8(r)},${linearToSRGB8(g)},${linearToSRGB8(b)})`;
+}
+
+function rgbfToLinearCss(r, g, b) {
+  return `rgb(${Math.round(clamp01(r)*255)},${Math.round(clamp01(g)*255)},${Math.round(clamp01(b)*255)})`;
+}
+
+// =========================================================================
+// PALETTE RESOLUTION
+// =========================================================================
+function resolvePalette(hueDeg) {
+  const h = hueDeg / 360;
+  return [
+    hsvToRgb(h, 0.9, 1.0),         // user_primary
+    hsvToRgb(h, 0.4, 1.0),         // user_light
+    hsvToRgb(h, 0.9, 0.4),         // user_dark
+    hsvToRgb(h + 0.5, 0.9, 1.0),   // user_complement
+    hsvToRgb(h + 30/360, 0.9, 1.0),// user_analogous1
+    hsvToRgb(h - 30/360, 0.9, 1.0),// user_analogous2
+    [0.18, 0.85, 0.30],            // theme_green
+    [1.0, 0.75, 0.15],             // theme_gold
+    [1.0, 0.95, 0.85],             // theme_white
+  ];
+}
+
+// =========================================================================
+// BEHAVIOR EVALUATION
+// =========================================================================
+function evaluateMotion(m, t) {
+  switch (m.type) {
+    case 'static':
+      return [m.pos[0], m.pos[1]];
+    case 'orbit': {
+      const dir = m.reverse ? -1 : 1;
+      const angle = (m.phase || 0) + dir * TWO_PI * t / m.period;
+      return [m.center[0] + m.rx * Math.cos(angle), m.center[1] + m.ry * Math.sin(angle)];
+    }
+    case 'pingpong': {
+      const phase = (t % m.period) / m.period;
+      const lerp = 1 - Math.abs(2 * phase - 1);
+      return [m.a[0] + (m.b[0] - m.a[0]) * lerp, m.a[1] + (m.b[1] - m.a[1]) * lerp];
+    }
+    case 'noise_drift': {
+      const s = m.speed || 1;
+      const x = (m.amplitude || 0.2) *
+        (Math.sin(t*s*1.0) + 0.5*Math.sin(t*s*1.7+0.3) + 0.3*Math.sin(t*s*2.9+1.1)) / 1.8;
+      const y = (m.amplitude || 0.2) *
+        (Math.sin(t*s*1.3) + 0.5*Math.sin(t*s*2.1+0.7) + 0.3*Math.sin(t*s*3.7+2.3)) / 1.8;
+      return [m.center[0] + x, m.center[1] + y];
+    }
+    case 'lissajous': {
+      const st = t * (m.speed || 1);
+      const x = m.center[0] + m.rx * Math.sin(TWO_PI * m.freq_a * st + (m.phase || 0));
+      const y = m.center[1] + m.ry * Math.sin(TWO_PI * m.freq_b * st);
+      return [x, y];
+    }
+    case 'spline': {
+      const pts = m.points;
+      const count = pts.length;
+      if (count < 2) return [pts[0][0], pts[0][1]];
+      let phase = (t % m.period) / m.period;
+      if (m.reverse) phase = 1 - phase;
+      let idx = phase * count;
+      let seg = Math.floor(idx);
+      if (seg >= count) seg = count - 1;
+      const frac = idx - seg;
+      const i0 = (seg - 1 + count) % count;
+      const i1 = seg % count;
+      const i2 = (seg + 1) % count;
+      const i3 = (seg + 2) % count;
+      return catmullRom(pts[i0], pts[i1], pts[i2], pts[i3], frac);
+    }
+  }
+  return [0.5, 0.5];
+}
+
+function evaluateColor(c, t, palette) {
+  switch (c.type) {
+    case 'static':
+      return [c.color[0], c.color[1], c.color[2]];
+    case 'hue_cycle': {
+      let phase = (t % c.period) / c.period;
+      if (c.ping_pong) phase = 1.0 - Math.abs(2.0 * phase - 1.0);
+      const hue = c.from_hue + (c.to_hue - c.from_hue) * phase;
+      return hsvToRgb(hue, 0.9, 1.0);
+    }
+    case 'palette': {
+      const colors = c.colors;
+      const count = colors.length;
+      if (count < 2) return [colors[0][0], colors[0][1], colors[0][2]];
+      const phase = (t % c.period) / c.period;
+      const idx = phase * (count - 1);
+      const lo = Math.floor(idx);
+      let hi = lo + 1;
+      if (hi >= count) hi = 0;
+      const frac = idx - lo;
+      const a = colors[lo], b = colors[hi];
+      return [a[0]+(b[0]-a[0])*frac, a[1]+(b[1]-a[1])*frac, a[2]+(b[2]-a[2])*frac];
+    }
+    case 'palette_slot': {
+      const idx = PALETTE_SLOT_NAMES.indexOf(c.slot);
+      if (idx >= 0 && idx < palette.length) return [...palette[idx]];
+      return [1, 1, 1];
+    }
+  }
+  return [1, 1, 1];
+}
+
+function evaluateScalar(s, t) {
+  if (typeof s === 'number') return s;
+  switch (s.type) {
+    case 'static': return s.value;
+    case 'breathe': {
+      const angle = (s.phase || 0) + TWO_PI * t / s.period;
+      return s.base + s.amplitude * Math.sin(angle);
+    }
+    case 'noise': {
+      const sp = s.speed || 1;
+      const v = (Math.sin(t*sp*1.0) + 0.5*Math.sin(t*sp*1.7+0.3) + 0.3*Math.sin(t*sp*2.9+1.1)) / 1.8;
+      return s.base + s.amplitude * v;
+    }
+  }
+  return 1;
+}
+
+// =========================================================================
+// FIELD EVALUATION
+// =========================================================================
+function applySaturationFloor(r, g, b) {
+  const maxC = Math.max(r, g, b);
+  const minC = Math.min(r, g, b);
+  if (maxC <= 0.001) return [r, g, b];
+  const sat = (maxC - minC) / maxC;
+  if (sat >= SAT_FLOOR) return [r, g, b];
+  const target = maxC * (1 - SAT_FLOOR);
+  const scale = (maxC > minC) ? (maxC - target) / (maxC - minC) : 1;
+  return [maxC - (maxC - r) * scale, maxC - (maxC - g) * scale, maxC - (maxC - b) * scale];
+}
+
+function evaluateField(lights) {
+  const out = [];
+  for (let i = 0; i < NUM_LEDS; i++) {
+    let pr = 0, pg = 0, pb = 0;
+    for (let j = 0; j < lights.length; j++) {
+      const lt = lights[j];
+      if (lt.intensity <= 0) continue;
+      const d = dist(LED_POS[i][0], LED_POS[i][1], lt.pos[0], lt.pos[1]);
+      const rNorm = d / lt.radius;
+      const tt = 1 - rNorm * rNorm;
+      const atten = tt > 0 ? lt.intensity * tt * tt : 0;
+      if (atten <= 0) continue;
+      pr += lt.color[0] * atten;
+      pg += lt.color[1] * atten;
+      pb += lt.color[2] * atten;
+    }
+    // Scale proportionally instead of per-channel clamping to preserve
+    // color ratios. Per-channel clamping shifts hue toward white when
+    // additive contributions push individual channels past 1.0.
+    const maxC = Math.max(pr, pg, pb);
+    let r, g, b;
+    if (maxC > 1.0) {
+      const s = 1.0 / maxC;
+      r = pr * s; g = pg * s; b = pb * s;
+    } else {
+      r = pr; g = pg; b = pb;
+    }
+    if (r < 0) r = 0;
+    if (g < 0) g = 0;
+    if (b < 0) b = 0;
+    [r, g, b] = applySaturationFloor(r, g, b);
+    // Simulate badge output: apply gamma + white balance so the editor
+    // previews what the WS2812 LEDs actually emit.
+    r = Math.pow(r, GAMMA) * WB_R;
+    g = Math.pow(g, GAMMA) * WB_G;
+    b = Math.pow(b, GAMMA) * WB_B;
+    out.push([r, g, b]);
+  }
+  return out;
+}
+
+// =========================================================================
+// DEFAULT VALUES
+// =========================================================================
+function defaultMotion(type) {
+  switch (type) {
+    case 'static': return {type: 'static', pos: [0.5, 0.5]};
+    case 'orbit': return {type: 'orbit', center: [0.5, 0.5], rx: 0.3, ry: 0.3, period: 4, phase: 0, reverse: false};
+    case 'pingpong': return {type: 'pingpong', a: [0.1, 0.5], b: [0.9, 0.5], period: 4};
+    case 'noise_drift': return {type: 'noise_drift', center: [0.5, 0.5], amplitude: 0.2, speed: 1};
+    case 'lissajous': return {type: 'lissajous', center: [0.5, 0.5], rx: 0.3, ry: 0.3, freq_a: 1, freq_b: 2, phase: 0, speed: 1};
+    case 'spline': return {type: 'spline', points: [[0.2, 0.5], [0.5, 0.2], [0.8, 0.5], [0.5, 0.8]], period: 4, reverse: false};
+  }
+  return {type: 'static', pos: [0.5, 0.5]};
+}
+
+function defaultColor(type) {
+  switch (type) {
+    case 'static': return {type: 'static', color: [1, 1, 1]};
+    case 'hue_cycle': return {type: 'hue_cycle', from_hue: 0, to_hue: 1, period: 4, ping_pong: false};
+    case 'palette': return {type: 'palette', colors: [[1,0,0],[0,1,0]], count: 2, period: 4};
+    case 'palette_slot': return {type: 'palette_slot', slot: 'user_primary'};
+  }
+  return {type: 'palette_slot', slot: 'user_primary'};
+}
+
+function defaultScalar(type) {
+  switch (type) {
+    case 'static': return {type: 'static', value: 1};
+    case 'breathe': return {type: 'breathe', base: 0.5, amplitude: 0.2, period: 3, phase: 0};
+    case 'noise': return {type: 'noise', base: 0.8, amplitude: 0.2, speed: 1};
+  }
+  return {type: 'static', value: 1};
+}
+
+function normalizeScalar(s) {
+  if (s == null) return {type: 'static', value: 1};
+  if (typeof s === 'number') return {type: 'static', value: s};
+  return s;
+}
+
+function newTrack(pos) {
+  return {
+    motion: {type: 'static', pos: pos || [0.5, 0.5]},
+    color: {type: 'palette_slot', slot: 'user_primary'},
+    radius: {type: 'static', value: 0.3},
+    intensity: {type: 'static', value: 1.0},
+    startTime: 0,
+    fadeIn: 0,
+  };
+}
+
+// =========================================================================
+// EDITOR STATE
+// =========================================================================
+const editor = {
+  animation: {
+    name: 'untitled',
+    duration: 0,
+    tracks: [newTrack()],
+  },
+  selectedTrack: 0,
+  playing: false,
+  time: 0,
+  speed: 1,
+  looping: true,
+  userHue: 180,
+  palette: resolvePalette(180),
+  lights: [],
+  ledColors: [],
+  frameCount: 0,
+  lastFpsTime: 0,
+  dirty: true,
+};
+
+// =========================================================================
+// EVALUATE FRAME
+// =========================================================================
+function evaluateFrame(t) {
+  const tracks = editor.animation.tracks;
+  const lights = [];
+  for (let i = 0; i < tracks.length; i++) {
+    const track = tracks[i];
+    const startTime = track.startTime || 0;
+    if (t < startTime) {
+      lights.push({pos: [0,0], color: [0,0,0], radius: 0, intensity: 0});
+      continue;
+    }
+    const tt = t - startTime;
+    const pos = evaluateMotion(track.motion, tt);
+    const color = evaluateColor(track.color, tt, editor.palette);
+    const radius = evaluateScalar(normalizeScalar(track.radius), tt);
+    // Clamp before Math.pow: a breathe with amplitude > base evaluates negative
+    // for part of its cycle, and Math.pow() of a negative base with a fractional
+    // exponent returns NaN.
+    let rawIntensity = evaluateScalar(normalizeScalar(track.intensity), tt);
+    if (rawIntensity < 0) rawIntensity = 0;
+    let intensity = Math.pow(rawIntensity, INTENSITY_CURVE / GAMMA);
+    const fadeIn = track.fadeIn || 0;
+    if (fadeIn > 0 && tt < fadeIn) {
+      const fade = tt / fadeIn;
+      intensity *= Math.pow(fade, 1.0 / GAMMA);
+    }
+    lights.push({pos, color, radius, intensity});
+  }
+  editor.lights = lights;
+  editor.ledColors = evaluateField(lights);
+}
+
+// =========================================================================
+// SVG RENDERING
+// =========================================================================
+const svgEl = document.getElementById('badge-svg');
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const gradients = Array.from({length: NUM_LEDS}, (_, i) => document.getElementById('g' + i));
+const dotEls = Array.from({length: NUM_LEDS}, (_, i) => document.getElementById('dot' + i));
+const pathsGroup = document.getElementById('paths');
+const lightsGroup = document.getElementById('lights');
+
+function renderCanvas() {
+  // Update LED glows
+  for (let i = 0; i < NUM_LEDS; i++) {
+    const [r, g, b] = editor.ledColors[i] || [0, 0, 0];
+    const color = rgbfToCss(r, g, b);
+    const grad = gradients[i];
+    const stops = grad.getElementsByTagName('stop');
+    if (stops.length >= 2) {
+      stops[0].setAttribute('stop-color', color);
+      stops[0].setAttribute('stop-opacity', '0.9');
+    }
+    if (stops.length >= 3) {
+      stops[1].setAttribute('stop-color', color);
+      stops[1].setAttribute('stop-opacity', '0.2');
+    }
+    const lastStop = stops[stops.length - 1];
+    lastStop.setAttribute('stop-color', color);
+    lastStop.setAttribute('stop-opacity', '0');
+    dotEls[i].setAttribute('fill', color);
+  }
+
+  // Clear and rebuild path overlays and light markers
+  pathsGroup.innerHTML = '';
+  lightsGroup.innerHTML = '';
+
+  for (let i = 0; i < editor.lights.length; i++) {
+    const lt = editor.lights[i];
+    const track = editor.animation.tracks[i];
+    const selected = i === editor.selectedTrack;
+    const alpha = Math.min(1, Math.max(0.15, lt.intensity));
+    const cr = Math.round(clamp01(lt.color[0]) * 255);
+    const cg = Math.round(clamp01(lt.color[1]) * 255);
+    const cb = Math.round(clamp01(lt.color[2]) * 255);
+    const markerColor = `rgb(${cr},${cg},${cb})`;
+
+    // Path visualization for selected track
+    if (selected && track) {
+      renderPathOverlay(track.motion, markerColor, i);
+    }
+
+    if (lt.intensity <= 0 && !selected) continue;
+
+    const [sx, sy] = normToSvg(lt.pos[0], lt.pos[1]);
+    const svgRad = lt.radius * Math.max(SVG_X_RANGE, SVG_Y_RANGE);
+
+    // Radius ring
+    const ring = document.createElementNS(SVG_NS, 'circle');
+    ring.setAttribute('cx', sx);
+    ring.setAttribute('cy', sy);
+    ring.setAttribute('r', svgRad);
+    ring.setAttribute('fill', 'none');
+    ring.setAttribute('stroke', markerColor);
+    ring.setAttribute('stroke-width', selected ? '0.5' : '0.3');
+    ring.setAttribute('stroke-dasharray', selected ? '2,1' : '1,1');
+    ring.setAttribute('opacity', selected ? 0.7 : alpha * 0.3);
+    lightsGroup.appendChild(ring);
+
+    // Center marker
+    const dot = document.createElementNS(SVG_NS, 'circle');
+    dot.setAttribute('cx', sx);
+    dot.setAttribute('cy', sy);
+    dot.setAttribute('r', selected ? '2.5' : '1.5');
+    dot.setAttribute('fill', selected ? markerColor : 'none');
+    dot.setAttribute('stroke', markerColor);
+    dot.setAttribute('stroke-width', selected ? '0.6' : '0.4');
+    dot.setAttribute('opacity', selected ? 1 : Math.max(0.3, alpha));
+    dot.setAttribute('cursor', 'grab');
+    dot.dataset.trackIdx = i;
+    lightsGroup.appendChild(dot);
+
+    // Track index label
+    if (selected) {
+      const txt = document.createElementNS(SVG_NS, 'text');
+      txt.setAttribute('x', sx + 3);
+      txt.setAttribute('y', sy - 3);
+      txt.setAttribute('font-family', 'monospace');
+      txt.setAttribute('font-size', '4');
+      txt.setAttribute('fill', '#4ec9b0');
+      txt.textContent = i;
+      lightsGroup.appendChild(txt);
+    }
+  }
+}
+
+function renderPathOverlay(motion, color, trackIdx) {
+  // Helper: create a draggable handle circle
+  function handle(sx, sy, handleId) {
+    const d = document.createElementNS(SVG_NS, 'circle');
+    d.setAttribute('cx', sx); d.setAttribute('cy', sy);
+    d.setAttribute('r', '2.5');
+    d.setAttribute('fill', color);
+    d.setAttribute('fill-opacity', '0.15');
+    d.setAttribute('stroke', color);
+    d.setAttribute('stroke-width', '0.5');
+    d.setAttribute('opacity', '0.8');
+    d.setAttribute('cursor', 'grab');
+    d.dataset.trackIdx = trackIdx;
+    d.dataset.handle = handleId;
+    pathsGroup.appendChild(d);
+  }
+
+  // Helper: create a draggable handle square (for spline points)
+  function handleRect(sx, sy, handleId) {
+    const size = 4;
+    const d = document.createElementNS(SVG_NS, 'rect');
+    d.setAttribute('x', sx - size/2); d.setAttribute('y', sy - size/2);
+    d.setAttribute('width', size); d.setAttribute('height', size);
+    d.setAttribute('fill', color);
+    d.setAttribute('fill-opacity', '0.15');
+    d.setAttribute('stroke', color);
+    d.setAttribute('stroke-width', '0.5');
+    d.setAttribute('opacity', '0.8');
+    d.setAttribute('cursor', 'grab');
+    d.dataset.trackIdx = trackIdx;
+    d.dataset.handle = handleId;
+    pathsGroup.appendChild(d);
+  }
+
+  switch (motion.type) {
+    case 'orbit': {
+      const [cx, cy] = normToSvg(motion.center[0], motion.center[1]);
+      const rx = motion.rx * SVG_X_RANGE;
+      const ry = motion.ry * SVG_Y_RANGE;
+      const el = document.createElementNS(SVG_NS, 'ellipse');
+      el.setAttribute('cx', cx);
+      el.setAttribute('cy', cy);
+      el.setAttribute('rx', rx);
+      el.setAttribute('ry', ry);
+      el.setAttribute('fill', 'none');
+      el.setAttribute('stroke', color);
+      el.setAttribute('stroke-width', '0.3');
+      el.setAttribute('stroke-dasharray', '2,2');
+      el.setAttribute('opacity', '0.4');
+      pathsGroup.appendChild(el);
+      break;
+    }
+    case 'pingpong': {
+      const [ax, ay] = normToSvg(motion.a[0], motion.a[1]);
+      const [bx, by] = normToSvg(motion.b[0], motion.b[1]);
+      const el = document.createElementNS(SVG_NS, 'line');
+      el.setAttribute('x1', ax); el.setAttribute('y1', ay);
+      el.setAttribute('x2', bx); el.setAttribute('y2', by);
+      el.setAttribute('stroke', color);
+      el.setAttribute('stroke-width', '0.3');
+      el.setAttribute('stroke-dasharray', '2,2');
+      el.setAttribute('opacity', '0.4');
+      pathsGroup.appendChild(el);
+      handle(ax, ay, 'a');
+      handle(bx, by, 'b');
+      break;
+    }
+    case 'noise_drift': {
+      const [cx, cy] = normToSvg(motion.center[0], motion.center[1]);
+      const amp = (motion.amplitude || 0.2) * Math.max(SVG_X_RANGE, SVG_Y_RANGE);
+      const el = document.createElementNS(SVG_NS, 'circle');
+      el.setAttribute('cx', cx); el.setAttribute('cy', cy);
+      el.setAttribute('r', amp);
+      el.setAttribute('fill', 'none');
+      el.setAttribute('stroke', color);
+      el.setAttribute('stroke-width', '0.2');
+      el.setAttribute('stroke-dasharray', '1,2');
+      el.setAttribute('opacity', '0.3');
+      pathsGroup.appendChild(el);
+      break;
+    }
+    case 'lissajous': {
+      const pts = [];
+      const steps = 200;
+      for (let s = 0; s <= steps; s++) {
+        const t = (s / steps) * (1 / (Math.min(motion.freq_a || 1, motion.freq_b || 1) * (motion.speed || 1)));
+        const [nx, ny] = evaluateMotion(motion, t);
+        const [sx, sy] = normToSvg(nx, ny);
+        pts.push(`${sx},${sy}`);
+      }
+      const el = document.createElementNS(SVG_NS, 'polyline');
+      el.setAttribute('points', pts.join(' '));
+      el.setAttribute('fill', 'none');
+      el.setAttribute('stroke', color);
+      el.setAttribute('stroke-width', '0.3');
+      el.setAttribute('opacity', '0.3');
+      pathsGroup.appendChild(el);
+      break;
+    }
+    case 'spline': {
+      if (!motion.points || motion.points.length < 2) break;
+      const pts = [];
+      const steps = 200;
+      for (let s = 0; s <= steps; s++) {
+        const t = (s / steps) * motion.period;
+        const [nx, ny] = evaluateMotion(motion, t);
+        const [sx, sy] = normToSvg(nx, ny);
+        pts.push(`${sx},${sy}`);
+      }
+      const el = document.createElementNS(SVG_NS, 'polyline');
+      el.setAttribute('points', pts.join(' '));
+      el.setAttribute('fill', 'none');
+      el.setAttribute('stroke', color);
+      el.setAttribute('stroke-width', '0.3');
+      el.setAttribute('opacity', '0.4');
+      pathsGroup.appendChild(el);
+      for (let i = 0; i < motion.points.length; i++) {
+        const [px, py] = normToSvg(motion.points[i][0], motion.points[i][1]);
+        handleRect(px, py, 'spline-' + i);
+      }
+      break;
+    }
+  }
+}
+
+// =========================================================================
+// PALETTE BAR
+// =========================================================================
+function renderPaletteBar() {
+  const bar = document.getElementById('palette-bar');
+  bar.innerHTML = '';
+  for (let i = 0; i < PALETTE_SLOT_NAMES.length; i++) {
+    const div = document.createElement('div');
+    div.className = 'swatch';
+    div.id = 'swatch-' + PALETTE_SLOT_NAMES[i];
+    div.title = PALETTE_SLOT_NAMES[i];
+    const c = editor.palette[i];
+    div.style.background = rgbfToLinearCss(c[0], c[1], c[2]);
+    const lbl = document.createElement('span');
+    lbl.className = 'swatch-label';
+    lbl.textContent = PALETTE_LABELS[i];
+    div.appendChild(lbl);
+    div.onclick = () => {
+      if (editor.selectedTrack >= 0 && editor.selectedTrack < editor.animation.tracks.length) {
+        editor.animation.tracks[editor.selectedTrack].color = {type: 'palette_slot', slot: PALETTE_SLOT_NAMES[i]};
+        renderProps();
+        editor.dirty = true;
+      }
+    };
+    bar.appendChild(div);
+  }
+}
+
+function updatePaletteBar() {
+  for (let i = 0; i < PALETTE_SLOT_NAMES.length; i++) {
+    const el = document.getElementById('swatch-' + PALETTE_SLOT_NAMES[i]);
+    if (el) {
+      const c = editor.palette[i];
+      el.style.background = rgbfToLinearCss(c[0], c[1], c[2]);
+    }
+  }
+}
+
+// =========================================================================
+// PROPERTY PANEL
+// =========================================================================
+function renderProps() {
+  const content = document.getElementById('props-content');
+  const empty = document.getElementById('props-empty');
+  const idx = editor.selectedTrack;
+  const tracks = editor.animation.tracks;
+
+  if (idx < 0 || idx >= tracks.length) {
+    content.style.display = 'none';
+    empty.style.display = '';
+    return;
+  }
+
+  content.style.display = '';
+  empty.style.display = 'none';
+  content.innerHTML = '';
+
+  const track = tracks[idx];
+
+  // Motion
+  content.appendChild(buildSection('Motion', () => {
+    const rows = [];
+    rows.push(buildDropdown('type', track.motion.type,
+      ['static','orbit','pingpong','noise_drift','lissajous','spline'],
+      v => { track.motion = defaultMotion(v); renderProps(); }
+    ));
+    switch (track.motion.type) {
+      case 'static':
+        rows.push(buildVec2Row('pos', track.motion.pos, v => { track.motion.pos = v; }));
+        break;
+      case 'orbit':
+        rows.push(buildVec2Row('center', track.motion.center, v => { track.motion.center = v; }));
+        rows.push(buildNumRow('rx', track.motion.rx, v => { track.motion.rx = v; }));
+        rows.push(buildNumRow('ry', track.motion.ry, v => { track.motion.ry = v; }));
+        rows.push(buildNumRow('period', track.motion.period, v => { track.motion.period = v; }, 0.1));
+        rows.push(buildNumRow('phase', track.motion.phase, v => { track.motion.phase = v; }, 0.01));
+        rows.push(buildCheckboxRow('reverse', track.motion.reverse, v => { track.motion.reverse = v; }));
+        break;
+      case 'pingpong':
+        rows.push(buildVec2Row('a', track.motion.a, v => { track.motion.a = v; }));
+        rows.push(buildVec2Row('b', track.motion.b, v => { track.motion.b = v; }));
+        rows.push(buildNumRow('period', track.motion.period, v => { track.motion.period = v; }, 0.1));
+        break;
+      case 'noise_drift':
+        rows.push(buildVec2Row('center', track.motion.center, v => { track.motion.center = v; }));
+        rows.push(buildNumRow('amplitude', track.motion.amplitude, v => { track.motion.amplitude = v; }));
+        rows.push(buildNumRow('speed', track.motion.speed, v => { track.motion.speed = v; }, 0.1));
+        break;
+      case 'lissajous':
+        rows.push(buildVec2Row('center', track.motion.center, v => { track.motion.center = v; }));
+        rows.push(buildNumRow('rx', track.motion.rx, v => { track.motion.rx = v; }));
+        rows.push(buildNumRow('ry', track.motion.ry, v => { track.motion.ry = v; }));
+        rows.push(buildNumRow('freq_a', track.motion.freq_a, v => { track.motion.freq_a = v; }, 0.1));
+        rows.push(buildNumRow('freq_b', track.motion.freq_b, v => { track.motion.freq_b = v; }, 0.1));
+        rows.push(buildNumRow('phase', track.motion.phase, v => { track.motion.phase = v; }, 0.01));
+        rows.push(buildNumRow('speed', track.motion.speed || 1, v => { track.motion.speed = v; }, 0.1));
+        break;
+      case 'spline':
+        rows.push(buildNumRow('period', track.motion.period, v => { track.motion.period = v; }, 0.1));
+        rows.push(buildCheckboxRow('reverse', track.motion.reverse, v => { track.motion.reverse = v; }));
+        rows.push(buildSplinePoints(track.motion));
+        break;
+    }
+    return rows;
+  }));
+
+  // Color
+  content.appendChild(buildSection('Color', () => {
+    const rows = [];
+    rows.push(buildDropdown('type', track.color.type,
+      ['static','hue_cycle','palette','palette_slot'],
+      v => { track.color = defaultColor(v); renderProps(); }
+    ));
+    switch (track.color.type) {
+      case 'static':
+        rows.push(buildColorRow('color', track.color.color, v => { track.color.color = v; }));
+        break;
+      case 'hue_cycle':
+        rows.push(buildNumRow('from_hue', track.color.from_hue, v => { track.color.from_hue = v; }, 0.01));
+        rows.push(buildNumRow('to_hue', track.color.to_hue, v => { track.color.to_hue = v; }, 0.01));
+        rows.push(buildNumRow('period', track.color.period, v => { track.color.period = v; }, 0.1));
+        rows.push(buildCheckboxRow('ping_pong', track.color.ping_pong, v => { track.color.ping_pong = v; }));
+        break;
+      case 'palette':
+        rows.push(buildNumRow('period', track.color.period, v => { track.color.period = v; }, 0.1));
+        rows.push(buildPaletteColors(track.color));
+        break;
+      case 'palette_slot':
+        rows.push(buildDropdown('slot', track.color.slot, PALETTE_SLOT_NAMES,
+          v => { track.color.slot = v; }
+        ));
+        break;
+    }
+    return rows;
+  }));
+
+  // Radius
+  const rad = normalizeScalar(track.radius);
+  track.radius = rad;
+  content.appendChild(buildSection('Radius', () => buildScalarRows(rad, v => { track.radius = v; })));
+
+  // Intensity
+  const inten = normalizeScalar(track.intensity);
+  track.intensity = inten;
+  content.appendChild(buildSection('Intensity', () => buildScalarRows(inten, v => { track.intensity = v; })));
+
+  // Timing
+  content.appendChild(buildSection('Timing', () => [
+    buildNumRow('startTime', track.startTime || 0, v => { track.startTime = v; }, 0.1),
+    buildNumRow('fadeIn', track.fadeIn || 0, v => { track.fadeIn = v; }, 0.1),
+  ]));
+}
+
+function buildSection(title, buildFn) {
+  const div = document.createElement('div');
+  div.className = 'prop-section';
+  const h = document.createElement('div');
+  h.className = 'prop-section-header';
+  h.textContent = title;
+  div.appendChild(h);
+  const rows = buildFn();
+  for (const r of (Array.isArray(rows) ? rows : [rows])) {
+    if (r) div.appendChild(r);
+  }
+  return div;
+}
+
+function buildCheckboxRow(label, value, onChange) {
+  const row = document.createElement('div');
+  row.className = 'prop-row';
+  const lbl = document.createElement('span');
+  lbl.className = 'prop-label';
+  lbl.textContent = label;
+  const inp = document.createElement('input');
+  inp.type = 'checkbox';
+  inp.checked = !!value;
+  inp.onchange = () => { onChange(inp.checked); editor.dirty = true; };
+  row.appendChild(lbl);
+  row.appendChild(inp);
+  return row;
+}
+
+function buildNumRow(label, value, onChange, step) {
+  const row = document.createElement('div');
+  row.className = 'prop-row';
+  const lbl = document.createElement('span');
+  lbl.className = 'prop-label';
+  lbl.textContent = label;
+  const inp = document.createElement('input');
+  inp.type = 'number';
+  inp.value = parseFloat((value || 0).toFixed(4));
+  inp.step = step || 0.01;
+  inp.oninput = () => { onChange(parseFloat(inp.value) || 0); editor.dirty = true; };
+  row.appendChild(lbl);
+  row.appendChild(inp);
+  return row;
+}
+
+function buildVec2Row(label, vec, onChange) {
+  const row = document.createElement('div');
+  row.className = 'prop-row';
+  const lbl = document.createElement('span');
+  lbl.className = 'prop-label';
+  lbl.textContent = label;
+  const ix = document.createElement('input');
+  ix.type = 'number'; ix.step = 0.01; ix.value = parseFloat(vec[0].toFixed(3));
+  ix.style.width = '60px';
+  const iy = document.createElement('input');
+  iy.type = 'number'; iy.step = 0.01; iy.value = parseFloat(vec[1].toFixed(3));
+  iy.style.width = '60px';
+  const update = () => { onChange([parseFloat(ix.value)||0, parseFloat(iy.value)||0]); editor.dirty = true; };
+  ix.oninput = update;
+  iy.oninput = update;
+  row.appendChild(lbl);
+  row.appendChild(ix);
+  row.appendChild(iy);
+  return row;
+}
+
+function buildColorRow(label, rgb, onChange) {
+  const row = document.createElement('div');
+  row.className = 'prop-row';
+  const lbl = document.createElement('span');
+  lbl.className = 'prop-label';
+  lbl.textContent = label;
+  const inp = document.createElement('input');
+  inp.type = 'color';
+  inp.value = '#' + [rgb[0], rgb[1], rgb[2]].map(v => Math.round(clamp01(v)*255).toString(16).padStart(2,'0')).join('');
+  inp.oninput = () => {
+    const hex = inp.value;
+    const r = parseInt(hex.slice(1,3),16)/255;
+    const g = parseInt(hex.slice(3,5),16)/255;
+    const b = parseInt(hex.slice(5,7),16)/255;
+    onChange([r, g, b]);
+    editor.dirty = true;
+  };
+  row.appendChild(lbl);
+  row.appendChild(inp);
+  // Also show R/G/B inputs
+  for (let c = 0; c < 3; c++) {
+    const ci = document.createElement('input');
+    ci.type = 'number'; ci.step = 0.01; ci.min = 0; ci.max = 1;
+    ci.value = parseFloat(rgb[c].toFixed(2));
+    ci.style.width = '48px';
+    ci.oninput = () => {
+      rgb[c] = parseFloat(ci.value) || 0;
+      onChange([...rgb]);
+      inp.value = '#' + rgb.map(v => Math.round(clamp01(v)*255).toString(16).padStart(2,'0')).join('');
+      editor.dirty = true;
+    };
+    row.appendChild(ci);
+  }
+  return row;
+}
+
+function buildDropdown(label, value, options, onChange) {
+  const row = document.createElement('div');
+  row.className = 'prop-row';
+  const lbl = document.createElement('span');
+  lbl.className = 'prop-label';
+  lbl.textContent = label;
+  const sel = document.createElement('select');
+  for (const opt of options) {
+    const o = document.createElement('option');
+    o.value = opt;
+    o.textContent = opt;
+    if (opt === value) o.selected = true;
+    sel.appendChild(o);
+  }
+  sel.onchange = () => { onChange(sel.value); editor.dirty = true; };
+  row.appendChild(lbl);
+  row.appendChild(sel);
+  return row;
+}
+
+function buildScalarRows(scalar, setScalar) {
+  const rows = [];
+  rows.push(buildDropdown('type', scalar.type, ['static','breathe','noise'], v => {
+    const ns = defaultScalar(v);
+    Object.assign(scalar, ns);
+    // Clear any extra keys from old type
+    for (const k of Object.keys(scalar)) {
+      if (!(k in ns)) delete scalar[k];
+    }
+    setScalar(scalar);
+    renderProps();
+  }));
+  switch (scalar.type) {
+    case 'static':
+      rows.push(buildNumRow('value', scalar.value, v => { scalar.value = v; }));
+      break;
+    case 'breathe':
+      rows.push(buildNumRow('base', scalar.base, v => { scalar.base = v; }));
+      rows.push(buildNumRow('amplitude', scalar.amplitude, v => { scalar.amplitude = v; }));
+      rows.push(buildNumRow('period', scalar.period, v => { scalar.period = v; }, 0.1));
+      rows.push(buildNumRow('phase', scalar.phase, v => { scalar.phase = v; }, 0.01));
+      break;
+    case 'noise':
+      rows.push(buildNumRow('base', scalar.base, v => { scalar.base = v; }));
+      rows.push(buildNumRow('amplitude', scalar.amplitude, v => { scalar.amplitude = v; }));
+      rows.push(buildNumRow('speed', scalar.speed, v => { scalar.speed = v; }, 0.1));
+      break;
+  }
+  return rows;
+}
+
+function buildSplinePoints(motion) {
+  const container = document.createElement('div');
+  const pts = motion.points || [];
+
+  for (let i = 0; i < pts.length; i++) {
+    const row = document.createElement('div');
+    row.className = 'spline-point-row';
+    const lbl = document.createElement('span');
+    lbl.style.cssText = 'font-size:10px;color:#666;width:16px;';
+    lbl.textContent = i;
+    const ix = document.createElement('input');
+    ix.type = 'number'; ix.step = 0.01; ix.value = pts[i][0].toFixed(2);
+    ix.style.width = '55px'; ix.style.fontSize = '11px';
+    ix.style.cssText += 'background:#3c3c3c;border:1px solid #555;color:#ccc;padding:1px 3px;border-radius:2px;';
+    const iy = document.createElement('input');
+    iy.type = 'number'; iy.step = 0.01; iy.value = pts[i][1].toFixed(2);
+    iy.style.width = '55px'; iy.style.fontSize = '11px';
+    iy.style.cssText += 'background:#3c3c3c;border:1px solid #555;color:#ccc;padding:1px 3px;border-radius:2px;';
+    const ci = i; // capture
+    ix.oninput = () => { pts[ci][0] = parseFloat(ix.value)||0; editor.dirty = true; };
+    iy.oninput = () => { pts[ci][1] = parseFloat(iy.value)||0; editor.dirty = true; };
+    const del = document.createElement('button');
+    del.textContent = 'x';
+    del.style.cssText = 'background:none;border:none;color:#f44;cursor:pointer;font-size:11px;padding:0 3px;';
+    del.onclick = () => {
+      if (pts.length > 2) { pts.splice(ci, 1); renderProps(); editor.dirty = true; }
+    };
+    row.appendChild(lbl); row.appendChild(ix); row.appendChild(iy); row.appendChild(del);
+    container.appendChild(row);
+  }
+
+  if (pts.length < MAX_SPLINE_POINTS) {
+    const addRow = document.createElement('div');
+    addRow.className = 'spline-point-row';
+    const addBtn = document.createElement('button');
+    addBtn.textContent = '+ point';
+    addBtn.style.cssText = 'background:#3c3c3c;border:1px solid #555;color:#ccc;padding:1px 8px;border-radius:2px;cursor:pointer;font-size:11px;';
+    addBtn.onclick = () => { pts.push([0.5, 0.5]); renderProps(); editor.dirty = true; };
+    addRow.appendChild(addBtn);
+    container.appendChild(addRow);
+  }
+  return container;
+}
+
+function buildPaletteColors(colorBehavior) {
+  const container = document.createElement('div');
+  const colors = colorBehavior.colors || [];
+
+  for (let i = 0; i < colors.length; i++) {
+    const row = document.createElement('div');
+    row.className = 'palette-color-row';
+    const lbl = document.createElement('span');
+    lbl.style.cssText = 'font-size:10px;color:#666;width:16px;';
+    lbl.textContent = i;
+    const inp = document.createElement('input');
+    inp.type = 'color';
+    inp.value = '#' + colors[i].map(v => Math.round(clamp01(v)*255).toString(16).padStart(2,'0')).join('');
+    const ci = i;
+    inp.oninput = () => {
+      const hex = inp.value;
+      colors[ci] = [parseInt(hex.slice(1,3),16)/255, parseInt(hex.slice(3,5),16)/255, parseInt(hex.slice(5,7),16)/255];
+      editor.dirty = true;
+    };
+    const del = document.createElement('button');
+    del.textContent = 'x';
+    del.style.cssText = 'background:none;border:none;color:#f44;cursor:pointer;font-size:11px;padding:0 3px;';
+    del.onclick = () => {
+      if (colors.length > 2) { colors.splice(ci, 1); renderProps(); editor.dirty = true; }
+    };
+    row.appendChild(lbl); row.appendChild(inp); row.appendChild(del);
+    container.appendChild(row);
+  }
+
+  if (colors.length < MAX_PALETTE_COLORS) {
+    const addRow = document.createElement('div');
+    addRow.className = 'palette-color-row';
+    const addBtn = document.createElement('button');
+    addBtn.textContent = '+ color';
+    addBtn.style.cssText = 'background:#3c3c3c;border:1px solid #555;color:#ccc;padding:1px 8px;border-radius:2px;cursor:pointer;font-size:11px;';
+    addBtn.onclick = () => { colors.push([1,1,1]); renderProps(); editor.dirty = true; };
+    addRow.appendChild(addBtn);
+    container.appendChild(addRow);
+  }
+  return container;
+}
+
+// =========================================================================
+// TRACK LIST
+// =========================================================================
+function renderTrackList() {
+  const list = document.getElementById('track-list');
+  list.innerHTML = '';
+  const tracks = editor.animation.tracks;
+
+  for (let i = 0; i < tracks.length; i++) {
+    const track = tracks[i];
+    const row = document.createElement('div');
+    row.className = 'track-row' + (i === editor.selectedTrack ? ' selected' : '');
+    row.onclick = (e) => {
+      if (e.target.classList.contains('track-delete')) return;
+      editor.selectedTrack = i;
+      renderTrackList();
+      renderProps();
+      editor.dirty = true;
+    };
+
+    const idx = document.createElement('span');
+    idx.className = 'track-idx';
+    idx.textContent = i;
+
+    const info = document.createElement('span');
+    info.className = 'track-info';
+    info.innerHTML = `<span class="motion-type">${track.motion.type}</span>`;
+
+    const colorPreview = document.createElement('div');
+    colorPreview.className = 'track-color-preview';
+    const tc = evaluateColor(track.color, 0, editor.palette);
+    colorPreview.style.background = rgbfToLinearCss(tc[0], tc[1], tc[2]);
+
+    const timing = document.createElement('span');
+    timing.className = 'track-timing';
+    const st = track.startTime || 0;
+    const fi = track.fadeIn || 0;
+    timing.textContent = st > 0 || fi > 0 ? `t=${st.toFixed(1)} f=${fi.toFixed(1)}` : '';
+
+    const del = document.createElement('button');
+    del.className = 'track-delete';
+    del.textContent = '\u00d7';
+    del.title = 'Delete track';
+    del.onclick = () => {
+      tracks.splice(i, 1);
+      if (editor.selectedTrack >= tracks.length) editor.selectedTrack = tracks.length - 1;
+      renderTrackList();
+      renderProps();
+      editor.dirty = true;
+    };
+
+    row.appendChild(idx);
+    row.appendChild(info);
+    row.appendChild(colorPreview);
+    row.appendChild(timing);
+    row.appendChild(del);
+    list.appendChild(row);
+  }
+}
+
+// =========================================================================
+// TRANSPORT
+// =========================================================================
+function updateTransport() {
+  document.getElementById('time-display').textContent = editor.time.toFixed(2) + 's';
+  const scrub = document.getElementById('time-scrub');
+  if (!scrub._dragging) scrub.value = editor.time;
+  document.getElementById('btn-play').classList.toggle('active', editor.playing);
+}
+
+// =========================================================================
+// JSON IMPORT / EXPORT
+// =========================================================================
+function exportAnimation() {
+  const anim = editor.animation;
+  const out = {
+    name: anim.name,
+    duration: anim.duration,
+    tracks: anim.tracks.map(t => {
+      const track = {motion: {...t.motion}, color: {...t.color}};
+      // Radius
+      const r = normalizeScalar(t.radius);
+      track.radius = r.type === 'static' ? r.value : {...r};
+      // Intensity
+      const inten = normalizeScalar(t.intensity);
+      track.intensity = inten.type === 'static' ? inten.value : {...inten};
+      // Timing
+      if (t.startTime) track.startTime = t.startTime;
+      if (t.fadeIn) track.fadeIn = t.fadeIn;
+      // Deep copy arrays
+      if (track.motion.points) track.motion.points = track.motion.points.map(p => [...p]);
+      if (track.color.colors) track.color.colors = track.color.colors.map(c => [...c]);
+      if (track.color.color) track.color.color = [...track.color.color];
+      if (track.motion.pos) track.motion.pos = [...track.motion.pos];
+      if (track.motion.center) track.motion.center = [...track.motion.center];
+      if (track.motion.a) track.motion.a = [...track.motion.a];
+      if (track.motion.b) track.motion.b = [...track.motion.b];
+      if (!track.motion.reverse) delete track.motion.reverse;
+      if (!track.color.ping_pong) delete track.color.ping_pong;
+      return track;
+    }),
+  };
+  return out;
+}
+
+function importAnimation(json) {
+  try {
+    const obj = typeof json === 'string' ? JSON.parse(json) : json;
+    if (!obj.tracks || !Array.isArray(obj.tracks) || obj.tracks.length === 0) {
+      alert('Invalid animation: missing or empty tracks array');
+      return;
+    }
+    // Normalize tracks
+    for (const t of obj.tracks) {
+      if (!t.motion) t.motion = {type: 'static', pos: [0.5, 0.5]};
+      if (!t.color) t.color = {type: 'palette_slot', slot: 'user_primary'};
+      t.radius = normalizeScalar(t.radius);
+      t.intensity = normalizeScalar(t.intensity);
+      if (!t.startTime) t.startTime = 0;
+      if (!t.fadeIn) t.fadeIn = 0;
+    }
+    editor.animation = {
+      name: obj.name || 'imported',
+      duration: obj.duration || 0,
+      tracks: obj.tracks.slice(0, MAX_LIGHTS),
+    };
+    editor.selectedTrack = 0;
+    editor.time = 0;
+    document.getElementById('anim-name').value = editor.animation.name;
+    document.getElementById('anim-duration').value = editor.animation.duration;
+    renderTrackList();
+    renderProps();
+    editor.dirty = true;
+  } catch (e) {
+    alert('JSON parse error: ' + e.message);
+  }
+}
+
+function showExportModal() {
+  const anim = exportAnimation();
+  const compactChk = document.getElementById('json-compact');
+  const textarea = document.getElementById('json-textarea');
+
+  function formatJson() {
+    return compactChk.checked ? JSON.stringify(anim) : JSON.stringify(anim, null, 2);
+  }
+
+  document.getElementById('json-modal-title').textContent = 'Export JSON';
+  document.getElementById('json-compact-label').style.display = '';
+  textarea.value = formatJson();
+  compactChk.onchange = () => { textarea.value = formatJson(); };
+  document.getElementById('json-modal-ok').textContent = 'Copy';
+  document.getElementById('json-modal-ok').onclick = () => {
+    navigator.clipboard.writeText(textarea.value).then(() => {
+      document.getElementById('json-modal-ok').textContent = 'Copied!';
+      setTimeout(() => closeModal(), 500);
+    });
+  };
+  document.getElementById('json-modal').classList.add('open');
+}
+
+function showImportModal() {
+  document.getElementById('json-compact-label').style.display = 'none';
+  document.getElementById('json-modal-title').textContent = 'Import JSON';
+  document.getElementById('json-textarea').value = '';
+  document.getElementById('json-modal-ok').textContent = 'Load';
+  document.getElementById('json-modal-ok').onclick = () => {
+    importAnimation(document.getElementById('json-textarea').value);
+    closeModal();
+  };
+  document.getElementById('json-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('json-modal').classList.remove('open');
+}
+
+function sendToBadge() {
+  const json = JSON.stringify(exportAnimation());
+  const cmd = 'animate load ' + json;
+  fetch('/api/send', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({command: cmd}),
+  }).then(r => {
+    if (r.ok) {
+      document.getElementById('btn-send').textContent = 'Sent!';
+      setTimeout(() => { document.getElementById('btn-send').textContent = 'Send'; }, 1500);
+    } else {
+      alert('Send failed: ' + r.statusText);
+    }
+  }).catch(() => {
+    alert('Could not connect to preview server.\nRun: python3 tools/led_preview.py');
+  });
+}
+
+// =========================================================================
+// PRESETS
+// =========================================================================
+const PRESETS = {
+  solar_flow: {
+    name: 'solar_flow', duration: 0, tracks: [
+      { motion: {type:'orbit', center:[0.5,0.45], rx:0.55, ry:0.5, period:6, phase:0},
+        color: {type:'palette_slot', slot:'user_primary'},
+        radius: {type:'breathe', base:0.35, amplitude:0.1, period:3, phase:0},
+        intensity: {type:'breathe', base:0.9, amplitude:0.1, period:4, phase:0} },
+      { motion: {type:'orbit', center:[0.5,0.5], rx:0.4, ry:0.35, period:8, phase:3.14159},
+        color: {type:'palette_slot', slot:'theme_gold'},
+        radius: {type:'breathe', base:0.3, amplitude:0.08, period:3.5, phase:1.57},
+        intensity: {type:'breathe', base:0.7, amplitude:0.2, period:5, phase:0.8} },
+    ]
+  },
+  verdant_pulse: {
+    name: 'verdant_pulse', duration: 0, tracks: [
+      { motion: {type:'static', pos:[0.5, 0.45]},
+        color: {type:'palette_slot', slot:'user_light'},
+        radius: {type:'breathe', base:0.6, amplitude:0.25, period:4, phase:0},
+        intensity: {type:'breathe', base:0.8, amplitude:0.2, period:4, phase:0} },
+    ]
+  },
+  firefly_drift: {
+    name: 'firefly_drift', duration: 0, tracks: [
+      { motion: {type:'noise_drift', center:[0.3,0.35], amplitude:0.25, speed:0.8},
+        color: {type:'palette_slot', slot:'user_light'},
+        radius: {type:'breathe', base:0.18, amplitude:0.08, period:2, phase:0},
+        intensity: {type:'noise', base:1.0, amplitude:0.3, speed:0.7} },
+      { motion: {type:'noise_drift', center:[0.65,0.4], amplitude:0.2, speed:1.1},
+        color: {type:'palette_slot', slot:'user_analogous1'},
+        radius: {type:'breathe', base:0.15, amplitude:0.06, period:2.5, phase:1},
+        intensity: {type:'noise', base:1.0, amplitude:0.4, speed:0.9} },
+      { motion: {type:'noise_drift', center:[0.5,0.7], amplitude:0.22, speed:0.6},
+        color: {type:'palette_slot', slot:'theme_green'},
+        radius: {type:'breathe', base:0.2, amplitude:0.07, period:3, phase:2},
+        intensity: {type:'noise', base:0.8, amplitude:0.3, speed:0.5} },
+    ]
+  },
+  canopy_sweep: {
+    name: 'canopy_sweep', duration: 0, tracks: [
+      { motion: {type:'pingpong', a:[0,0.1], b:[1,0.1], period:5},
+        color: {type:'palette_slot', slot:'user_primary'},
+        radius: {type:'static', value:0.35},
+        intensity: {type:'static', value:1.0} },
+      { motion: {type:'pingpong', a:[0.9,0.95], b:[0.1,0.95], period:7},
+        color: {type:'palette_slot', slot:'theme_green'},
+        radius: {type:'static', value:0.3},
+        intensity: {type:'breathe', base:0.6, amplitude:0.2, period:3, phase:0} },
+    ]
+  },
+  boot: {
+    name: 'boot', duration: 0, tracks: [
+      { motion: {type:'pingpong', a:[0.2,1.1], b:[0.2,0.9], period:4},
+        color: {type:'static', color:[0,0,1]},
+        radius: {type:'static', value:0.2}, intensity: {type:'static', value:1},
+        startTime:0, fadeIn:1 },
+      { motion: {type:'pingpong', a:[0.4,1.1], b:[0.4,0.9], period:3},
+        color: {type:'static', color:[0,0,1]},
+        radius: {type:'static', value:0.2}, intensity: {type:'static', value:1},
+        startTime:0.3, fadeIn:1 },
+      { motion: {type:'pingpong', a:[0.6,1.1], b:[0.6,0.9], period:3.5},
+        color: {type:'static', color:[0,0,1]},
+        radius: {type:'static', value:0.2}, intensity: {type:'static', value:1},
+        startTime:0.6, fadeIn:1 },
+      { motion: {type:'pingpong', a:[0.8,1.1], b:[0.8,0.9], period:3.6},
+        color: {type:'static', color:[0,0,1]},
+        radius: {type:'static', value:0.2}, intensity: {type:'static', value:1},
+        startTime:0.9, fadeIn:1 },
+      { motion: {type:'orbit', center:[0.5,1.0], rx:0.5, ry:0.1, period:2, phase:0},
+        color: {type:'static', color:[0,0,1]},
+        radius: {type:'static', value:0.3}, intensity: {type:'static', value:1},
+        startTime:0.9, fadeIn:1 },
+      { motion: {type:'static', pos:[0.5,0]},
+        color: {type:'static', color:[0.7,0.3,1]},
+        radius: {type:'breathe', base:0.2, amplitude:0.05, period:1.2, phase:0},
+        intensity: {type:'breathe', base:0.85, amplitude:0.15, period:2, phase:0},
+        startTime:1.2, fadeIn:1.5 },
+      { motion: {type:'static', pos:[0.5,0.5]},
+        color: {type:'static', color:[0,1,0]},
+        radius: {type:'static', value:100},
+        intensity: {type:'breathe', base:0, amplitude:1, period:8, phase:0},
+        startTime:0, fadeIn:0 },
+    ]
+  },
+};
+
+// =========================================================================
+// DRAG HANDLING
+// =========================================================================
+let drag = null;
+
+function pageToSvg(pageX, pageY) {
+  const pt = svgEl.createSVGPoint();
+  pt.x = pageX;
+  pt.y = pageY;
+  return pt.matrixTransform(svgEl.getScreenCTM().inverse());
+}
+
+svgEl.addEventListener('mousedown', (e) => {
+  if (e.target.dataset.trackIdx === undefined) return;
+
+  const idx = parseInt(e.target.dataset.trackIdx);
+  editor.selectedTrack = idx;
+  renderTrackList();
+  renderProps();
+
+  const track = editor.animation.tracks[idx];
+  if (!track) return;
+
+  const handleId = e.target.dataset.handle;
+  drag = {trackIdx: idx};
+
+  if (handleId) {
+    // Path overlay handle (pingpong endpoints, spline control points)
+    drag.handle = handleId;
+  } else {
+    // Light center marker — drag pos or center
+    const m = track.motion;
+    if (m.type === 'static') drag.handle = 'pos';
+    else if (m.center) drag.handle = 'center';
+    else { drag = null; return; }
+  }
+
+  e.preventDefault();
+});
+
+svgEl.addEventListener('dblclick', (e) => {
+  if (editor.animation.tracks.length >= MAX_LIGHTS) return;
+  const svgPt = pageToSvg(e.pageX, e.pageY);
+  const [nx, ny] = svgToNorm(svgPt.x, svgPt.y);
+  const track = newTrack([clamp01(nx), clamp01(ny)]);
+  editor.animation.tracks.push(track);
+  editor.selectedTrack = editor.animation.tracks.length - 1;
+  renderTrackList();
+  renderProps();
+  editor.dirty = true;
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!drag) return;
+  const svgPt = pageToSvg(e.pageX, e.pageY);
+  const [nx, ny] = svgToNorm(svgPt.x, svgPt.y);
+
+  const track = editor.animation.tracks[drag.trackIdx];
+  if (!track) { drag = null; return; }
+
+  const m = track.motion;
+  const h = drag.handle;
+
+  if (h === 'pos') m.pos = [nx, ny];
+  else if (h === 'center') m.center = [nx, ny];
+  else if (h === 'a') m.a = [nx, ny];
+  else if (h === 'b') m.b = [nx, ny];
+  else if (h.startsWith('spline-')) {
+    const pi = parseInt(h.split('-')[1]);
+    if (m.points && pi < m.points.length) m.points[pi] = [nx, ny];
+  }
+
+  editor.dirty = true;
+  renderProps();
+});
+
+document.addEventListener('mouseup', () => { drag = null; });
+
+// =========================================================================
+// EVENT LISTENERS
+// =========================================================================
+// Transport
+document.getElementById('btn-play').onclick = () => { editor.playing = true; };
+document.getElementById('btn-pause').onclick = () => { editor.playing = false; };
+document.getElementById('btn-stop').onclick = () => { editor.playing = false; editor.time = 0; editor.dirty = true; };
+document.getElementById('chk-loop').onchange = (e) => { editor.looping = e.target.checked; };
+
+document.getElementById('time-scrub').oninput = (e) => {
+  e.target._dragging = true;
+  editor.time = parseFloat(e.target.value);
+  editor.dirty = true;
+};
+document.getElementById('time-scrub').onchange = (e) => { e.target._dragging = false; };
+
+document.getElementById('speed-slider').oninput = (e) => {
+  editor.speed = parseFloat(e.target.value);
+  document.getElementById('speed-val').textContent = editor.speed + 'x';
+};
+
+document.getElementById('hue-slider').oninput = (e) => {
+  editor.userHue = parseInt(e.target.value);
+  editor.palette = resolvePalette(editor.userHue);
+  updatePaletteBar();
+  const [r, g, b] = hsvToRgb(editor.userHue / 360, 0.9, 1.0);
+  document.getElementById('hue-swatch').style.background = rgbfToLinearCss(r, g, b);
+  editor.dirty = true;
+};
+
+// Timeline header
+document.getElementById('anim-name').oninput = (e) => { editor.animation.name = e.target.value; };
+document.getElementById('anim-duration').oninput = (e) => { editor.animation.duration = parseFloat(e.target.value) || 0; };
+
+document.getElementById('preset-select').onchange = (e) => {
+  const name = e.target.value;
+  if (name && PRESETS[name]) {
+    importAnimation(JSON.parse(JSON.stringify(PRESETS[name])));
+    e.target.value = '';
+  }
+};
+
+document.getElementById('btn-add-track').onclick = () => {
+  if (editor.animation.tracks.length >= MAX_LIGHTS) return;
+  editor.animation.tracks.push(newTrack());
+  editor.selectedTrack = editor.animation.tracks.length - 1;
+  renderTrackList();
+  renderProps();
+  editor.dirty = true;
+};
+
+document.getElementById('btn-import').onclick = showImportModal;
+document.getElementById('btn-export').onclick = showExportModal;
+document.getElementById('btn-send').onclick = sendToBadge;
+document.getElementById('json-modal-cancel').onclick = closeModal;
+document.getElementById('json-modal').onclick = (e) => {
+  if (e.target === document.getElementById('json-modal')) closeModal();
+};
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  switch (e.key) {
+    case ' ':
+      e.preventDefault();
+      editor.playing = !editor.playing;
+      break;
+    case 'Escape':
+      if (document.getElementById('json-modal').classList.contains('open')) {
+        closeModal();
+      } else {
+        editor.playing = false;
+        editor.time = 0;
+        editor.dirty = true;
+      }
+      break;
+    case 'Delete':
+    case 'Backspace': {
+      const idx = editor.selectedTrack;
+      const tracks = editor.animation.tracks;
+      if (idx >= 0 && idx < tracks.length && tracks.length > 0) {
+        tracks.splice(idx, 1);
+        if (editor.selectedTrack >= tracks.length) editor.selectedTrack = tracks.length - 1;
+        renderTrackList();
+        renderProps();
+        editor.dirty = true;
+      }
+      break;
+    }
+  }
+  // Number keys 1-8 to select tracks
+  if (e.key >= '1' && e.key <= '8') {
+    const idx = parseInt(e.key) - 1;
+    if (idx < editor.animation.tracks.length) {
+      editor.selectedTrack = idx;
+      renderTrackList();
+      renderProps();
+      editor.dirty = true;
+    }
+  }
+});
+
+// =========================================================================
+// MAIN LOOP
+// =========================================================================
+let lastTimestamp = 0;
+
+function mainLoop(timestamp) {
+  const dt = lastTimestamp ? (timestamp - lastTimestamp) / 1000 : 0;
+  lastTimestamp = timestamp;
+
+  if (editor.playing) {
+    editor.time += dt * editor.speed;
+    const dur = editor.animation.duration;
+    if (dur > 0 && editor.time >= dur) {
+      if (editor.looping) {
+        editor.time %= dur;
+      } else {
+        editor.time = dur;
+        editor.playing = false;
+      }
+    }
+    editor.dirty = true;
+  }
+
+  if (editor.dirty) {
+    evaluateFrame(editor.time);
+    renderCanvas();
+    editor.dirty = false;
+  }
+
+  updateTransport();
+
+  // FPS
+  editor.frameCount++;
+  if (timestamp - editor.lastFpsTime >= 1000) {
+    document.getElementById('fps-display').textContent = editor.frameCount + ' fps';
+    editor.frameCount = 0;
+    editor.lastFpsTime = timestamp;
+  }
+
+  requestAnimationFrame(mainLoop);
+}
+
+// =========================================================================
+// INITIALIZATION
+// =========================================================================
+function init() {
+  // Set initial hue swatch
+  const [r, g, b] = hsvToRgb(editor.userHue / 360, 0.9, 1.0);
+  document.getElementById('hue-swatch').style.background = rgbfToLinearCss(r, g, b);
+
+  renderPaletteBar();
+  renderTrackList();
+  renderProps();
+  editor.dirty = true;
+
+  requestAnimationFrame(mainLoop);
+}
+
+init();
+</script>
+</body>
+</html>

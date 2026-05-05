@@ -12,6 +12,19 @@ permissions:
   contents: write
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run clang-format
+        run: ./format-cpp
+
+      - name: Check for formatting changes
+        run: git diff --exit-code
+
   build:
     runs-on: ubuntu-latest
 
@@ -29,72 +42,62 @@ jobs:
           python -m pip install --upgrade pip
           pip install platformio
 
-      - name: Build factory firmware
+      # --- Build all firmware + SPIFFS in one pass ---
+      # Install mkspiffs first so the post-build script can produce
+      # spiffs.bin alongside firmware.bin in a single `pio run`.
+      # Avoids separate `buildfs` steps that wipe firmware outputs.
+      - name: Install mkspiffs tool
         run: |
-          pio run -e esp32-s3-devkitc-1
+          pio pkg install -g --tool "platformio/tool-mkspiffs@~2"
 
-      - name: Build OTA firmware
+      - name: Build all firmware variants
+        run: pio run
+
+      # --- Verify build outputs exist before packaging ---
+      - name: Verify build outputs
         run: |
-          pio run -e esp32-s3-devkitc-1-ota
+          fail=0
+          for env in esp32-s3-devkitc-1-conference esp32-s3-devkitc-1-conference-only esp32-s3-devkitc-1-ctf; do
+            dir=".pio/build/${env}"
+            echo "=== ${env} ==="
+            ls -la "${dir}"/*.bin 2>/dev/null || { echo "ERROR: no .bin files in ${dir}"; fail=1; }
+          done
+          exit $fail
 
-      - name: Prepare release artifacts
+      # --- Determine version string ---
+      - name: Set version
+        id: version
         run: |
-          mkdir -p release
-          # Factory firmware (conference mode)
-          cp .pio/build/esp32-s3-devkitc-1/firmware.bin release/badge-factory.bin
-          cp .pio/build/esp32-s3-devkitc-1/bootloader.bin release/bootloader.bin
-          cp .pio/build/esp32-s3-devkitc-1/partitions.bin release/partitions.bin
-          # OTA firmware (CTF challenges mode)
-          cp .pio/build/esp32-s3-devkitc-1-ota/firmware.bin release/badge-ota.bin
-          # Create flash script for convenience
-          cat > release/FLASH_INSTRUCTIONS.txt << 'EOF'
-          NorthSec Badge 2026 - Flash Instructions
-          ==========================================
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=dev-${GITHUB_SHA::8}" >> "$GITHUB_OUTPUT"
+          fi
 
-          Prerequisites:
-          - esptool.py installed: pip install esptool
-          - USB driver for ESP32-S3 (usually automatic)
+      # --- Package both release modes ---
+      - name: Package release artifacts
+        run: |
+          python tools/package_release.py \
+            --version "${{ steps.version.outputs.version }}" \
+            --output-dir release
 
-          Windows:
-          --------
-          python -m esptool --chip esp32s3 --port COM4 --baud 460800 ^
-            --before default_reset --after hard_reset write_flash -z ^
-            --flash_mode dio --flash_freq 80m --flash_size 8MB ^
-            0x0 bootloader.bin ^
-            0x8000 partitions.bin ^
-            0x10000 badge-factory.bin ^
-            0x150000 badge-ota.bin
+      # --- Validate conference-only package ---
+      - name: Validate conference-only package (no CTF leaks)
+        run: |
+          python tools/validate_conference_only.py release/conference-only/
 
-          Linux/Mac:
-          ----------
-          python3 -m esptool --chip esp32s3 --port /dev/ttyACM0 --baud 460800 \
-            --before default_reset --after hard_reset write_flash -z \
-            --flash_mode dio --flash_freq 80m --flash_size 8MB \
-            0x0 bootloader.bin \
-            0x8000 partitions.bin \
-            0x10000 badge-factory.bin \
-            0x150000 badge-ota.bin
-
-          Files:
-          ------
-          - bootloader.bin: ESP32-S3 bootloader
-          - partitions.bin: Partition table (factory + OTA layout)
-          - badge-factory.bin: Conference firmware (factory partition @ 0x10000)
-          - badge-ota.bin: CTF challenges firmware (ota_0 partition @ 0x150000)
-
-          Notes:
-          ------
-          - Replace COM4 (Windows) or /dev/ttyACM0 (Linux/Mac) with your port
-          - Find port: Windows Device Manager, Linux "ls /dev/tty*", Mac "ls /dev/cu.*"
-          - Factory firmware boots by default
-          - Use CLI commands to switch: "boot factory" or "boot ota"
-          EOF
-
-      - name: Upload firmware artifacts
+      # --- Upload artifacts ---
+      - name: Upload conference-only package
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-binaries
-          path: release/
+          name: nsec2026-conference-only
+          path: release/conference-only/
+
+      - name: Upload dual-firmware package
+        uses: actions/upload-artifact@v4
+        with:
+          name: nsec2026-dual-firmware
+          path: release/dual/
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -102,40 +105,69 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download artifacts
+      - name: Download conference-only artifacts
         uses: actions/download-artifact@v4
         with:
-          name: firmware-binaries
-          path: release
+          name: nsec2026-conference-only
+          path: release/conference-only
+
+      - name: Download dual-firmware artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: nsec2026-dual-firmware
+          path: release/dual
+
+      - name: Determine version
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+
+      - name: Create release archives
+        run: |
+          cd release
+          tar czf "nsec2026-conference-only-${{ steps.version.outputs.version }}.tar.gz" -C conference-only .
+          tar czf "nsec2026-dual-firmware-${{ steps.version.outputs.version }}.tar.gz" -C dual .
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: release/*
+          files: |
+            release/nsec2026-conference-only-${{ steps.version.outputs.version }}.tar.gz
+            release/nsec2026-dual-firmware-${{ steps.version.outputs.version }}.tar.gz
+            release/conference-only/badge-conference.bin
+            release/conference-only/manifest.json
+            release/dual/badge-conference.bin
+            release/dual/badge-ctf.bin
+            release/dual/bootloader.bin
+            release/dual/partitions.bin
+            release/dual/manifest.json
           body: |
-            ## NorthSec Badge 2026 Firmware Release
-            
-            This release contains dual-firmware images for the NorthSec 2026 badge (ESP32-S3).
-            
-            ### Files Included
-            - `badge-factory.bin` - Conference firmware (factory partition)
-            - `badge-ota.bin` - CTF challenges firmware (OTA partition)
-            - `bootloader.bin` - ESP32-S3 bootloader
-            - `partitions.bin` - Partition table
-            - `FLASH_INSTRUCTIONS.txt` - Complete flashing guide
-            
-            ### Quick Flash (All-in-one)
+            ## NorthSec Badge 2026 Firmware — ${{ steps.version.outputs.version }}
+
+            Two release packages are available:
+
+            ### 📦 Conference-Only (`nsec2026-conference-only-${{ steps.version.outputs.version }}.tar.gz`)
+            For pre-CTF badge distribution. Contains only conference firmware.
+            - No CTF firmware, no `swapboot` command, no challenge code.
+            - Safe for public distribution before the CTF begins.
+
+            ### 📦 Dual Firmware (`nsec2026-dual-firmware-${{ steps.version.outputs.version }}.tar.gz`)
+            Full badge experience with both conference and CTF firmware.
+            - Badge boots to conference by default.
+            - Use `swapboot` CLI command to switch to CTF challenges.
+
+            ### Quick Flash
+            Extract the desired package and run:
             ```bash
-            # Flash both firmwares + bootloader + partitions
-            python -m esptool --chip esp32s3 --port <PORT> --baud 460800 \
-              write_flash -z 0x0 bootloader.bin \
-              0x8000 partitions.bin 0x10000 badge-factory.bin 0x150000 badge-ota.bin
+            python flash.py --mode conference-only --port <PORT>   # conference-only
+            python flash.py --mode dual --port <PORT>              # dual firmware
             ```
-            
-            ### Switching Between Firmwares
-            Connect to serial console (115200 baud) and use CLI commands:
-            - `boot factory` - Switch to conference firmware
-            - `boot ota` - Switch to CTF challenges firmware
-            - `info` - Show current firmware partition
-            
-            See `FLASH_INSTRUCTIONS.txt` for detailed platform-specific instructions.
+
+            ### Memory Map
+            | Address | Content |
+            |---------|---------|
+            | 0x0     | Bootloader |
+            | 0x8000  | Partition table |
+            | 0x10000 | Conference firmware |
+            | 0x150000| CTF firmware (dual only) |
+
+            See `README.txt` in each package for detailed instructions.

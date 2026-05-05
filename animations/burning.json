@@ -1,0 +1,178 @@
+{
+  "name": "burning",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.13616061013972114,
+          0.993948812993144
+        ]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.15,
+      "intensity": {
+        "type": "noise",
+        "base": 0.9,
+        "amplitude": 0.1,
+        "speed": 15
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.2700781831909899,
+          0.9942362002622472
+        ]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.15,
+      "intensity": {
+        "type": "noise",
+        "base": 0.9,
+        "amplitude": 0.1,
+        "speed": 12
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.398305298570777,
+          1.0076020175045157
+        ]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.15,
+      "intensity": {
+        "type": "noise",
+        "base": 0.9,
+        "amplitude": 0.1,
+        "speed": 14
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.5368675260538716,
+          0.9973621513666153
+        ]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.15,
+      "intensity": {
+        "type": "noise",
+        "base": 0.9,
+        "amplitude": 0.1,
+        "speed": 8
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.6904094383431809,
+          1.0007754897400867
+        ]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.15,
+      "intensity": {
+        "type": "noise",
+        "base": 0.9,
+        "amplitude": 0.1,
+        "speed": 9
+      }
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.8701658194755959,
+          0.9973621513666153
+        ]
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.15,
+      "intensity": {
+        "type": "noise",
+        "base": 0.9,
+        "amplitude": 0.1,
+        "speed": 11
+      }
+    },
+    {
+      "motion": {
+        "type": "lissajous",
+        "center": [
+          -0.1099305980909171,
+          0.2700780873372205
+        ],
+        "rx": 0.3,
+        "ry": 0.3,
+        "freq_a": 0.8,
+        "freq_b": 1,
+        "phase": 0,
+        "speed": 0.1
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_primary"
+      },
+      "radius": 0.44,
+      "intensity": {
+        "type": "noise",
+        "base": 1.4,
+        "amplitude": 0.2,
+        "speed": 10
+      }
+    },
+    {
+      "motion": {
+        "type": "lissajous",
+        "center": [
+          0.6946183141821773,
+          0.2738775883864388
+        ],
+        "rx": 0.3,
+        "ry": 0.3,
+        "freq_a": 0.6,
+        "freq_b": 2,
+        "phase": 0,
+        "speed": 0.06
+      },
+      "color": {
+        "type": "palette_slot",
+        "slot": "user_complement"
+      },
+      "radius": 0.3,
+      "intensity": {
+        "type": "noise",
+        "base": 1.4,
+        "amplitude": 0.2,
+        "speed": 11
+      }
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+%TF.GenerationSoftware,KiCad,Pcbnew,9.0.7*%
+%TF.CreationDate,2026-04-20T21:55:25-03:00*%
+%TF.ProjectId,Sao_robotplant,53616f5f-726f-4626-9f74-706c616e742e,rev?*%
+%TF.SameCoordinates,Original*%
+%TF.FileFunction,Copper,L1,Top*%
+%TF.FilePolarity,Positive*%
+%FSLAX46Y46*%
+G04 Gerber Fmt 4.6, Leading zero omitted, Abs format (unit mm)*
+G04 Created by KiCad (PCBNEW 9.0.7) date 2026-04-20 21:55:25*
+%MOMM*%
+%LPD*%
+G01*
+G04 APERTURE LIST*
+%TA.AperFunction,NonConductor*%
+%ADD10C,1.000000*%
+%TD*%
+%TA.AperFunction,ComponentPad*%
+%ADD11R,1.800000X1.800000*%
+%TD*%
+%TA.AperFunction,ComponentPad*%
+%ADD12C,1.800000*%
+%TD*%
+%TA.AperFunction,ComponentPad*%
+%ADD13C,1.400000*%
+%TD*%
+%TA.AperFunction,ComponentPad*%
+%ADD14O,1.400000X1.400000*%
+%TD*%
+G04 APERTURE END LIST*
+D10*
+X243743322Y-62212886D02*
+G75*
+G02*
+X241743322Y-62212886I-1000000J999999D01*
+G01*
+D11*
+%TO.P,D1,1,K*%
+%TO.N,GND*%
+X243492262Y-56184020D03*
+D12*
+%TO.P,D1,2,A*%
+%TO.N,Net-(D1-A)*%
+X240952262Y-56184020D03*
+%TD*%
+D13*
+%TO.P,R1,1*%
+%TO.N,+3.3V*%
+X238969524Y-62324208D03*
+D14*
+%TO.P,R1,2*%
+%TO.N,Net-(D1-A)*%
+X246589525Y-62324207D03*
+%TD*%
+M02*

@@ -14,5 +14,5 @@ void statusLedSet(bool on) {
   digitalWrite(badge::pins::LED_STATUS, on ? HIGH : LOW);
 }
 
-} // namespace hw
-} // namespace core
+}  // namespace hw
+}  // namespace core

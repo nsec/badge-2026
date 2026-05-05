@@ -14,7 +14,7 @@ const char *labelOrUnknown(const esp_partition_t *p) {
 const esp_partition_t *findAppByLabel(const char *label) {
   return esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_ANY, label);
 }
-} // namespace
+}  // namespace
 
 namespace core {
 namespace ota {
@@ -26,9 +26,8 @@ void printBootInfo(Stream &io) {
   io.println("--- Boot info ---");
   io.print("Running partition: ");
   io.println(labelOrUnknown(running));
-  io.print("Boot partition:    ");
-  io.println(labelOrUnknown(boot));
 
+  /*
   if (running) {
     io.print("Running addr/size: 0x");
     io.print((uint32_t)running->address, HEX);
@@ -41,17 +40,25 @@ void printBootInfo(Stream &io) {
     io.print(" / 0x");
     io.println((uint32_t)boot->size, HEX);
   }
+  */
+}
+
+String getRunningPartitionLabel() {
+  const esp_partition_t *running = esp_ota_get_running_partition();
+  if (running && running->label)
+    return String(running->label);
+  return String("unknown");
 }
 
 bool setNextBoot(BootTarget target, Stream &io) {
   const esp_partition_t *p = nullptr;
 
   switch (target) {
-    case BootTarget::Factory:
-      p = findAppByLabel("factory");
+    case BootTarget::Conference:
+      p = findAppByLabel("conference");
       break;
-    case BootTarget::Ota0:
-      p = findAppByLabel("ota_0");
+    case BootTarget::Ctf:
+      p = findAppByLabel("ctf");
       break;
   }
 
@@ -72,5 +79,5 @@ bool setNextBoot(BootTarget target, Stream &io) {
   return true;
 }
 
-} // namespace ota
-} // namespace core
+}  // namespace ota
+}  // namespace core

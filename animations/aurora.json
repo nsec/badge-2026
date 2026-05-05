@@ -1,0 +1,104 @@
+{
+  "name": "aurora",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "static",
+        "pos": [0.5, 0.5]
+      },
+      "color": {
+        "type": "static",
+        "color": [0.0, 0.04, 0.1]
+      },
+      "radius": 1.6,
+      "intensity": 0.45
+    },
+    {
+      "motion": {
+        "type": "noise_drift",
+        "center": [0.2, 0.1],
+        "amplitude": 0.25,
+        "speed": 0.15
+      },
+      "color": {
+        "type": "hue_cycle",
+        "from_hue": 0.33,
+        "to_hue": 0.5,
+        "period": 14,
+        "ping_pong": true
+      },
+      "radius": 0.45,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.6,
+        "amplitude": 0.3,
+        "period": 7,
+        "phase": 0
+      }
+    },
+    {
+      "motion": {
+        "type": "noise_drift",
+        "center": [0.5, 0.05],
+        "amplitude": 0.2,
+        "speed": 0.12
+      },
+      "color": {
+        "type": "hue_cycle",
+        "from_hue": 0.45,
+        "to_hue": 0.7,
+        "period": 16,
+        "ping_pong": true
+      },
+      "radius": 0.5,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.6,
+        "amplitude": 0.3,
+        "period": 9,
+        "phase": 1.5
+      }
+    },
+    {
+      "motion": {
+        "type": "noise_drift",
+        "center": [0.8, 0.1],
+        "amplitude": 0.25,
+        "speed": 0.18
+      },
+      "color": {
+        "type": "hue_cycle",
+        "from_hue": 0.55,
+        "to_hue": 0.78,
+        "period": 18,
+        "ping_pong": true
+      },
+      "radius": 0.45,
+      "intensity": {
+        "type": "breathe",
+        "base": 0.6,
+        "amplitude": 0.3,
+        "period": 11,
+        "phase": 3
+      }
+    },
+    {
+      "motion": {
+        "type": "pingpong",
+        "a": [-0.1, 0.0],
+        "b": [1.1, 0.05],
+        "period": 22
+      },
+      "color": {
+        "type": "hue_cycle",
+        "from_hue": 0.4,
+        "to_hue": 0.65,
+        "period": 30,
+        "ping_pong": true
+      },
+      "radius": 0.4,
+      "intensity": 0.55
+    }
+  ]
+}

@@ -1,0 +1,246 @@
+{
+  "name": "boot",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.8683448991739756,
+          1.0018551660175319
+        ]
+      },
+      "color": {
+        "type": "static",
+        "color": [
+          0,
+          0,
+          1
+        ]
+      },
+      "radius": 0.06,
+      "intensity": {
+        "type": "noise",
+        "base": 0.8,
+        "amplitude": 0.2,
+        "speed": 1
+      },
+      "fadeIn": 1.2
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.696090006815538,
+          1.0018551660175319
+        ]
+      },
+      "color": {
+        "type": "static",
+        "color": [
+          0,
+          0,
+          1
+        ]
+      },
+      "radius": 0.06,
+      "intensity": {
+        "type": "noise",
+        "base": 0.8,
+        "amplitude": 0.2,
+        "speed": 1
+      },
+      "fadeIn": 1
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.534118900799662,
+          1.0065417089538633
+        ]
+      },
+      "color": {
+        "type": "static",
+        "color": [
+          0,
+          0,
+          1
+        ]
+      },
+      "radius": 0.06,
+      "intensity": {
+        "type": "noise",
+        "base": 0.8,
+        "amplitude": 0.2,
+        "speed": 1
+      },
+      "fadeIn": 0.8
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.39528655924130457,
+          1.0018551660175319
+        ]
+      },
+      "color": {
+        "type": "static",
+        "color": [
+          0,
+          0,
+          1
+        ]
+      },
+      "radius": 0.06,
+      "intensity": {
+        "type": "noise",
+        "base": 0.8,
+        "amplitude": 0.2,
+        "speed": 1
+      },
+      "fadeIn": 0.6
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.2718800606546264,
+          1.0018551660175319
+        ]
+      },
+      "color": {
+        "type": "static",
+        "color": [
+          0,
+          0,
+          1
+        ]
+      },
+      "radius": 0.06,
+      "intensity": {
+        "type": "noise",
+        "base": 0.8,
+        "amplitude": 0.2,
+        "speed": 1
+      },
+      "fadeIn": 0.4
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.1330476373673507,
+          0.9995118200581092
+        ]
+      },
+      "color": {
+        "type": "static",
+        "color": [
+          0,
+          0,
+          1
+        ]
+      },
+      "radius": 0.1,
+      "intensity": {
+        "type": "noise",
+        "base": 0.8,
+        "amplitude": 0.2,
+        "speed": 1
+      },
+      "fadeIn": 0.2
+    },
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.492983428513742,
+          0.02821715551762578
+        ]
+      },
+      "color": {
+        "type": "static",
+        "color": [
+          0.9333333333333333,
+          0,
+          1
+        ]
+      },
+      "radius": 0.37,
+      "intensity": 1,
+      "startTime": 1,
+      "fadeIn": 2
+    },
+    {
+      "motion": {
+        "type": "spline",
+        "points": [
+          [
+            0.4852705070279024,
+            -0.14635813317711385
+          ],
+          [
+            0.9994644009754118,
+            0.44649483714804844
+          ],
+          [
+            0.46727371747058283,
+            1.0135715978496174
+          ],
+          [
+            -0.0006427292908074573,
+            0.4347783308247061
+          ]
+        ],
+        "period": 6
+      },
+      "color": {
+        "type": "hue_cycle",
+        "from_hue": 0,
+        "to_hue": 1,
+        "period": 2
+      },
+      "radius": 0.3,
+      "intensity": 1,
+      "startTime": 3,
+      "fadeIn": 1
+    },
+    {
+      "motion": {
+        "type": "spline",
+        "points": [
+          [
+            0.4852705070279024,
+            -0.14635813317711385
+          ],
+          [
+            0.9994644009754118,
+            0.44649483714804844
+          ],
+          [
+            0.46727371747058283,
+            1.0135715978496174
+          ],
+          [
+            -0.0006427292908074573,
+            0.4347783308247061
+          ]
+        ],
+        "period": 6,
+        "reverse": true
+      },
+      "color": {
+        "type": "hue_cycle",
+        "from_hue": 0,
+        "to_hue": 1,
+        "period": 2
+      },
+      "radius": 0.3,
+      "intensity": 1,
+      "startTime": 3,
+      "fadeIn": 1
+    }
+  ]
+}

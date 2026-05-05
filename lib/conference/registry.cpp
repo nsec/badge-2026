@@ -1,17 +1,13 @@
 #include "registry.h"
-#include "schedule.h"
+#include "schedule/schedule.h"
 #include <Arduino.h>
 
 namespace conference {
 
 void init() {
-    Serial.println("Conference modules initialized");
-    schedule::init();
+  // Serial.println("Conference modules initialized");
+  //  Initialize conference modules (each registers its own CLI commands)
+  // conference::schedule::init();
 }
 
-void tick() {
-    // Called periodically from main loop
-    // Update conference features here
-}
-
-} // namespace conference
+}  // namespace conference

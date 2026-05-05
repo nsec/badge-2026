@@ -1,0 +1,8 @@
+Designator,Val,Package,Mid X,Mid Y,Rotation,Layer
+D1,LED,LED_1206_3216Metric_Pad1.42x1.75mm_HandSolder,206.883816,-109.367322,-131.0,top
+D2,LED,LED_1206_3216Metric_Pad1.42x1.75mm_HandSolder,218.923084,-105.278884,-11.0,top
+D3,LED,LED_1206_3216Metric_Pad1.42x1.75mm_HandSolder,209.024243,-96.966954,111.0,top
+J1,SAO Connector SMD,SAO Connector SMD,211.705368,-103.824646,0.0,bottom
+R1,330,R_1206_3216Metric_Pad1.30x1.75mm_HandSolder,203.137107,-113.812615,131.0,bottom
+R2,330,R_1206_3216Metric_Pad1.30x1.75mm_HandSolder,224.62832,-106.425817,11.0,bottom
+R3,330,R_1206_3216Metric_Pad1.30x1.75mm_HandSolder,206.939669,-91.575844,249.0,bottom

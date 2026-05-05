@@ -2,7 +2,7 @@
 
 Conference-specific features for NorthSec Badge 2026.
 
-This library contains modules that are only included in the **factory** firmware partition.
+This library contains modules that are only included in the **conference** firmware partition.
 
 ## Purpose
 

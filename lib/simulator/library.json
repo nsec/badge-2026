@@ -1,0 +1,7 @@
+{
+  "name": "simulator",
+  "version": "1.0.0",
+  "description": "NorthSec Badge 2026 - Desktop simulator stubs",
+  "keywords": ["northsec", "badge", "simulator", "native"],
+  "platforms": ["native"]
+}

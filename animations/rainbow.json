@@ -1,0 +1,23 @@
+{
+  "name": "rainbow",
+  "duration": 0,
+  "tracks": [
+    {
+      "motion": {
+        "type": "static",
+        "pos": [
+          0.5,
+          0.5
+        ]
+      },
+      "color": {
+        "type": "hue_cycle",
+        "from_hue": 0,
+        "to_hue": 1,
+        "period": 3
+      },
+      "radius": 200,
+      "intensity": 1
+    }
+  ]
+}
