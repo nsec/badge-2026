@@ -11,6 +11,6 @@ namespace ics {
 void init();
 void tick();
 
-} // namespace ics
-} // namespace challenges
+}  // namespace ics
+}  // namespace challenges
 #endif

@@ -13,9 +13,8 @@ const char *mqtt_server = "192.168.4.137";
 
 // RC4-encrypted MQTT password; key = "DEBUG"
 static const uint8_t kEncryptedPass[] = {
-    0x46, 0x44, 0x9d, 0x40, 0xb5, 0xd4, 0xf8, 0xc1, 0x40, 0x3e, 0x26, 0x3f,
-    0xa1, 0xfc, 0xff, 0xa5, 0xf3, 0xaa, 0x0a, 0x8b, 0x21, 0x86, 0x0d, 0x9a,
-    0x7f, 0xe0, 0xaa, 0xb8, 0xbd, 0xc7, 0x2e, 0xc6, 0xa1, 0x26, 0x7b,
+    0x46, 0x44, 0x9d, 0x40, 0xb5, 0xd4, 0xf8, 0xc1, 0x40, 0x3e, 0x26, 0x3f, 0xa1, 0xfc, 0xff, 0xa5, 0xf3, 0xaa,
+    0x0a, 0x8b, 0x21, 0x86, 0x0d, 0x9a, 0x7f, 0xe0, 0xaa, 0xb8, 0xbd, 0xc7, 0x2e, 0xc6, 0xa1, 0x26, 0x7b,
 };
 static const uint8_t kRc4Key[] = "DEBUG";  // 5 bytes, no null
 
@@ -143,8 +142,7 @@ void reconnect() {
 }
 
 void start(Stream &stream) {
-  rc4(kRc4Key, sizeof(kRc4Key) - 1, kEncryptedPass, reinterpret_cast<uint8_t *>(mqttPass),
-      sizeof(kEncryptedPass));
+  rc4(kRc4Key, sizeof(kRc4Key) - 1, kEncryptedPass, reinterpret_cast<uint8_t *>(mqttPass), sizeof(kEncryptedPass));
   mqttPass[sizeof(kEncryptedPass)] = '\0';
 
   auto creds = core::storage::wifiCredsGet();
@@ -182,13 +180,12 @@ void stop(Stream &stream) {
 }  // namespace
 
 void init() {
-  core::cli::registerCommand("ics", "toggle ICS challenge",
-                             [](Stream &stream, const std::string &) {
-                               if (active)
-                                 stop(stream);
-                               else
-                                 start(stream);
-                             });
+  core::cli::registerCommand("ics", "toggle ICS challenge", [](Stream &stream, const std::string &) {
+    if (active)
+      stop(stream);
+    else
+      start(stream);
+  });
 }
 
 void tick() {

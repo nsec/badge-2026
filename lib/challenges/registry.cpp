@@ -17,4 +17,4 @@ void tick() {
   challenges::ics::tick();
 }
 
-} // namespace challenges
+}  // namespace challenges
