@@ -1,103 +1,204 @@
 #include "ics_challenge.h"
-#include "secrets.h"
 
-const char* mqtt_server = "192.168.1.244";
+#include "drm.h"
+#include "storage/nvs_wifi_creds.h"
+#include "tasks/cli.h"
 
 namespace challenges {
 namespace ics {
 
-WiFiClientSecure espClient;
-PubSubClient* client = nullptr;
-unsigned long lastMsg = 0;
-#define MSG_BUFFER_SIZE	(50)
-char msg[MSG_BUFFER_SIZE];
-int value = 0;
+namespace {
 
-void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message arrived [");
-  Serial.print(topic);
-  Serial.print("] ");
-  for (int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
+const char *mqtt_server = "192.168.4.137";
+
+// RC4-encrypted MQTT password; key = "DEBUG"
+static const uint8_t kEncryptedPass[] = {
+    0x46, 0x44, 0x9d, 0x40, 0xb5, 0xd4, 0xf8, 0xc1, 0x40, 0x3e, 0x26, 0x3f,
+    0xa1, 0xfc, 0xff, 0xa5, 0xf3, 0xaa, 0x0a, 0x8b, 0x21, 0x86, 0x0d, 0x9a,
+    0x7f, 0xe0, 0xaa, 0xb8, 0xbd, 0xc7, 0x2e, 0xc6, 0xa1, 0x26, 0x7b,
+};
+static const uint8_t kRc4Key[] = "DEBUG";  // 5 bytes, no null
+
+static char mqttPass[sizeof(kEncryptedPass) + 1];
+
+void rc4(const uint8_t *key, size_t keyLen, const uint8_t *in, uint8_t *out, size_t len) {
+  uint8_t S[256];
+  for (int i = 0; i < 256; i++)
+    S[i] = i;
+
+  uint8_t j = 0;
+  for (int i = 0; i < 256; i++) {
+    j = (j + S[i] + key[i % keyLen]) & 0xFF;
+    uint8_t tmp = S[i];
+    S[i] = S[j];
+    S[j] = tmp;
   }
+
+  uint8_t x = 0, y = 0;
+  for (size_t k = 0; k < len; k++) {
+    x = (x + 1) & 0xFF;
+    y = (y + S[x]) & 0xFF;
+    uint8_t tmp = S[x];
+    S[x] = S[y];
+    S[y] = tmp;
+    out[k] = in[k] ^ S[(S[x] + S[y]) & 0xFF];
+  }
+}
+
+WiFiClientSecure espClient;
+PubSubClient *client = nullptr;
+unsigned long lastMsg = 0;
+char msg[50];
+int value = 0;
+bool active = false;
+
+enum class DrmState : uint8_t { S1, S1B, S2, S3, S4, S5 };
+DrmState drmState = DrmState::S1;
+int64_t drmAccum = 1;
+
+void handleDrmMessage(int val) {
+  switch (drmState) {
+    case DrmState::S1:
+      drmAccum *= val;
+      if (drm::passthrough(val > 50)) {
+        drmState = DrmState::S2;
+        client->publish("drm", "67");
+      }
+      if (drm::invert(val > 50)) {
+        drmState = DrmState::S1B;
+        client->publish("drm", "420");
+      }
+      break;
+    case DrmState::S1B:
+      drmAccum *= val;
+      if (drm::permit(val % 2 != 0) && drm::passthrough(val % 2 != 0))
+        client->publish("drm", "42");
+      if (drm::invert(val % 2 != 0) || drm::deny(val % 2 != 0))
+        client->publish("drm", "9000");
+      drmState = DrmState::S3;
+      break;
+    case DrmState::S2:
+      drmAccum *= val;
+      if (drm::passthrough(val < 67)) {
+        drmState = DrmState::S3;
+        client->publish("drm", "10");
+      }
+      if (drm::invert(val < 67)) {
+        drmState = DrmState::S5;
+        client->publish("drm", "5");
+      }
+      break;
+    case DrmState::S3:
+      drmAccum *= val;
+      if (drm::permit(val % 2 == 0) && drm::passthrough(val % 2 == 0))
+        drmState = DrmState::S4;
+      if (drm::passthrough(val % 2 != 0) || drm::deny(val % 2 != 0))
+        drmState = DrmState::S5;
+      break;
+    case DrmState::S4: {
+      char resBuf[32];
+      snprintf(resBuf, sizeof(resBuf), "%lld", (long long)drmAccum);
+      client->publish("drm", resBuf);
+      drmState = DrmState::S5;
+      client->publish("water", "open_valve");
+      break;
+    }
+    case DrmState::S5:
+      drmState = DrmState::S1;
+      break;
+  }
+}
+
+void callback(char *topic, byte *payload, unsigned int length) {
+  Serial.printf("Message arrived [%s] ", topic);
+  for (unsigned int i = 0; i < length; i++)
+    Serial.print((char)payload[i]);
   Serial.println();
 
-  // Switch on the LED if an 1 was received as first character
-  if ((char)payload[0] == '1') {
-    digitalWrite(BUILTIN_LED, LOW);   // Turn the LED on (Note that LOW is the voltage level
-    // but actually the LED is on; this is because
-    // it is active low on the ESP-01)
-  } else {
-    digitalWrite(BUILTIN_LED, HIGH);  // Turn the LED off by making the voltage HIGH
-  }
+  if ((char)payload[0] == '1')
+    digitalWrite(BUILTIN_LED, LOW);
+  else
+    digitalWrite(BUILTIN_LED, HIGH);
 
+  if (strcmp(topic, "drm") == 0) {
+    char numBuf[32] = {};
+    size_t copyLen = length < sizeof(numBuf) - 1 ? length : sizeof(numBuf) - 1;
+    memcpy(numBuf, payload, copyLen);
+    handleDrmMessage(atoi(numBuf));
+  }
 }
 
 void reconnect() {
-  // Loop until we're reconnected
   while (!client->connected()) {
-    Serial.print("Attempting MQTT connection...");
-    // Create a random client ID
-    String clientId = "NSEC-";
-    clientId += String(random(0xffff), HEX);
-    // Attempt to connect
-    if (client->connect(clientId.c_str(), "esp_user", "esp_pass")) {
+    Serial.print("[ics] Attempting MQTT connection...");
+    auto creds = core::storage::wifiCredsGet();
+    if (client->connect(creds.ssid, "PLANT_SYSTEM", mqttPass)) {
       Serial.println("connected");
-      // Once connected, publish an announcement...
-      client->publish("outTopic", "hello world");
-      // ... and resubscribe
-      client->subscribe("inTopic");
-      client->subscribe("outTopic");
+      client->subscribe("drm");
     } else {
-      Serial.print("failed, rc=");
-      Serial.print(client->state());
-      Serial.println(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
+      Serial.printf("failed, rc=%d — retrying in 5s\r\n", client->state());
       delay(5000);
     }
   }
 }
 
-void init() {
+void start(Stream &stream) {
+  rc4(kRc4Key, sizeof(kRc4Key) - 1, kEncryptedPass, reinterpret_cast<uint8_t *>(mqttPass),
+      sizeof(kEncryptedPass));
+  mqttPass[sizeof(kEncryptedPass)] = '\0';
 
-  Serial.begin(115200);
-  while (!Serial) { }
+  auto creds = core::storage::wifiCredsGet();
 
-  Serial.print("Attempting to connect to SSID: ");
-  Serial.println(SSID);
+  WiFi.mode(WIFI_AP);
+  WiFi.softAP(creds.ssid, creds.passphrase);
 
-  WiFi.useStaticBuffers(true);
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(SSID, PASS);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-
-  Serial.println("");
-  Serial.println("Connected to WiFi");
+  IPAddress apIP = WiFi.softAPIP();
+  stream.printf("[ics] AP started: SSID=\"%s\" pass=\"%s\" @ %s\r\n", creds.ssid, creds.passphrase,
+                apIP.toString().c_str());
 
   espClient.setInsecure();
   client = new PubSubClient(espClient);
   client->setServer(mqtt_server, 8883);
   client->setCallback(callback);
 
-  reconnect();
+  active = true;
+}
+
+void stop(Stream &stream) {
+  if (client) {
+    if (client->connected())
+      client->disconnect();
+    delete client;
+    client = nullptr;
+  }
+
+  WiFi.softAPdisconnect(true);
+  drmState = DrmState::S1;
+  drmAccum = 1;
+  active = false;
+  stream.println("[ics] Stopped");
+}
+
+}  // namespace
+
+void init() {
+  core::cli::registerCommand("ics", "toggle ICS challenge",
+                             [](Stream &stream, const std::string &) {
+                               if (active)
+                                 stop(stream);
+                               else
+                                 start(stream);
+                             });
 }
 
 void tick() {
-  client->loop();
+  if (!active)
+    return;
 
-  unsigned long now = millis();
-  if (now - lastMsg > 2000) {
-    lastMsg = now;
-    ++value;
-    snprintf (msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
-    Serial.print("Publish message: ");
-    Serial.println(msg);
-    client->publish("outTopic", msg);
-  }
+  if (!client->connected())
+    reconnect();
+  client->loop();
 }
 
-} // namespace ics
-} // namespace challenges
+}  // namespace ics
+}  // namespace challenges
