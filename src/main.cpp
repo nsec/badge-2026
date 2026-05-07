@@ -149,6 +149,12 @@ void setup() {
 
   core::heartbeatStart();
 
+  // Print boot-complete banner before starting tasks so it is never
+  // interleaved with asynchronous task output.
+  Serial.println("Setup complete!");
+  Serial.println("Type 'help' for commands.");
+  Serial.flush();
+
   ledTask.start();
   controllerTask.start();
   cliTask.start();
@@ -167,9 +173,6 @@ void setup() {
     displayQueue.send(dc, core::Milliseconds(0));
   }
 
-  Serial.println("Setup complete!");
-  Serial.println("Type 'help' for commands.");
-  Serial.flush();
   lightTask.start();
 }
 

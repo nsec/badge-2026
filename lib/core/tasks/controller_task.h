@@ -111,6 +111,10 @@ private:
   bool _holdActive = false;
   hw::Button _lastButton = hw::Button::COUNT;
 
+  // True after the first enterIdle() (boot). Prevents auto-starting URL
+  // emulation on every return to idle.
+  bool _hasLeftBoot = false;
+
   // Brightness (1-10, default 5).
   uint8_t _brightnessLevel = 5;
 };
