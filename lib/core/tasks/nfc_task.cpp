@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include "hardware/serial_mutex.h"
+#include "tasks/cli.h"
 #include <algorithm>
 #include <cstdint>
 
@@ -1181,7 +1182,8 @@ void NfcTask::runReader() {
     core::hw::safeSerial().println("NFC reader: discover failed");
     return;
   }
-  core::hw::safeSerial().println("NFC reader: scanning... (press A to stop)");
+  core::hw::safeSerial().println("NFC reader: scanning... (press L to stop)");
+  cli::requestPrompt();
 
   for (;;) {
     NfcCommand cmd;
@@ -1189,7 +1191,8 @@ void NfcTask::runReader() {
       stopAndFlush(nfc);
       if (cmd.mode != NfcMode::Off && cmd.mode != NfcMode::Reader)
         _nfcQueue.send(cmd, Milliseconds(0));
-      core::hw::safeSerial().print("> ");
+      core::hw::safeSerial().println("NFC reader: stopped");
+      cli::requestPrompt();
       return;
     }
     nfc.rfalNfcWorker();
@@ -1254,8 +1257,7 @@ void NfcTask::runReader() {
     digitalWrite(badge::pins::NFC_LED, LOW);
     stopAndFlush(nfc);
     core::hw::safeSerial().println("---");
-    core::hw::safeSerial().print("> ");
-    core::hw::safeSerial().flush();
+    cli::requestPrompt();
     return;
   }
 }
@@ -1291,7 +1293,8 @@ void NfcTask::runEmulator() {
     return;
   }
 
-  core::hw::safeSerial().println("NFC emulator: NTAG213 (press B to stop)");
+  core::hw::safeSerial().println("NFC emulator: NTAG213 (press R to stop)");
+  cli::requestPrompt();
   g_isFirstFrame = true;
   g_wasEverActivated = false;
   g_lastActivityMs = millis();
@@ -1370,12 +1373,13 @@ void NfcTask::runPair() {
   // Check if we should share our profile
   const storage::UserConfig myCfg = storage::configRead();
 
-  core::hw::safeSerial().println("NFC-DEP pair: searching... (press A/B to stop)");
+  core::hw::safeSerial().println("NFC-DEP pair: searching... (press D to stop)");
 
   // Break symmetry with true hardware RNG - different on every attempt
   bool preferPoll = (esp_random() & 0x01) != 0;
   uint32_t initialDelay = esp_random() % 2000U;
-  core::hw::safeSerial().printf("NFC-DEP pair: delay %lums, role=%s\r\n", initialDelay, preferPoll ? "poll" : "listen");
+  // core::hw::safeSerial().printf("NFC-DEP pair: delay %lums, role=%s\r\n", initialDelay, preferPoll ? "poll" :
+  // "listen");
   vTaskDelay(pdMS_TO_TICKS(initialDelay));
 
   for (;;) {

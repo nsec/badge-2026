@@ -718,6 +718,10 @@ void init(Stream &io) {
   g_promptNeeded = true;
 }
 
+void requestPrompt() {
+  g_promptNeeded = true;
+}
+
 void poll() {
   if (!g_io)
     return;
