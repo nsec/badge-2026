@@ -186,6 +186,32 @@ void init() {
     else
       start(stream);
   });
+
+  core::cli::registerCommand("mqtt_pub", "publish to MQTT broker (topic payload)",
+                             [](Stream &stream, const std::string &args) {
+                               size_t sep = args.find(' ');
+                               if (sep == std::string::npos) {
+                                 stream.println("[mqtt_pub] usage: mqtt_pub <topic> <payload>");
+                                 return;
+                               }
+                               std::string topic = args.substr(0, sep);
+                               std::string payload = args.substr(sep + 1);
+
+                               WiFiClient plainClient;
+                               PubSubClient pubClient(plainClient);
+                               pubClient.setServer("192.168.4.137", 1337);
+
+                               stream.printf("[mqtt_pub] connecting to 192.168.4.137:1337...\r\n");
+                               if (!pubClient.connect("badge-mqtt-pub")) {
+                                 stream.printf("[mqtt_pub] connect failed, rc=%d\r\n", pubClient.state());
+                                 return;
+                               }
+                               if (pubClient.publish(topic.c_str(), payload.c_str()))
+                                 stream.printf("[mqtt_pub] published '%s' -> '%s'\r\n", payload.c_str(), topic.c_str());
+                               else
+                                 stream.println("[mqtt_pub] publish failed");
+                               pubClient.disconnect();
+                             });
 }
 
 void tick() {
