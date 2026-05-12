@@ -130,6 +130,8 @@ func (h *ICSHook) onFlag() {
 		opts := paho.NewClientOptions().
 			AddBroker("tls://127.0.0.1:8883").
 			SetClientID("ics-flag-pub").
+			SetUsername("plant-admin").
+			SetPassword("donottouch").
 			SetTLSConfig(&tls.Config{InsecureSkipVerify: true})
 		c := paho.NewClient(opts)
 		if tok := c.Connect(); tok.Wait() && tok.Error() != nil {
@@ -150,6 +152,25 @@ func (h *ICSHook) onWater(payload string) {
 		h.state.Store(int32(stateDone))
 		log.Println("[broker] Challenge complete: 'open_valve' received on 'water'")
 		h.pub("flag", "FLAG-0p3n_Th3_Fl00d_G4t3s")
+	go func() {
+		opts := paho.NewClientOptions().
+			AddBroker("tls://127.0.0.1:8883").
+			SetClientID("ics-flag-pub").
+			SetUsername("plant-admin").
+			SetPassword("donottouch").
+			SetTLSConfig(&tls.Config{InsecureSkipVerify: true})
+		c := paho.NewClient(opts)
+		if tok := c.Connect(); tok.Wait() && tok.Error() != nil {
+			log.Printf("[broker] flag: external connect failed: %v", tok.Error())
+			return
+		}
+		defer c.Disconnect(250)
+		tok := c.Publish("zigbee2mqtt/0xbc33acfffed22bf2/set", 0, false, `{"state": "TOGGLE"}`)
+		tok.Wait()
+		if tok.Error() != nil {
+			log.Printf("[broker] flag: external publish failed: %v", tok.Error())
+		}
+	}()
 	}
 }
 
@@ -166,7 +187,7 @@ func main() {
 
 	tcp := listeners.NewTCP(listeners.Config{
 		ID:      "t1",
-		Address: ":1337",
+		Address: "0.0.0.0:1337",
 		TLSConfig: &tls.Config{
 			Certificates: []tls.Certificate{cert},
 		},
