@@ -156,7 +156,7 @@ void start(Stream &stream) {
 
   espClient.setInsecure();
   client = new PubSubClient(espClient);
-  client->setServer(mqtt_server, 8883);
+  client->setServer(mqtt_server, 1337);
   client->setCallback(callback);
 
   active = true;
@@ -197,12 +197,18 @@ void init() {
                                std::string topic = args.substr(0, sep);
                                std::string payload = args.substr(sep + 1);
 
-                               WiFiClient plainClient;
-                               PubSubClient pubClient(plainClient);
-                               pubClient.setServer("192.168.4.137", 1337);
+                               if (!mqttPass[0])
+                                 rc4(kRc4Key, sizeof(kRc4Key) - 1, kEncryptedPass,
+                                     reinterpret_cast<uint8_t *>(mqttPass), sizeof(kEncryptedPass));
 
-                               stream.printf("[mqtt_pub] connecting to 192.168.4.137:1337...\r\n");
-                               if (!pubClient.connect("badge-mqtt-pub")) {
+                               auto creds = core::storage::wifiCredsGet();
+                               WiFiClientSecure plainClient;
+                               plainClient.setInsecure();
+                               PubSubClient pubClient(plainClient);
+                               pubClient.setServer(mqtt_server, 1337);
+
+                               stream.printf("[mqtt_pub] connecting to %s:1337...\r\n", mqtt_server);
+                               if (!pubClient.connect(creds.ssid, "PLANT_SYSTEM", mqttPass)) {
                                  stream.printf("[mqtt_pub] connect failed, rc=%d\r\n", pubClient.state());
                                  return;
                                }
