@@ -178,8 +178,16 @@ void ControllerTask::enterIdle(uint32_t deferMs) {
     sendCurrentIdleAnimation();
   }
 
-  // Advertise an NDEF URI to phones tapping the badge while idle.
-  _nfcQueue.send(NfcCommand{NfcMode::UrlEmulator}, Milliseconds(0));
+  // On first boot, start the URL emulator so the badge is immediately
+  // tappable. After that, NFC stays off in idle — the user can start
+  // emulation explicitly with the Right button.
+  if (!_hasLeftBoot) {
+    _hasLeftBoot = true;
+    _nfcQueue.send(NfcCommand{NfcMode::UrlEmulator}, Milliseconds(0));
+    // Reflect the active emulator in state so pressing Right toggles it off
+    // rather than stop+restart.
+    _state = State::NfcEmulator;
+  }
 }
 
 void ControllerTask::enterSocial() {

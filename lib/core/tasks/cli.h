@@ -16,5 +16,8 @@ void poll();
 // Command registration for modules
 void registerCommand(const std::string &name, const std::string &help, CommandHandler handler);
 
+// Request a fresh prompt on the next poll() cycle (use after async prints).
+void requestPrompt();
+
 }  // namespace cli
 }  // namespace core
