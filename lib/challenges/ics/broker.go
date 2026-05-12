@@ -11,8 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	paho "github.com/eclipse/paho.mqtt.golang"
 	mqtt "github.com/mochi-mqtt/server/v2"
-	"github.com/mochi-mqtt/server/v2/hooks/auth"
 	"github.com/mochi-mqtt/server/v2/listeners"
 	"github.com/mochi-mqtt/server/v2/packets"
 )
@@ -37,7 +37,19 @@ type ICSHook struct {
 func (h *ICSHook) ID() string { return "ics-hook" }
 
 func (h *ICSHook) Provides(b byte) bool {
-	return b == mqtt.OnPublished || b == mqtt.OnSubscribed
+	return b == mqtt.OnPublished || b == mqtt.OnSubscribed || b == mqtt.OnConnectAuthenticate || b == mqtt.OnACLCheck
+}
+
+func (h *ICSHook) OnACLCheck(cl *mqtt.Client, topic string, write bool) bool {
+	return true
+}
+
+func (h *ICSHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
+	log.Printf("Authenticating with %s:%s", string(pk.Connect.Username), string(pk.Connect.Password))
+	auth := string(pk.Connect.Username) == "PLANT_SYSTEM" &&
+		string(pk.Connect.Password) == "FLAG-L1c3ns3d_Pl4nts_Sh0uld_B3_Fr33"
+	log.Printf("Auth: %s", auth)
+	return auth
 }
 
 func (h *ICSHook) pub(topic, payload string) {
@@ -47,6 +59,7 @@ func (h *ICSHook) pub(topic, payload string) {
 }
 
 func (h *ICSHook) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonCodes []byte) {
+	log.Printf("OnSub")
 	for _, sub := range pk.Filters {
 		if sub.Filter == "drm" {
 			if h.state.CompareAndSwap(int32(stateInit), int32(stateWaitFor67)) {
@@ -63,8 +76,10 @@ func (h *ICSHook) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonCodes [
 
 func (h *ICSHook) OnPublished(cl *mqtt.Client, pk packets.Packet) {
 	if cl == nil || !strings.HasPrefix(cl.ID, "NSEC-") {
+		log.Printf("Wrong ID")
 		return
 	}
+	log.Printf("Published")
 
 	payload := strings.TrimSpace(string(pk.Payload))
 
@@ -73,6 +88,8 @@ func (h *ICSHook) OnPublished(cl *mqtt.Client, pk packets.Packet) {
 		h.onDrm(payload)
 	case "water":
 		h.onWater(payload)
+	case "flag":
+		h.onFlag()
 	}
 }
 
@@ -106,16 +123,38 @@ func (h *ICSHook) onDrm(payload string) {
 	}
 }
 
+func (h *ICSHook) onFlag() {
+	log.Printf("flag pub")
+	h.pub("flag", "FLAG-L3t_Th3r3_B3_L1ght")
+	go func() {
+		opts := paho.NewClientOptions().
+			AddBroker("tls://127.0.0.1:8883").
+			SetClientID("ics-flag-pub").
+			SetTLSConfig(&tls.Config{InsecureSkipVerify: true})
+		c := paho.NewClient(opts)
+		if tok := c.Connect(); tok.Wait() && tok.Error() != nil {
+			log.Printf("[broker] flag: external connect failed: %v", tok.Error())
+			return
+		}
+		defer c.Disconnect(250)
+		tok := c.Publish("zigbee2mqtt/0x8c6fb9fffe4a325e/set", 0, false, `{"state": "TOGGLE"}`)
+		tok.Wait()
+		if tok.Error() != nil {
+			log.Printf("[broker] flag: external publish failed: %v", tok.Error())
+		}
+	}()
+}
+
 func (h *ICSHook) onWater(payload string) {
 	if brokerState(h.state.Load()) == stateWaitValve && payload == "open_valve" {
 		h.state.Store(int32(stateDone))
 		log.Println("[broker] Challenge complete: 'open_valve' received on 'water'")
+		h.pub("flag", "FLAG-0p3n_Th3_Fl00d_G4t3s")
 	}
 }
 
 func main() {
-	server := mqtt.New(nil)
-	_ = server.AddHook(new(auth.AllowHook), nil)
+	server := mqtt.New(&mqtt.Options{InlineClient: true})
 
 	hook := &ICSHook{server: server}
 	_ = server.AddHook(hook, nil)
@@ -127,7 +166,7 @@ func main() {
 
 	tcp := listeners.NewTCP(listeners.Config{
 		ID:      "t1",
-		Address: ":8883",
+		Address: ":1337",
 		TLSConfig: &tls.Config{
 			Certificates: []tls.Certificate{cert},
 		},
@@ -141,7 +180,7 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
-	log.Println("MQTT Broker running on :8883")
+	log.Println("MQTT Broker running on :1337")
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
