@@ -56,8 +56,8 @@ LED_GREEN = 0x02
 LED_BLUE = 0x03
 
 # --- Flags ---
-CRYSTAL_FLAG = "NSEC{cryst4l_tun3d_VQE_2026}"
-GRID_FLAG = "NSEC{gr1d_0pt1m1z3d_QAOA_2026}"
+CRYSTAL_FLAG = "FLAG{cryst4l_tun3d_VQE_2026}"
+GRID_FLAG = "FLAG{gr1d_0pt1m1z3d_QAOA_2026}"
 
 # --- Colors ---
 RED = (255, 0, 0)
