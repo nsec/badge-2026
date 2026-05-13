@@ -50,8 +50,54 @@ jobs:
         run: |
           pio pkg install -g --tool "platformio/tool-mkspiffs@~2"
 
+      # --- Apply release build hardening (CI only — does not modify repo) ---
+      - name: Harden build for release
+        run: |
+          SDKCONFIG="sdkconfig.badge_esp32s3"
+
+          # Switch compiler optimization from -Og (debug) to -Os (size)
+          sed -i 's/^CONFIG_COMPILER_OPTIMIZATION_DEFAULT=y$/# CONFIG_COMPILER_OPTIMIZATION_DEFAULT is not set/' "$SDKCONFIG"
+          sed -i 's/^# CONFIG_COMPILER_OPTIMIZATION_SIZE is not set$/CONFIG_COMPILER_OPTIMIZATION_SIZE=y/' "$SDKCONFIG"
+
+          # Silent assertions — removes __FILE__ / line-number strings from binary
+          sed -i 's/^CONFIG_COMPILER_OPTIMIZATION_ASSERTIONS_ENABLE=y$/# CONFIG_COMPILER_OPTIMIZATION_ASSERTIONS_ENABLE is not set/' "$SDKCONFIG"
+          sed -i 's/^# CONFIG_COMPILER_OPTIMIZATION_ASSERTIONS_SILENT is not set$/CONFIG_COMPILER_OPTIMIZATION_ASSERTIONS_SILENT=y/' "$SDKCONFIG"
+          sed -i 's/^CONFIG_COMPILER_OPTIMIZATION_ASSERTION_LEVEL=2$/CONFIG_COMPILER_OPTIMIZATION_ASSERTION_LEVEL=1/' "$SDKCONFIG"
+
+          # Reduce ESP-IDF log level to ERROR — strips info/warn/debug format strings
+          sed -i 's/^CONFIG_LOG_DEFAULT_LEVEL_INFO=y$/# CONFIG_LOG_DEFAULT_LEVEL_INFO is not set/' "$SDKCONFIG"
+          sed -i 's/^# CONFIG_LOG_DEFAULT_LEVEL_ERROR is not set$/CONFIG_LOG_DEFAULT_LEVEL_ERROR=y/' "$SDKCONFIG"
+          sed -i 's/^CONFIG_LOG_DEFAULT_LEVEL=3$/CONFIG_LOG_DEFAULT_LEVEL=1/' "$SDKCONFIG"
+          sed -i 's/^CONFIG_LOG_MAXIMUM_LEVEL=3$/CONFIG_LOG_MAXIMUM_LEVEL=1/' "$SDKCONFIG"
+
+          # Add -DNDEBUG to all ESP32 build environments (strips C assert() strings)
+          # Only matches -std=gnu++17 which appears in ESP32 envs, not native (-std=c++17)
+          sed -i 's/-std=gnu++17/-std=gnu++17\n  -DNDEBUG/' platformio.ini
+
+          echo "Release hardening applied:"
+          grep -E 'OPTIMIZATION_(SIZE|ASSERTIONS_SILENT|DEFAULT)' "$SDKCONFIG" | head -5
+          grep 'LOG_DEFAULT_LEVEL=' "$SDKCONFIG" | head -2
+
       - name: Build all firmware variants
         run: pio run
+
+      # --- Strip ELF symbol tables (prevents function name recovery in RE tools) ---
+      - name: Strip debug symbols from firmware ELF
+        run: |
+          STRIP=$(find ~/.platformio/packages -name 'xtensa-esp32s3-elf-strip' -type f 2>/dev/null | head -1)
+          if [ -z "$STRIP" ]; then
+            echo "::warning::xtensa strip tool not found, skipping ELF stripping"
+            exit 0
+          fi
+          for env in esp32-s3-devkitc-1-conference esp32-s3-devkitc-1-conference-only esp32-s3-devkitc-1-ctf; do
+            elf=".pio/build/${env}/firmware.elf"
+            if [ -f "$elf" ]; then
+              size_before=$(stat -c%s "$elf")
+              "$STRIP" --strip-all "$elf"
+              size_after=$(stat -c%s "$elf")
+              echo "Stripped ${env}: ${size_before} -> ${size_after} bytes"
+            fi
+          done
 
       # --- Verify build outputs exist before packaging ---
       - name: Verify build outputs
