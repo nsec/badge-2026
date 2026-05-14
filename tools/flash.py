@@ -7,12 +7,14 @@ Supports two distribution modes:
   dual            : Flashes both conference and CTF firmware
 
 Supports multi-flash: connect multiple badges and flash them all in parallel.
+Supports continuous mode: run a station that flashes badges as they're plugged in.
 
 Usage:
   python flash.py --mode dual                          # auto-detect one badge
   python flash.py --mode dual --port /dev/ttyACM0      # explicit single port
   python flash.py --mode conference-only --all          # flash ALL connected badges
   python flash.py --mode dual --all --dry-run           # preview multi-flash
+  python flash.py --mode conference-only --continuous   # kiosk: flash any badge as it appears
   python flash.py --erase                               # erase one badge
   python flash.py --erase --all                         # erase ALL connected badges
   python flash.py --list-ports                          # show detected ESP32-S3 ports
@@ -307,6 +309,161 @@ def flash_multiple(ports, baud, entries, mode, dry_run=False):
 
 
 # ---------------------------------------------------------------------------
+# Continuous mode (station kiosk)
+# ---------------------------------------------------------------------------
+
+CONTINUOUS_POLL_INTERVAL = 1.0    # seconds between port scans
+CONTINUOUS_UNPLUG_GRACE = 3.0     # port must be absent this long after re-enum to count as unplugged
+CONTINUOUS_REBOOT_WAIT = 30.0     # if port never reappears after flash, declare gone
+
+
+class ContinuousFlasher:
+    """
+    Station-mode flasher: polls for badges, flashes each as it appears, then
+    waits for the operator to unplug before allowing the same port to flash again.
+
+    Per-port state machine:
+      <not tracked>  -> seen on USB & not in_progress     -> dispatch to worker
+      in_progress    -> worker running                    -> wait
+      cooldown       -> worker done; wait for unplug      -> remove on absence >= UNPLUG_GRACE
+                                                             after at least one re-enum sighting
+                                                             (or REBOOT_WAIT timeout if never seen)
+    """
+
+    def __init__(self, baud, entries, mode):
+        self.baud = baud
+        self.entries = entries
+        self.mode = mode
+        self.lock = threading.Lock()
+        self.in_progress = set()
+        self.cooldown = {}  # port -> {"completed_at", "seen_after", "last_present"}
+        self.results = []
+        self.badge_seq = 0
+        self.start_time = time.monotonic()
+        self.stop_flag = False
+
+    def log(self, msg):
+        ts = time.strftime("%H:%M:%S")
+        print(f"[{ts}] {msg}", flush=True)
+
+    def _event(self, port, tag, detail=""):
+        # Aligned columns so the log scans cleanly at a station.
+        self.log(f"{port:<18} {tag:<7} {detail}")
+
+    def run(self):
+        self.log(f"Continuous mode armed ({self.mode}). Polling every {CONTINUOUS_POLL_INTERVAL:.1f}s.")
+        self.log("Plug a badge in to flash it. Press Ctrl-C to stop.")
+        try:
+            while not self.stop_flag:
+                self._tick()
+                time.sleep(CONTINUOUS_POLL_INTERVAL)
+        except KeyboardInterrupt:
+            print()
+            self.log("Stop requested. Waiting for in-flight flashes to finish...")
+        self._drain_in_flight()
+        self._print_summary()
+
+    def _drain_in_flight(self):
+        deadline = time.monotonic() + 150
+        while time.monotonic() < deadline:
+            with self.lock:
+                pending = list(self.in_progress)
+            if not pending:
+                return
+            self.log(f"  still flashing: {', '.join(pending)}")
+            time.sleep(2.0)
+        self.log("WARN: gave up waiting for in-flight workers.")
+
+    def _tick(self):
+        try:
+            present = set(detect_badge_ports())
+        except Exception as e:
+            self.log(f"WARN: port enumeration failed: {e}")
+            return
+
+        now = time.monotonic()
+        to_dispatch = []
+
+        with self.lock:
+            # Advance cooldown state for ports we recently flashed
+            for port in list(self.cooldown.keys()):
+                state = self.cooldown[port]
+                if port in present:
+                    state["seen_after"] = True
+                    state["last_present"] = now
+                    continue
+                last_present = state["last_present"]
+                if state["seen_after"] and last_present is not None and (now - last_present) >= CONTINUOUS_UNPLUG_GRACE:
+                    del self.cooldown[port]
+                    self._event(port, "READY", "unplugged, ready for next badge")
+                elif not state["seen_after"] and (now - state["completed_at"]) >= CONTINUOUS_REBOOT_WAIT:
+                    del self.cooldown[port]
+                    self._event(port, "LOST", "no re-enumeration after flash")
+
+            # Dispatch new badges
+            for port in present:
+                if port in self.in_progress or port in self.cooldown:
+                    continue
+                self.in_progress.add(port)
+                self.badge_seq += 1
+                to_dispatch.append((port, self.badge_seq))
+
+        for port, seq in to_dispatch:
+            self._event(port, "START", f"badge #{seq} ({self.mode})")
+            t = threading.Thread(target=self._worker, args=(port, seq), daemon=True)
+            t.start()
+
+    def _worker(self, port, seq):
+        t0 = time.monotonic()
+        _, ok, msg = flash_one_badge(port, self.baud, self.entries, self.mode)
+        elapsed = time.monotonic() - t0
+
+        with self.lock:
+            self.in_progress.discard(port)
+            self.cooldown[port] = {
+                "completed_at": time.monotonic(),
+                "seen_after": False,
+                "last_present": None,
+            }
+            self.results.append({
+                "port": port,
+                "seq": seq,
+                "ok": ok,
+                "elapsed": elapsed,
+                "message": msg,
+                "timestamp": time.strftime("%H:%M:%S"),
+            })
+            if ok:
+                self._event(port, "OK", f"badge #{seq} flashed in {elapsed:.1f}s — unplug now")
+            else:
+                self._event(port, "FAIL", f"badge #{seq} after {elapsed:.1f}s")
+                for line in (msg or "").splitlines():
+                    line = line.strip()
+                    if line:
+                        self.log(f"                                    {line}")
+
+    def _print_summary(self):
+        elapsed = time.monotonic() - self.start_time
+        ok = sum(1 for r in self.results if r["ok"])
+        bad = len(self.results) - ok
+        mins = int(elapsed // 60)
+        secs = elapsed - mins * 60
+        print()
+        print("=" * 60)
+        print("Continuous session summary")
+        print("=" * 60)
+        print(f"Duration:  {mins}m {secs:.1f}s")
+        print(f"Flashed:   {len(self.results)} badge(s) — {ok} OK, {bad} failed")
+        if bad:
+            print("Failures:")
+            for r in self.results:
+                if r["ok"]:
+                    continue
+                first_line = (r["message"] or "(no message)").splitlines()[0]
+                print(f"  - badge #{r['seq']} ({r['port']}) at {r['timestamp']}: {first_line}")
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -323,6 +480,10 @@ Examples (single badge):
 Examples (multi-flash):
   python flash.py --mode dual --all                      # flash ALL detected badges
   python flash.py --mode conference-only --all --dry-run  # preview without flashing
+
+Continuous (kiosk / station):
+  python flash.py --mode conference-only --continuous    # flash badges as they appear; Ctrl-C to stop
+  python flash.py --mode dual --continuous               # same, with dual firmware
 
 Erase:
   python flash.py --erase                                # erase one badge
@@ -357,6 +518,11 @@ Utility:
         action="store_true",
         help="List all serial ports and exit",
     )
+    parser.add_argument(
+        "--continuous",
+        action="store_true",
+        help="Continuous station mode: poll for badges and flash each one as it's plugged in.",
+    )
 
     args = parser.parse_args()
 
@@ -369,6 +535,37 @@ Utility:
             print(f"\nDetected {len(badges)} ESP32-S3 badge(s): {', '.join(badges)}")
         else:
             print("\nNo ESP32-S3 badges detected.")
+        return
+
+    # ---- Continuous (station) mode ----
+    if args.continuous:
+        if args.erase:
+            parser.error("--continuous cannot be combined with --erase")
+        if args.all:
+            parser.error("--continuous cannot be combined with --all")
+        if args.port:
+            parser.error("--continuous cannot be combined with --port")
+        if not args.mode:
+            parser.error("--continuous requires --mode")
+
+        bin_dir = resolve_bin_dir(args)
+        entries = validate_files(bin_dir, args.mode)
+
+        print("=== NorthSec Badge 2026 Flasher — CONTINUOUS MODE ===")
+        print(f"Mode:      {args.mode}")
+        print(f"Bin dir:   {bin_dir}")
+        print("Files to flash:")
+        for fpath, addr in entries:
+            size_kb = os.path.getsize(fpath) / 1024
+            print(f"  {addr}  {os.path.basename(fpath)}  ({size_kb:.1f} KB)")
+        print()
+
+        if args.dry_run:
+            print("[DRY RUN] Would enter continuous polling loop and flash badges as they appear.")
+            return
+
+        flasher = ContinuousFlasher(args.baud, entries, args.mode)
+        flasher.run()
         return
 
     # --mode is required for flashing (but not for --erase or --list-ports)
