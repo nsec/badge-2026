@@ -372,21 +372,23 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed instructions on adding:
 - Challenge modules (CTF firmware)
 - Core utilities (shared by both)
 
-## Notes / TODO
-
-- Update `lib/core/hardware/board_pins.h` with the real badge pin mapping
-- Add more conference features (badge pairing, social features)
-- Add more CTF challenges (hardware, reverse engineering)
-- Consider adding `ota_1` partition for triple-boot capability
-
 ## License
 
 Apache-2.0 (see `LICENSE`).
-# Northsec 2026 badge
-
-## Hardware
-
-## Firmware
 
 ## Credits
 NorthSec CTF badge 2026 is brought to you by the teamwork of:
+
+ - [20th](https://github.com/20th)
+ - [Svieg](https://github.com/Svieg)
+ - [TheKGBSpy](https://github.com/TheKGBSpy)
+ - [jgalar](https://github.com/jgalar)
+ - [lle](https://github.com/lle)
+ - [mjeanson](https://github.com/mjeanson)
+ - [nyx0](https://github.com/nyx0)
+ - [p0ns](https://github.com/p0ns)
+ - [padraignix](https://github.com/padraignix)
+
+Special thanks to:
+ - [Marc-Olivier](https://github.com/D3c4f-NS)
+ - David
